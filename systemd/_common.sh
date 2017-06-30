@@ -32,7 +32,7 @@ function init_serialport {
     exit 1
   elif [ "${MODEM_BAUDRATE}" == "${BAUDRATE}" ]; then
     return
-  elif [ -z "${BAUDRATE}" ]; then
+  elif [ -n "${BAUDRATE}" ]; then
     candy_command modem "{\"action\":\"init\",\"baudrate\":\"${BAUDRATE}\"}"
   fi
 }
