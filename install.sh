@@ -115,8 +115,6 @@ function install_ppp {
   sed -i -e "s/%MODEM_SERIAL_PORT%/QWS.UC20.MODEM/g" /etc/ppp/peers/candy-pi-lite-uc20
   sed -i -e "s/%MODEM_BAUDRATE%/115200/g" /etc/ppp/peers/candy-pi-lite-uc20
 
-  install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-uc20
-
   _ufw_setup
 }
 
