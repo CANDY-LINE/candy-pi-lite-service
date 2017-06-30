@@ -39,6 +39,6 @@ function init_serialport {
 
 function candy_command {
   MODEM_BAUDRATE=${MODEM_BAUDRATE:-115200}
-  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $2 $3 ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} /var/run/candy-board-service.sock`
+  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} /var/run/candy-board-service.sock`
   RET=$?
 }
