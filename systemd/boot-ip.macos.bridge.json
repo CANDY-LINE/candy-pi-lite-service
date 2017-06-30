@@ -1,0 +1,6 @@
+{
+  "interface":"eth0",
+  "ip_address":"192.168.3.200/24",
+  "routers":"192.168.3.1",
+  "domain_name_servers":"192.168.3.1"
+}
