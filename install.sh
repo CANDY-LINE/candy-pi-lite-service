@@ -102,8 +102,8 @@ function install_ppp {
 
   install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-uart
   port="${UART_PORT}"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" /etc/ppp/peers/candy-pi-lite
-  sed -i -e "s/%MODEM_BAUDRATE%/${BAUDRATE//\//\\/}/g" /etc/ppp/peers/candy-pi-lite
+  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-uart
+  sed -i -e "s/%MODEM_BAUDRATE%/${BAUDRATE//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-uart
 
   install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-ec21
   port="/dev/QWS.EC21.MODEM"
@@ -112,7 +112,7 @@ function install_ppp {
 
   install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-uc20
   port="/dev/QWS.UC20.MODEM"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/QWS.UC20.MODEM/g" /etc/ppp/peers/candy-pi-lite-uc20
+  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-uc20
   sed -i -e "s/%MODEM_BAUDRATE%/115200/g" /etc/ppp/peers/candy-pi-lite-uc20
 
   _ufw_setup
