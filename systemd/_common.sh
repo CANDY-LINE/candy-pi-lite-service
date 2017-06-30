@@ -17,19 +17,8 @@ function log {
 }
 
 function look_for_serial_port {
-  MAX=60
-  COUNTER=0
-  while [ ${COUNTER} -lt ${MAX} ];
-  do
-    MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
-    if [ "${MODEM_SERIAL_PORT}" != "None" ]; then
-      COUNTER=0
-      break
-    fi
-    sleep 1
-    let COUNTER=COUNTER+1
-  done
-  log "${MODEM_SERIAL_PORT} is selected"
+  MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
+  log "Serial port: ${MODEM_SERIAL_PORT} is selected"
 }
 
 function init_serialport {
