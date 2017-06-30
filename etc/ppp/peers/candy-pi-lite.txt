@@ -1,0 +1,19 @@
+#debug
+nodetach
+nolock
+%MODEM_SERIAL_PORT%
+%MODEM_BAUDRATE%
+nocrtscts
+modem
+hide-password
+usepeerdns
+noauth
+noipdefault
+novj
+novjccomp
+noccp
+defaultroute
+ipcp-accept-local
+ipcp-accept-remote
+connect 'chat -s -v -f /etc/chatscripts/candy-pi-lite-connect'
+disconnect 'chat -s -v -f /etc/chatscripts/candy-pi-lite-disconnect'
