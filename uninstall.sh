@@ -71,6 +71,8 @@ function uninstall_service {
   rm -f ${SERVICE_HOME}/*.py
   rm -f ${SERVICE_HOME}/*.pyc
   rm -f ${SERVICE_HOME}/*.json
+  rm -f /etc/chatscripts/candy-pi-lite-*
+  rm -f /etc/ppp/peers/candy-pi-lite*
   systemctl daemon-reload
   info "${SERVICE_NAME} has been uninstalled"
   REBOOT=1
