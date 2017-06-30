@@ -1,10 +1,10 @@
-// Definitions for CANDY-Pi Board SC16IS750 UART on spi0.0
+// Definitions for SC16IS750 UART on spi0.0
 /dts-v1/;
 /plugin/;
 
 / {
     compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
-    /* disable spi-dev for spi0.0 */
+
     fragment@0 {
         target = <&spi0>;
         __overlay__ {
@@ -22,7 +22,7 @@
          #size-cells = <0>;
          status = "okay";
 
-         sc16is752: sc16is752@0 {
+         sc16is750: sc16is750@0 {
             compatible = "nxp,sc16is750";
             reg = <0>; /* CE0 */
             spi-max-frequency = <4000000>;
@@ -33,7 +33,7 @@
             klok: klok {
                compatible = "fixed-clock";
                #clock-cells = <0>;
-               clock-frequency = <12000000>;
+               clock-frequency = <14756000>;
             };
          };
       };
