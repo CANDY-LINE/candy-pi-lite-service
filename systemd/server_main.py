@@ -165,8 +165,8 @@ def candy_command(category, action, serial_port, baudrate,
     delete_sock_path(sock_path)
     atexit.register(delete_sock_path, sock_path)
 
-    serial = candy_board_amt.SerialPort(serial_port, baudrate)
-    server = candy_board_amt.SockServer(resolve_version(),
+    serial = candy_board_qws.SerialPort(serial_port, baudrate)
+    server = candy_board_qws.SockServer(resolve_version(),
                                         resolve_boot_apn(),
                                         sock_path, serial)
     args = {}
