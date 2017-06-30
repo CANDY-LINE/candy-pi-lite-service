@@ -14,13 +14,6 @@ function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
 }
 
-function log {
-  logger -t ${PRODUCT_DIR_NAME} $1
-  if [ "${DEBUG}" ]; then
-    echo ${PRODUCT_DIR_NAME} $1
-  fi
-}
-
 function remove_default_routes {
   for n in `ls /sys/class/net`
   do

@@ -9,6 +9,13 @@ function assert_root {
   fi
 }
 
+function log {
+  logger -t ${PRODUCT_DIR_NAME} $1
+  if [ "${DEBUG}" ]; then
+    echo ${PRODUCT_DIR_NAME} $1
+  fi
+}
+
 function look_for_serial_port {
   MAX=60
   COUNTER=0
