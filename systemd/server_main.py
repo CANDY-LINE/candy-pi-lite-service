@@ -249,7 +249,7 @@ if __name__ == '__main__':
                      "Shutting down.")
     elif len(sys.argv) > 3:
         candy_command(
-            sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[4])
+            sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     else:
         logger.info("serial_port:%s, nic:%s" % (sys.argv[1], sys.argv[2]))
         try:
