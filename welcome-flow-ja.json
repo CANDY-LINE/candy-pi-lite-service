@@ -1,0 +1,258 @@
+[
+    {
+        "id": "b95be41e.e579a8",
+        "type": "tab",
+        "label": "サンプルフロー"
+    },
+    {
+        "id": "e5827617.1a7d88",
+        "type": "ui_tab",
+        "z": "b95be41e.e579a8",
+        "name": "ホーム",
+        "icon": "dashboard"
+    },
+    {
+        "id": "73663f28.8c99c",
+        "type": "ui_group",
+        "z": "b95be41e.e579a8",
+        "name": "CANDY REDへようこそ！",
+        "tab": "e5827617.1a7d88",
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "97041483.68fbe8",
+        "type": "ui_group",
+        "z": "",
+        "name": "メモリー情報",
+        "tab": "e5827617.1a7d88",
+        "order": 2,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "603719ca.9fc8e8",
+        "type": "ui_base",
+        "name": "ダッシュボードUI",
+        "theme": "theme-dark"
+    },
+    {
+        "id": "37e1c291.b2b756",
+        "type": "debug",
+        "z": "b95be41e.e579a8",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "false",
+        "x": 600.5,
+        "y": 277,
+        "wires": []
+    },
+    {
+        "id": "95169178.6ae97",
+        "type": "moment",
+        "z": "b95be41e.e579a8",
+        "name": "",
+        "topic": "",
+        "input": "",
+        "inputType": "date",
+        "inTz": "",
+        "adjAmount": 0,
+        "adjType": "days",
+        "adjDir": "add",
+        "format": "",
+        "locale": "\"C\"",
+        "output": "",
+        "outputType": "msg",
+        "outTz": "Asia/Tokyo",
+        "x": 283.5,
+        "y": 345,
+        "wires": [
+            [
+                "275b917.fd8a46e",
+                "37e1c291.b2b756"
+            ]
+        ]
+    },
+    {
+        "id": "89c364b0.763c98",
+        "type": "inject",
+        "z": "b95be41e.e579a8",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "x": 151.5,
+        "y": 154,
+        "wires": [
+            [
+                "95169178.6ae97",
+                "3eda58ea.c125a8"
+            ]
+        ]
+    },
+    {
+        "id": "275b917.fd8a46e",
+        "type": "ui_text",
+        "z": "b95be41e.e579a8",
+        "group": "73663f28.8c99c",
+        "order": 0,
+        "width": "0",
+        "height": "0",
+        "name": "現在日時",
+        "label": "ただいまの日時",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 602.5,
+        "y": 448,
+        "wires": []
+    },
+    {
+        "id": "3eda58ea.c125a8",
+        "type": "DeviceStats",
+        "z": "b95be41e.e579a8",
+        "name": "メモリー情報収集",
+        "mem": true,
+        "nw": false,
+        "load": false,
+        "hostname": false,
+        "useString": false,
+        "x": 164.5,
+        "y": 462,
+        "wires": [
+            [
+                "b9522797.46add8"
+            ]
+        ]
+    },
+    {
+        "id": "52a6144f.ad59ec",
+        "type": "ui_chart",
+        "z": "b95be41e.e579a8",
+        "group": "97041483.68fbe8",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "label": "空きメモリー (MiB)",
+        "name": "空きメモリー (MiB)",
+        "interpolate": "linear",
+        "nodata": "",
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "10",
+        "removeOlderUnit": "60",
+        "x": 617.5,
+        "y": 500,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b9522797.46add8",
+        "type": "change",
+        "z": "b95be41e.e579a8",
+        "name": "空きメモリーの選択",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.mem.free",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 322.5,
+        "y": 558,
+        "wires": [
+            [
+                "85ecb5da.7a1348"
+            ]
+        ]
+    },
+    {
+        "id": "85ecb5da.7a1348",
+        "type": "function",
+        "z": "b95be41e.e579a8",
+        "name": "MiBへの単位変換",
+        "func": "msg.payload = msg.payload / 1024.0;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 438.5,
+        "y": 641,
+        "wires": [
+            [
+                "37e1c291.b2b756",
+                "52a6144f.ad59ec"
+            ]
+        ]
+    },
+    {
+        "id": "3f3a3acd.c0c5c6",
+        "type": "comment",
+        "z": "b95be41e.e579a8",
+        "name": "このフローのスタート地点（秒単位の起動を行っています）",
+        "info": "",
+        "x": 266.5,
+        "y": 112,
+        "wires": []
+    },
+    {
+        "id": "d7d11ebc.282ee",
+        "type": "comment",
+        "z": "b95be41e.e579a8",
+        "name": "右側のデバッグ(debug)タブに表示",
+        "info": "",
+        "x": 604.5,
+        "y": 237,
+        "wires": []
+    },
+    {
+        "id": "9391d60f.6c6e28",
+        "type": "comment",
+        "z": "b95be41e.e579a8",
+        "name": "ダッシュボードのUI",
+        "info": "",
+        "x": 614.5,
+        "y": 402,
+        "wires": []
+    },
+    {
+        "id": "de7667de.218998",
+        "type": "comment",
+        "z": "b95be41e.e579a8",
+        "name": "タイムスタンプのミリ秒を日付に変更",
+        "info": "",
+        "x": 281.5,
+        "y": 301,
+        "wires": []
+    },
+    {
+        "id": "4ebc1aa1.b143e4",
+        "type": "comment",
+        "z": "b95be41e.e579a8",
+        "name": "空きメモリー情報の収集",
+        "info": "",
+        "x": 178.5,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "503aa588.afc55c",
+        "type": "comment",
+        "z": "b95be41e.e579a8",
+        "name": "サンプルフロー",
+        "info": "このフローを変更したり、あるいは新しいフローを追加したりして、自分のフローを作ってみましょう。",
+        "x": 368.5,
+        "y": 46,
+        "wires": []
+    }
+]
