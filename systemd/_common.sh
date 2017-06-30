@@ -45,6 +45,7 @@ function init_serialport {
     return
   elif [ -z "${BAUDRATE}" ]; then
     candy_command modem "{\"action\":\"init\",\"baudrate\":\"${BAUDRATE}\"}"
+  fi
 }
 
 function candy_command {
