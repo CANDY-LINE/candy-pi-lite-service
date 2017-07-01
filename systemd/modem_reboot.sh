@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+PRODUCT_DIR_NAME="candy-pi-lite"
+
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
 }
