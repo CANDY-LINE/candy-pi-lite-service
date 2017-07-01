@@ -22,7 +22,6 @@ function look_for_serial_port {
 }
 
 function init_serialport {
-  look_for_serial_port
   if [ "${MODEM_SERIAL_PORT}" != "${UART_PORT}" ]; then
     return
   fi
