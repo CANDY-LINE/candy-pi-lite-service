@@ -14,18 +14,6 @@ function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
 }
 
-function remove_default_routes {
-  for n in `ls /sys/class/net`
-  do
-    if [ "${n}" != "lo" ] && [ "${n}" != "ppp0" ]; then
-      IP=`ip route | grep ${n} | awk '/default/ { print $3 }'`
-      if [ -n "${IP}" ]; then
-        ip route del default via ${IP}
-      fi
-    fi
-  done
-}
-
 function boot_ip_reset {
   if [ -f "/boot/boot-ip-reset" ]; then
     rm -f "/boot/boot-ip-reset"
@@ -136,17 +124,11 @@ function wait_for_online {
   fi
 }
 
-function add_default_route {
-  ip route add default via 10.64.64.64
-}
-
 function connect {
   poff
-  remove_default_routes
+  ip route del default
   pon ${PRODUCT_DIR_NAME}
   wait_for_online
-  sleep 0.1
-  add_default_route
 }
 
 # main
