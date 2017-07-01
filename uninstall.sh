@@ -26,7 +26,7 @@ function assert_root {
   fi
 }
 
-function uninstall_ppp_mode {
+function uninstall_ppp {
   PPP_MODE_DETECTED=0
   for f in "/etc/chatscripts/candy-pi-lite" "/etc/ppp/peers/candy-pi-lite"
   do
@@ -90,5 +90,5 @@ function teardown {
 assert_root
 uninstall_service
 uninstall_candy_board
-uninstall_ppp_mode
+uninstall_ppp
 teardown
