@@ -131,6 +131,18 @@ function connect {
   wait_for_online
 }
 
+function init_gpio {
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
+  setup_ports
+  setup_pin_directions
+  export LED2
+}
+
+function init_modem {
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/modem_reboot.sh > /dev/null 2>&1
+  sleep 0.5
+}
+
 # main
 init
 
@@ -141,9 +153,8 @@ boot_ip_addr_fin
 
 # start banner
 log "Initializing ${PRODUCT}..."
-. /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
-export LED2
-
+init_gpio
+init_modem
 look_for_serial_port
 init_serialport
 connect
