@@ -206,13 +206,13 @@ def blinky():
         threading.Timer(led_sec / 3, blinky, ()).start()
 
 
-def server_main(serial_port, nic,
+def server_main(serial_port, bps, nic,
                 sock_path='/var/run/candy-board-service.sock'):
     delete_sock_path(sock_path)
     atexit.register(delete_sock_path, sock_path)
 
     logger.debug("server_main() : Setting up SerialPort...")
-    serial = candy_board_qws.SerialPort(serial_port, 115200)
+    serial = candy_board_qws.LazySerialPort(serial_port, bps)
     logger.debug("server_main() : Setting up SockServer...")
     server = candy_board_qws.SockServer(resolve_version(),
                                         resolve_boot_apn(),
@@ -244,15 +244,16 @@ def server_main(serial_port, nic,
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         logger.error("The Network Interface isn't ready. " +
                      "Shutting down.")
-    elif len(sys.argv) > 3:
+    elif len(sys.argv) > 4:
         candy_command(
             sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     else:
-        logger.info("serial_port:%s, nic:%s" % (sys.argv[1], sys.argv[2]))
+        logger.info("serial_port:%s (%s bps), nic:%s" %
+                    (sys.argv[1], sys.argv[2], sys.argv[3]))
         try:
-            server_main(sys.argv[1], sys.argv[2])
+            server_main(sys.argv[1], sys.argv[2], sys.argv[3])
         except KeyboardInterrupt:
             pass

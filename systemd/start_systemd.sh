@@ -177,4 +177,4 @@ connect
 
 # end banner
 log "${PRODUCT} is initialized successfully!"
-/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${MODEM_SERIAL_PORT} ${IF_NAME}
+/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
