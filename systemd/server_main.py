@@ -94,7 +94,7 @@ class Monitor(threading.Thread):
         global online
         while True:
             try:
-                err = subprocess.call("candy network show | grep ONLINE",
+                err = subprocess.call("ip link show %s" % self.nic,
                                       shell=True,
                                       stdout=Monitor.FNULL,
                                       stderr=subprocess.STDOUT)
