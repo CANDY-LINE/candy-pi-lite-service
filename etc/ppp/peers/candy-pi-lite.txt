@@ -1,5 +1,5 @@
 #debug
-nodetach
+#nodetach
 nolock
 %MODEM_SERIAL_PORT%
 %MODEM_BAUDRATE%
