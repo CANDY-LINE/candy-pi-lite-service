@@ -120,7 +120,7 @@ function wait_for_online {
   done
   if [ "${COUNTER}" == 60 ]; then
     log "PPP Timeout, bye"
-    exit 1
+    exit 10
   fi
 }
 
