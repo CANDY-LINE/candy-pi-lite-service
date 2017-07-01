@@ -46,14 +46,13 @@ function init_serialport {
     log "[ERROR] Modem is missing, bye"
     exit 1
   elif [ -n "${BAUDRATE}" ]; then
-    if [ "${MODEM_BAUDRATE}" != "${BAUDRATE}" ]; then
-      candy_command modem "{\"action\":\"init\",\"baudrate\":\"${BAUDRATE}\"}"
-      MODEM_BAUDRATE=${MODEM_BAUDRATE:-${BAUDRATE}}
-      log "[INFO] Modem baudrate changed: ${MODEM_BAUDRATE} => ${BAUDRATE}"
-    else
-      log "[INFO] Modem baudrate => ${MODEM_BAUDRATE}"
-    fi
+    candy_command modem "{\"action\":\"init\",\"baudrate\":\"${BAUDRATE}\"}"
+    log "[INFO] Modem baudrate changed: ${MODEM_BAUDRATE} => ${BAUDRATE}"
+    MODEM_BAUDRATE=${BAUDRATE}
+  else
+    candy_command modem init
   fi
+  log "[INFO] Modem baudrate => ${MODEM_BAUDRATE}"
 }
 
 function candy_command {
