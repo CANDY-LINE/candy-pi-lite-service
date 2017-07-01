@@ -20,6 +20,9 @@ poff
 led_off
 led_off # ensure LED off
 systemctl restart dhcpcd
+if [ "${NTP_DISABLED}" == "1" ]; then
+  systemctl start ntp
+fi
 
 # end banner
 logger -t ${PRODUCT_DIR_NAME} "${PRODUCT} is inactivated successfully!"

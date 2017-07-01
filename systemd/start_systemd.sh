@@ -174,6 +174,9 @@ init_modem
 look_for_serial_port
 init_serialport
 connect
+if [ "${NTP_DISABLED}" == "1" ]; then
+  systemctl stop ntp
+fi
 
 # end banner
 log "${PRODUCT} is initialized successfully!"
