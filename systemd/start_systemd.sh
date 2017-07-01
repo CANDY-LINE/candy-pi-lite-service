@@ -110,7 +110,7 @@ function wait_for_online {
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
-    RET=`ifconfig ${IF_NAME}`
+    RET=`ip link show ${IF_NAME}`
     if [ "$?" == "0" ]; then
       COUNTER=0
       break
