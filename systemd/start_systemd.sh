@@ -126,8 +126,24 @@ function wait_for_online {
 
 function connect {
   poff
+  case "${MODEM_SERIAL_PORT}" in
+    "${UART_PORT}")
+      MODEM_TYPE="${MODEM_TYPE:-uart}"
+      ;;
+    "/dev/QWS.UC20.AT")
+      MODEM_TYPE="${MODEM_TYPE:-uc20}"
+      ;;
+    "/dev/QWS.EC21.AT")
+      MODEM_TYPE="${MODEM_TYPE:-ec21}"
+      ;;
+    *)
+      log "[ERROR] Missing valid port: [${MODEM_SERIAL_PORT}]"
+      exit 10
+      ;;
+  esac
+  log "Starting ppp: ${PRODUCT_DIR_NAME}-${MODEM_TYPE}"
   ip route del default
-  pon ${PRODUCT_DIR_NAME}
+  pon ${PRODUCT_DIR_NAME}-${MODEM_TYPE}
   wait_for_online
 }
 
