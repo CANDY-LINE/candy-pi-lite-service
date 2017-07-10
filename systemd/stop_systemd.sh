@@ -18,7 +18,6 @@ touch ${SHUDOWN_STATE_FILE}
 poff
 /opt/candy-line/${PRODUCT_DIR_NAME}/modem_off.sh > /dev/null 2>&1
 led_off
-led_off # ensure LED off
 systemctl restart dhcpcd
 if [ "${NTP_DISABLED}" == "1" ]; then
   systemctl start ntp
