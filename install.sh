@@ -8,6 +8,7 @@ VERSION=1.0.0
 BOOT_APN=${BOOT_APN:-soracom.io}
 BAUDRATE=${BAUDRATE:-460800}
 UART_PORT="/dev/ttySC0"
+SC16IS7xx_DT_NAME="sc16is750-spi0"
 
 NODEJS_VERSIONS="v4"
 
@@ -91,6 +92,21 @@ function _ufw_setup {
     fi
   done
   ufw --force enable
+}
+
+function configure_sc16is7xx {
+  info "Configuring SC16IS7xx..."
+  SC16IS7xx_DTO="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
+  if [ ! -f "${SC16IS7xx_DTO}" ]; then
+    dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTO} ${SC16IS7xx_DT_NAME}.dts
+  fi
+  RET=`grep "^dtoverlay=${SC16IS7xx_DT_NAME}" /boot/config.txt`
+  if [ "$?" != "0" ]; then
+    if [ ! -f "/boot/config.txt.bak" ]; then
+      cp /boot/config.txt /boot/config.txt.bak
+    fi
+    echo "dtoverlay=${SC16IS7xx_DT_NAME}" >> /boot/config.txt
+  fi
 }
 
 function install_ppp {
@@ -248,4 +264,5 @@ install_candy_board
 install_candy_red
 install_service
 install_ppp
+configure_sc16is7xx
 teardown
