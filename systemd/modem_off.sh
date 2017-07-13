@@ -12,7 +12,7 @@ function modem_off {
 
 init
 assert_root
-look_for_serial_port
+look_for_modem_port
 init_serialport
 modem_off
 echo "OK"

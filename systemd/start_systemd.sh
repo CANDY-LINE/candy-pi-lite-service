@@ -171,7 +171,7 @@ boot_ip_addr_fin
 log "Initializing ${PRODUCT}..."
 init_gpio
 init_modem
-look_for_serial_port
+look_for_modem_port
 init_serialport
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then

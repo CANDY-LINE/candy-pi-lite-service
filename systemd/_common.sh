@@ -16,7 +16,7 @@ function log {
   fi
 }
 
-function look_for_serial_port {
+function look_for_modem_port {
   MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
   if [ "${MODEM_SERIAL_PORT}" == "None" ]; then
     if [ -e "${UART_PORT}" ]; then
