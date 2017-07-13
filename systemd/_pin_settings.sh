@@ -28,3 +28,6 @@ function setup_pin_directions {
   echo "out" > ${PERST_DIR}
   echo "out" > ${W_DISABLE_DIR}
 }
+
+setup_ports
+setup_pin_directions
