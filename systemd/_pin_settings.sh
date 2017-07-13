@@ -12,8 +12,13 @@ PERST=20
 PERST_PIN="/sys/class/gpio/gpio${PERST}"
 PERST_DIR="${PERST_PIN}/direction"
 
+# W_DISABLE
+W_DISABLE=12
+W_DISABLE_PIN="/sys/class/gpio/gpio${W_DISABLE}"
+W_DISABLE_DIR="${W_DISABLE_PIN}/direction"
+
 function setup_ports {
-  for p in ${LED2} ${PERST}; do
+  for p in ${LED2} ${PERST} ${W_DISABLE}; do
     [[ ! -f "/sys/class/gpio/gpio${p}/direction" ]] && echo  "${p}"  > /sys/class/gpio/export
   done
 }
@@ -21,4 +26,5 @@ function setup_ports {
 function setup_pin_directions {
   echo "out" > ${LED2_DIR}
   echo "out" > ${PERST_DIR}
+  echo "out" > ${W_DISABLE_DIR}
 }
