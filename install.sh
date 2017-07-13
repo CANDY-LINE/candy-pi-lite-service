@@ -7,8 +7,9 @@ GITHUB_ID=CANDY-LINE/candy-pi-lite-service
 VERSION=1.0.0
 BOOT_APN=${BOOT_APN:-soracom.io}
 BAUDRATE=${BAUDRATE:-460800}
-UART_PORT="/dev/ttySC0"
-SC16IS7xx_DT_NAME="sc16is750-spi0"
+# Channel B
+UART_PORT="/dev/ttySC1"
+SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 
 NODEJS_VERSIONS="v4"
 
