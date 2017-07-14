@@ -4,6 +4,8 @@ PRODUCT_DIR_NAME="candy-pi-lite"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
+  export LED2
 }
 
 function perst {
