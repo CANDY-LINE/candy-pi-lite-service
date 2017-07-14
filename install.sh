@@ -99,7 +99,7 @@ function configure_sc16is7xx {
   info "Configuring SC16IS7xx..."
   SC16IS7xx_DTO="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
   if [ ! -f "${SC16IS7xx_DTO}" ]; then
-    dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTO} ${SC16IS7xx_DT_NAME}.dts
+    dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTO} ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dts
   fi
   RET=`grep "^dtoverlay=${SC16IS7xx_DT_NAME}" /boot/config.txt`
   if [ "$?" != "0" ]; then
