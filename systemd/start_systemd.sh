@@ -156,7 +156,6 @@ function init_gpio {
 
 function init_modem {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/modem_reboot.sh > /dev/null 2>&1
-  sleep 0.5
 }
 
 # main
