@@ -21,7 +21,7 @@ function setup_ports {
   for p in ${LED2} ${PERST} ${W_DISABLE}; do
     if [ ! -f "/sys/class/gpio/gpio${p}/direction" ]; then
       echo  "${p}"  > /sys/class/gpio/export
-      echo "out" > ${p}
+      echo "out" > "/sys/class/gpio/gpio${p}/direction"
     fi
   done
 }

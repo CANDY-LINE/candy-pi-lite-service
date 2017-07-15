@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 UART_PORT="/dev/ttySC1"
+QWS_UC20_PORT="/dev/QWS.UC20.AT"
+QWS_EC21_PORT="/dev/QWS.EC21.AT"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -59,4 +61,35 @@ function candy_command {
   MODEM_BAUDRATE=${MODEM_BAUDRATE:-115200}
   RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} /var/run/candy-board-service.sock`
   RET=$?
+}
+
+function perst {
+  # Make PERST_PIN low to reset module
+  echo 0 > ${PERST_PIN}/value
+  sleep 1
+  # Make PERST_PIN high again
+  echo 1 > ${PERST_PIN}/value
+}
+
+function wait_for_modem_active {
+  MAX=40
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
+    if [ "${MODEM_SERIAL_PORT}" != "None" ]; then
+      break
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ -z "${MODEM_SERIAL_PORT}" ]; then
+    echo "[ERROR] Modem cannot be activated"
+    exit 1
+  fi
+}
+
+function init_modem {
+  perst
+  wait_for_modem_active
 }
