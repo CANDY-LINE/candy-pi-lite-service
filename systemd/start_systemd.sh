@@ -112,25 +112,6 @@ function boot_ip_addr_fin {
   fi
 }
 
-function wait_for_online {
-  MAX=60
-  COUNTER=0
-  while [ ${COUNTER} -lt ${MAX} ];
-  do
-    RET=`ip link show ${IF_NAME}`
-    if [ "$?" == "0" ]; then
-      COUNTER=0
-      break
-    fi
-    sleep 1
-    let COUNTER=COUNTER+1
-  done
-  if [ "${COUNTER}" == 60 ]; then
-    log "PPP Timeout, bye"
-    exit 10
-  fi
-}
-
 function connect {
   case "${MODEM_SERIAL_PORT}" in
     "${UART_PORT}")
@@ -150,7 +131,6 @@ function connect {
   log "Starting ppp: ${PRODUCT_DIR_NAME}-${MODEM_TYPE}"
   ip route del default
   pon ${PRODUCT_DIR_NAME}-${MODEM_TYPE}
-  wait_for_online
 }
 
 # main
