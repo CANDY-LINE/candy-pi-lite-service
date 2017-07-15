@@ -51,9 +51,9 @@ init
 poff
 led_off
 stop_server_main
-systemctl restart dhcpcd
+systemctl --no-block restart dhcpcd
 if [ "${NTP_DISABLED}" == "1" ]; then
-  systemctl start ntp
+  systemctl --no-block start ntp
 fi
 
 # end banner
