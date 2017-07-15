@@ -19,15 +19,11 @@ W_DISABLE_DIR="${W_DISABLE_PIN}/direction"
 
 function setup_ports {
   for p in ${LED2} ${PERST} ${W_DISABLE}; do
-    [[ ! -f "/sys/class/gpio/gpio${p}/direction" ]] && echo  "${p}"  > /sys/class/gpio/export
+    if [ ! -f "/sys/class/gpio/gpio${p}/direction" ]; then
+      echo  "${p}"  > /sys/class/gpio/export
+      echo "out" > ${p}
+    fi
   done
 }
 
-function setup_pin_directions {
-  echo "out" > ${LED2_DIR}
-  echo "out" > ${PERST_DIR}
-  echo "out" > ${W_DISABLE_DIR}
-}
-
 setup_ports
-setup_pin_directions
