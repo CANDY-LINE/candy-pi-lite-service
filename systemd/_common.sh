@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-UART_PORT="/dev/ttySC0"
+UART_PORT="/dev/ttySC1"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
