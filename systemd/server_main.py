@@ -100,6 +100,7 @@ class Monitor(threading.Thread):
                                       stderr=subprocess.STDOUT)
                 online = (err == 0)
                 if not online:
+                    time.sleep(5)
                     continue
 
                 err = subprocess.call("ip route | grep default | grep -v %s" %
