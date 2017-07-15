@@ -12,6 +12,13 @@ DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ]; then
+    . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
+    export LED2
+  else
+    log "[ERROR] Modem is missing"
+    exit 11
+  fi
 }
 
 function boot_ip_reset {
@@ -130,10 +137,10 @@ function connect {
     "${UART_PORT}")
       MODEM_TYPE="${MODEM_TYPE:-uart}"
       ;;
-    "/dev/QWS.UC20.AT")
+    "${QWS_UC20_PORT}")
       MODEM_TYPE="${MODEM_TYPE:-uc20}"
       ;;
-    "/dev/QWS.EC21.AT")
+    "${QWS_EC21_PORT}")
       MODEM_TYPE="${MODEM_TYPE:-ec21}"
       ;;
     *)
@@ -147,17 +154,6 @@ function connect {
   wait_for_online
 }
 
-function init_gpio {
-  . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
-  setup_ports
-  setup_pin_directions
-  export LED2
-}
-
-function init_modem {
-  . /opt/candy-line/${PRODUCT_DIR_NAME}/modem_reboot.sh > /dev/null 2>&1
-}
-
 # main
 init
 
@@ -168,9 +164,7 @@ boot_ip_addr_fin
 
 # start banner
 log "Initializing ${PRODUCT}..."
-init_gpio
 init_modem
-look_for_modem_port
 init_serialport
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
