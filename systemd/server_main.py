@@ -24,6 +24,7 @@ import logging.handlers
 # sys.argv[2] ... The network interface name to be monitored
 
 LED = 'gpio%s' % (os.environ['LED2'] if 'LED2' in os.environ else '4')
+PIDFILE = '/var/run/candy-pi-lite-service.pid'
 logger = logging.getLogger('candy-pi-lite')
 logger.setLevel(logging.INFO)
 handler = logging.handlers.SysLogHandler(address='/dev/log')
@@ -40,6 +41,7 @@ PPP_PING_INTERVAL_SEC = float(os.environ['PPP_PING_INTERVAL_SEC']) \
 online = False
 shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
+PID = str(os.getpid())
 
 
 class Pinger(threading.Thread):
@@ -94,6 +96,9 @@ class Monitor(threading.Thread):
         global online
         while True:
             try:
+                if not os.path.isfile(PIDFILE):
+                    if self.terminate():
+                        return
                 err = subprocess.call("ip link show %s" % self.nic,
                                       shell=True,
                                       stdout=Monitor.FNULL,
@@ -132,13 +137,17 @@ class Monitor(threading.Thread):
                     continue
 
 
-def delete_sock_path(sock_path):
-    # remove sock_path
-    try:
-        os.unlink(sock_path)
-    except OSError:
-        if os.path.exists(sock_path):
-            raise
+def delete_path(file_path):
+    # remove file_path
+    path_list = [file_path]
+    if type(file_path) is list:
+        path_list = file_path
+    for p in path_list:
+        try:
+            os.unlink(p)
+        except OSError:
+            if os.path.exists(p):
+                raise
 
 
 def resolve_version():
@@ -163,8 +172,8 @@ def resolve_boot_apn():
 
 def candy_command(category, action, serial_port, baudrate,
                   sock_path='/var/run/candy-board-service.sock'):
-    delete_sock_path(sock_path)
-    atexit.register(delete_sock_path, sock_path)
+    delete_path(sock_path)
+    atexit.register(delete_path, sock_path)
 
     serial = candy_board_qws.SerialPort(serial_port, baudrate)
     server = candy_board_qws.SockServer(resolve_version(),
@@ -209,8 +218,12 @@ def blinky():
 
 def server_main(serial_port, bps, nic,
                 sock_path='/var/run/candy-board-service.sock'):
-    delete_sock_path(sock_path)
-    atexit.register(delete_sock_path, sock_path)
+
+    if os.path.isfile(PIDFILE):
+        logger.error("server_main module is aleady running")
+        sys.exit(1)
+    file(PIDFILE, 'w').write(PID)
+    delete_path(sock_path)
 
     logger.debug("server_main() : Setting up SerialPort...")
     serial = candy_board_qws.LazySerialPort(serial_port, bps)
