@@ -164,7 +164,9 @@ boot_ip_addr_fin
 # start banner
 log "Initializing ${PRODUCT}..."
 init_modem
+sleep 0.1
 init_serialport
+sleep 0.1
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   systemctl stop ntp
