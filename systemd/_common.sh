@@ -89,7 +89,32 @@ function wait_for_modem_active {
   fi
 }
 
+function wait_for_ppp_offline {
+  RET=`ifconfig ${IF_NAME}`
+  if [ "$?" != "0" ]; then
+    return
+  fi
+  poff
+  MAX=40
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    RET=`ifconfig ${IF_NAME}`
+    RET="$?"
+    if [ "${RET}" != "0" ]; then
+      break
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${RET}" == "0" ]; then
+    echo "[ERROR] PPP cannot be offline"
+    exit 1
+  fi
+}
+
 function init_modem {
+  wait_for_ppp_offline
   perst
   wait_for_modem_active
 }

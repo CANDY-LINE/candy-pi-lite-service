@@ -132,7 +132,6 @@ function wait_for_online {
 }
 
 function connect {
-  poff
   case "${MODEM_SERIAL_PORT}" in
     "${UART_PORT}")
       MODEM_TYPE="${MODEM_TYPE:-uart}"
