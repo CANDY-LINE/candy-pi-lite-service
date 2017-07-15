@@ -49,8 +49,8 @@ touch ${SHUDOWN_STATE_FILE}
 
 init
 poff
-led_off
 stop_server_main
+led_off
 systemctl --no-block restart dhcpcd
 if [ "${NTP_DISABLED}" == "1" ]; then
   systemctl --no-block start ntp
