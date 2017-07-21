@@ -9,9 +9,6 @@ hide-password
 usepeerdns
 noauth
 noipdefault
-novj
-novjccomp
-noccp
 defaultroute
 ipcp-accept-local
 ipcp-accept-remote
