@@ -3,6 +3,7 @@
 UART_PORT="/dev/ttySC1"
 QWS_UC20_PORT="/dev/QWS.UC20.AT"
 QWS_EC21_PORT="/dev/QWS.EC21.AT"
+IF_NAME="${IF_NAME:-ppp0}"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then

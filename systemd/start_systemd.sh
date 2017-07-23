@@ -3,7 +3,6 @@
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
 MODEM_SERIAL_PORT=""
-IF_NAME="${IF_NAME:-ppp0}"
 DEBUG=""
 
 DHCPCD_CNF="/etc/dhcpcd.conf"
