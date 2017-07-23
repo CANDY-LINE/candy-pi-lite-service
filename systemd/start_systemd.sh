@@ -2,7 +2,6 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-MODEM_SERIAL_PORT=""
 DEBUG=""
 
 DHCPCD_CNF="/etc/dhcpcd.conf"
@@ -112,7 +111,6 @@ function boot_ip_addr_fin {
 }
 
 function connect {
-  log "Starting ppp: ${MODEM_SERIAL_PORT}"
   ip route del default
   . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh
 }

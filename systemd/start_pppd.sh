@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
+PRODUCT_DIR_NAME="candy-pi-lite"
+
 # Run `poff` to stop
 
-MODEM_SERIAL_PORT=${MODEM_SERIAL_PORT:-%MODEM_SERIAL_PORT%}
-MODEM_BAUDRATE=${MODEM_BAUDRATE:-%MODEM_BAUDRATE%}
 APN=${APN:-"soracom.io"}
 CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s' % (c['user'],c['password']))"`
 eval ${CREDS}

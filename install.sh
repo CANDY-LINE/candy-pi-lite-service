@@ -115,11 +115,11 @@ function install_ppp {
   apt-get update -y
   apt-get install -y ufw ppp pppconfig
 
-  cp -f ${SRC_DIR}/systemd/start_pppd.sh ${SERVICE_HOME}/start_pppd.sh
+  # _common.sh is copied by install_service
   cp -f ${SRC_DIR}/systemd/apn-list.json ${SERVICE_HOME}/apn-list.json
   port="${UART_PORT}"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" ${SERVICE_HOME}/start_pppd.sh
-  sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/start_pppd.sh
+  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" ${SERVICE_HOME}/_common.sh
+  sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/_common.sh
 
   _ufw_setup
 }
