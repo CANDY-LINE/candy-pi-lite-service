@@ -6,12 +6,13 @@ SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
 VERSION=1.0.0
 BOOT_APN=${BOOT_APN:-soracom.io}
-BAUDRATE=${BAUDRATE:-460800}
 # Channel B
 UART_PORT="/dev/ttySC1"
+MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 
 NODEJS_VERSIONS="v4"
+CANDY_RED_NODE_OPTS="--max-old-space-size=256"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
@@ -23,7 +24,6 @@ if [ "${KERNEL}" != "$(uname -r)" ]; then
 fi
 WELCOME_FLOW_URL=https://git.io/vKhk3
 PPP_PING_INTERVAL_SEC=${PPP_PING_INTERVAL_SEC:-0}
-PRESERVE_APN=${PRESERVE_APN:-0}
 NTP_DISABLED=${NTP_DISABLED:-1}
 
 REBOOT=0
@@ -115,23 +115,11 @@ function install_ppp {
   apt-get update -y
   apt-get install -y ufw ppp pppconfig
 
-  install -o root -g root -D -m 644 ${SRC_DIR}/etc/chatscripts/candy-pi-lite-connect /etc/chatscripts/
-  install -o root -g root -D -m 644 ${SRC_DIR}/etc/chatscripts/candy-pi-lite-disconnect /etc/chatscripts/
-
-  install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-uart
+  cp -f ${SRC_DIR}/systemd/start_pppd.sh ${SERVICE_HOME}/start_pppd.sh
+  cp -f ${SRC_DIR}/systemd/apn-list.json ${SERVICE_HOME}/apn-list.json
   port="${UART_PORT}"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-uart
-  sed -i -e "s/%MODEM_BAUDRATE%/${BAUDRATE//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-uart
-
-  install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-ec21
-  port="/dev/QWS.EC21.MODEM"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-ec21
-  sed -i -e "s/%MODEM_BAUDRATE%/115200/g" /etc/ppp/peers/candy-pi-lite-ec21
-
-  install -o root -g root -D -m 644 ${SRC_DIR}/etc/ppp/peers/candy-pi-lite.txt /etc/ppp/peers/candy-pi-lite-uc20
-  port="/dev/QWS.UC20.MODEM"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" /etc/ppp/peers/candy-pi-lite-uc20
-  sed -i -e "s/%MODEM_BAUDRATE%/115200/g" /etc/ppp/peers/candy-pi-lite-uc20
+  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" ${SERVICE_HOME}/start_pppd.sh
+  sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/start_pppd.sh
 
   _ufw_setup
 }
@@ -188,8 +176,16 @@ function install_candy_red {
   cd ~
   npm cache clean
   info "Installing CANDY-RED..."
-  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODE_OPTS=--max-old-space-size=128 npm install -g --unsafe-perm candy-red
+  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODE_OPTS=${CANDY_RED_NODE_OPTS} npm install -g --unsafe-perm candy-red
   REBOOT=1
+}
+
+function test_boot_apn {
+  CREDS=`/usr/bin/env python -c "with open('${SRC_DIR}/systemd/apn-list.json') as f:import json;c=json.load(f);print('${BOOT_APN}' in c)"`
+  if [ "${CREDS}" != "True" ]; then
+    err "Invalid BOOT_APN value => ${BOOT_APN}"
+    exit 1
+  fi
 }
 
 function install_service {
@@ -200,10 +196,7 @@ function install_service {
     return
   fi
   download
-  if [ ! -f "${SRC_DIR}/systemd/boot-apn.${BOOT_APN}.json" ]; then
-    err "Invalid BOOT_APN value => ${BOOT_APN}"
-    exit 1
-  fi
+  test_boot_apn
 
   LIB_SYSTEMD="$(dirname $(dirname $(which systemctl)))"
   if [ "${LIB_SYSTEMD}" == "/" ]; then
@@ -212,13 +205,11 @@ function install_service {
   LIB_SYSTEMD="${LIB_SYSTEMD}/lib/systemd"
 
   mkdir -p ${SERVICE_HOME}
-  cp -f ${SRC_DIR}/systemd/boot-apn.${BOOT_APN}.json ${SERVICE_HOME}/boot-apn.json
   cp -f ${SRC_DIR}/systemd/boot-ip.*.json ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/environment.txt ${SERVICE_HOME}/environment
   sed -i -e "s/%VERSION%/${VERSION//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%BAUDRATE%/${BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/environment
+  sed -i -e "s/%BOOT_APN%/${BOOT_APN//\//\\/}/g" ${SERVICE_HOME}/environment
   sed -i -e "s/%PPP_PING_INTERVAL_SEC%/${PPP_PING_INTERVAL_SEC//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%PRESERVE_APN%/${PRESERVE_APN//\//\\/}/g" ${SERVICE_HOME}/environment
   sed -i -e "s/%NTP_DISABLED%/${NTP_DISABLED//\//\\/}/g" ${SERVICE_HOME}/environment
   FILES=`ls ${SRC_DIR}/systemd/*.sh`
   FILES="${FILES} `ls ${SRC_DIR}/systemd/server_*.py`"

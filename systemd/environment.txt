@@ -7,14 +7,11 @@ BLINKY=1
 # Blinking interval in seconds, > 0 and <= 60
 BLINKY_INTERVAL_SEC=0.4
 
-# baud rate (9600/19200/38400/57600/115200/230400/460800) to communicate with the modem (UART)
-BAUDRATE=%BAUDRATE%
+# LTE/3G access point name defined in `apn-list.json`
+APN=%BOOT_APN%
 
 # Network retaining request interval in PPP Modem-mode (<5: disabled)
 PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%
-
-# Set 1 for preserving boot-apn.json
-PRESERVE_APN=%PRESERVE_APN%
 
 # Set 1 for disabling NTP service
 NTP_DISABLED=%NTP_DISABLED%

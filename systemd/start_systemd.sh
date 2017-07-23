@@ -113,24 +113,9 @@ function boot_ip_addr_fin {
 }
 
 function connect {
-  case "${MODEM_SERIAL_PORT}" in
-    "${UART_PORT}")
-      MODEM_TYPE="${MODEM_TYPE:-uart}"
-      ;;
-    "${QWS_UC20_PORT}")
-      MODEM_TYPE="${MODEM_TYPE:-uc20}"
-      ;;
-    "${QWS_EC21_PORT}")
-      MODEM_TYPE="${MODEM_TYPE:-ec21}"
-      ;;
-    *)
-      log "[ERROR] Missing valid port: [${MODEM_SERIAL_PORT}]"
-      exit 10
-      ;;
-  esac
-  log "Starting ppp: ${PRODUCT_DIR_NAME}-${MODEM_TYPE}"
+  log "Starting ppp: ${MODEM_SERIAL_PORT}"
   ip route del default
-  pon ${PRODUCT_DIR_NAME}-${MODEM_TYPE}
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh
 }
 
 # main
