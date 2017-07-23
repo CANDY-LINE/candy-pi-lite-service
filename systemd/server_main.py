@@ -156,20 +156,6 @@ def resolve_version():
     return 'N/A'
 
 
-def resolve_boot_apn():
-    dir = os.path.dirname(os.path.abspath(__file__))
-    apn_json = dir + '/boot-apn.json'
-    if not os.path.isfile(apn_json):
-        return None
-    with open(apn_json) as apn_creds:
-        apn = json.load(apn_creds)
-    if 'PRESERVE_APN' not in os.environ or os.environ['PRESERVE_APN'] != '1':
-        os.remove(apn_json)
-    else:
-        logger.info('Preserving the APN file[%s]' % apn_json)
-    return apn
-
-
 def candy_command(category, action, serial_port, baudrate,
                   sock_path='/var/run/candy-board-service.sock'):
     delete_path(sock_path)
@@ -177,7 +163,6 @@ def candy_command(category, action, serial_port, baudrate,
 
     serial = candy_board_qws.SerialPort(serial_port, baudrate)
     server = candy_board_qws.SockServer(resolve_version(),
-                                        resolve_boot_apn(),
                                         sock_path, serial)
     args = {}
     try:
