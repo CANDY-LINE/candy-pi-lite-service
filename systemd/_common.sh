@@ -85,7 +85,7 @@ function wait_for_modem_active {
     let COUNTER=COUNTER+1
   done
   if [ -z "${MODEM_SERIAL_PORT}" ]; then
-    echo "[ERROR] Modem cannot be activated"
+    log "[ERROR] Modem cannot be activated"
     exit 1
   fi
 }
@@ -109,7 +109,7 @@ function wait_for_ppp_offline {
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" == "0" ]; then
-    echo "[ERROR] PPP cannot be offline"
+    log "[ERROR] PPP cannot be offline"
     exit 1
   fi
 }
