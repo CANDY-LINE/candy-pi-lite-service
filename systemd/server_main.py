@@ -173,6 +173,7 @@ def candy_command(category, action, serial_port, baudrate,
     ret = server.perform(args)
     logger.debug("candy_command() : %s:%s => %s" %
                  (category, args['action'], ret))
+    print(ret)
     sys.exit(json.loads(ret)['status'] != 'OK')
 
 

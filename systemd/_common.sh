@@ -116,8 +116,18 @@ function wait_for_ppp_offline {
   fi
 }
 
+function _adjust_time {
+  # init_modem must be performed prior to this function
+  DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
+  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+1)"`
+  date -s "@${EPOCHTIME}"
+}
+
 function init_modem {
   wait_for_ppp_offline
   perst
   wait_for_modem_active
+  sleep 0.1
+  init_serialport
+  _adjust_time
 }
