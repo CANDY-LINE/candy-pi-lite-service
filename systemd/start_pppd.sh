@@ -43,18 +43,36 @@ TIMEOUT 12 \
 SAY \"\nGoodbye from CANDY Pi Lite\n\" \
 '"
 
-pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${DEBUG} \
-  user "${APN_USER}" \
-  password "${APN_PASSWORD}" \
-  connect "'${CONNECT}'" \
-  disconnect "'${DISCONNECT}'" \
-  hide-password \
-  nolock \
-  nocrtscts \
-  usepeerdns \
-  noauth \
-  noipdefault \
-  defaultroute \
-  ipcp-accept-local \
-  ipcp-accept-remote \
-  &
+function init {
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ]; then
+    . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
+  else
+    log "[ERROR] Modem is missing"
+    exit 11
+  fi
+}
+
+function connect {
+  pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${DEBUG} \
+    user "${APN_USER}" \
+    password "${APN_PASSWORD}" \
+    connect "'${CONNECT}'" \
+    disconnect "'${DISCONNECT}'" \
+    hide-password \
+    nolock \
+    nocrtscts \
+    usepeerdns \
+    noauth \
+    noipdefault \
+    defaultroute \
+    ipcp-accept-local \
+    ipcp-accept-remote \
+    &
+}
+
+# main
+log "Starting ppp: ${MODEM_SERIAL_PORT}"
+init
+assert_root
+connect
