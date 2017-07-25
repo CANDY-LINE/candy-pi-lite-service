@@ -5,7 +5,11 @@ PRODUCT_DIR_NAME="candy-pi-lite"
 # Run `poff` to stop
 
 APN=${APN:-"soracom.io"}
-CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s' % (c['user'],c['password']))"`
+CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s' % (c['user'],c['password']))" 2>&1`
+if [ "$?" != "0" ]; then
+  log "Failed to start ppp. Error=>${CREDS}"
+  exit 1
+fi
 eval ${CREDS}
 if [ -n "${DEBUG}" ]; then DEBUG="debug"; fi
 
