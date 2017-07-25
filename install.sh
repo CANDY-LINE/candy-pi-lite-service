@@ -26,8 +26,11 @@ MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 
 NODEJS_VERSIONS="v4"
-MEM=`free -m | grep "Mem:" | awk '{print $2}'`
-MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-`expr ${MEM} / 3`}
+if [ -n "`which free`" ]; then
+  MEM=`free -m | grep "Mem:" | awk '{print $2}'`
+  MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-`expr ${MEM} / 3`}
+fi
+MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-256}
 CANDY_RED_NODE_OPTS="--max-old-space-size=${MAX_OLD_SPACE_SIZE}"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
