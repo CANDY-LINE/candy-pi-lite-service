@@ -1,7 +1,7 @@
 candy-pi-lite-service
 ===
 [![GitHub release](https://img.shields.io/github/release/CANDY-LINE/candy-pi-lite-service.svg)](https://github.com/CANDY-LINE/candy-pi-lite-service/releases/latest)
-[![License MIT](https://img.shields.io/github/license/CANDY-LINE/candy-pi-lite-service.svg)](http://opensource.org/licenses/MIT)
+[![License ASL 2.0](https://img.shields.io/github/license/CANDY-LINE/candy-pi-lite-service.svg)](https://opensource.org/licenses/Apache-2.0)
 
 candy-pi-lite-serviceは、Raspberry Pi上で動作するCANDY Pi Liteを動作させるためのシステムサービス（Raspberry Pi上で自動的に動作するソフトウェア）です。
 
