@@ -229,7 +229,6 @@ def server_main(serial_port, bps, nic,
     serial = candy_board_qws.LazySerialPort(serial_port, bps)
     logger.debug("server_main() : Setting up SockServer...")
     server = candy_board_qws.SockServer(resolve_version(),
-                                        resolve_boot_apn(),
                                         sock_path, serial)
     if 'DEBUG' in os.environ and os.environ['DEBUG'] == "1":
         server.debug = True
