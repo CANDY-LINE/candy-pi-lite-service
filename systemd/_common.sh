@@ -114,9 +114,11 @@ function wait_for_ppp_offline {
 
 function _adjust_time {
   # init_modem must be performed prior to this function
+  candy_command modem show
   DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
   EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+1)"`
   date -s "@${EPOCHTIME}"
+  log "[INFO] Adjusted the current time => ${DATETIME}"
 }
 
 function init_modem {
