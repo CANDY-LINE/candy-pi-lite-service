@@ -112,12 +112,37 @@ function wait_for_ppp_offline {
   fi
 }
 
+function wait_for_ppp_online {
+  RET=`ip link show ${IF_NAME} | grep "state UP"`
+  if [ "$?" == "0" ]; then
+    return
+  fi
+  MAX=40
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    RET=`ip link show ${IF_NAME} | grep "state UP"`
+    RET="$?"
+    if [ "${RET}" == "0" ]; then
+      break
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${RET}" != "0" ]; then
+    log "[ERROR] PPP cannot be online"
+    exit 1
+  fi
+}
+
 function _adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
+  MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
   DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
   EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+1)"`
   date -s "@${EPOCHTIME}"
+  log "[INFO] Module Model: ${MODEL}"
   log "[INFO] Adjusted the current time => ${DATETIME}"
 }
 

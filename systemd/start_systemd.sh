@@ -144,6 +144,15 @@ init_modem
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   systemctl stop ntp
+  if [ "${MODEL}" == "UC20" ]; then
+    log "Trying to establish the first connetion for time adjustment..."
+    wait_for_ppp_online
+    sleep 3
+    poff
+    init_modem
+    log "Time adjusted. Trying to establish the data connetion..."
+    connect
+  fi
 fi
 
 # end banner
