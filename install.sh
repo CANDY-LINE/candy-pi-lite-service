@@ -24,9 +24,10 @@ BOOT_APN=${BOOT_APN:-soracom.io}
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
-ARMv6_NODEJS_VERSION="6.11.2"
 
-NODEJS_VERSIONS="v4"
+ARMv6_NODEJS_VERSION="6.11.2"
+NODEJS_VERSIONS="v6"
+
 if [ -n "`which free`" ]; then
   MEM=`free -m | grep "Mem:" | awk '{print $2}'`
   MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-`expr ${MEM} / 3`}
