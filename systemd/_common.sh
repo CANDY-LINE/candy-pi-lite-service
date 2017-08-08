@@ -88,24 +88,6 @@ function perst {
   echo 1 > ${PERST_PIN}/value
 }
 
-function wait_for_modem_active {
-  MAX=40
-  COUNTER=0
-  while [ ${COUNTER} -lt ${MAX} ];
-  do
-    MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
-    if [ "${MODEM_SERIAL_PORT}" != "None" ]; then
-      break
-    fi
-    sleep 1
-    let COUNTER=COUNTER+1
-  done
-  if [ -z "${MODEM_SERIAL_PORT}" ]; then
-    log "[ERROR] Modem cannot be activated"
-    exit 1
-  fi
-}
-
 function wait_for_ppp_offline {
   RET=`ifconfig ${IF_NAME}`
   if [ "$?" != "0" ]; then
@@ -140,7 +122,6 @@ function _adjust_time {
 function init_modem {
   wait_for_ppp_offline
   perst
-  wait_for_modem_active
   sleep 0.1
   init_serialport
   _adjust_time
