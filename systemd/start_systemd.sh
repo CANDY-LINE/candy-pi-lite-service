@@ -21,6 +21,7 @@ DEBUG=""
 DHCPCD_CNF="/etc/dhcpcd.conf"
 DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
+SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
@@ -148,3 +149,10 @@ fi
 # end banner
 log "${PRODUCT} is initialized successfully!"
 /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+EXIT_CODE="$?"
+if [ "${EXIT_CODE}" == "143" ] && [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
+  # SIGTERM(15) is signaled by a thread in server_main module
+  exit 0
+else
+  exit ${EXIT_CODE}
+fi
