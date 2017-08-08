@@ -5,7 +5,7 @@ candy-pi-lite-service
 
 candy-pi-lite-serviceは、Raspberry Pi上で動作するCANDY Pi Liteを動作させるためのシステムサービス（Raspberry Pi上で自動的に動作するソフトウェア）です。
 
-candy-pi-lite-serviceや、CANDY Pi Liteに関する説明については、専用の[利用ガイド](https://github.com/CANDY-LINE/candy-pi-lite-info/blob/master/README.md)をご覧ください。
+candy-pi-lite-serviceや、CANDY Pi Liteに関する説明については、専用の[利用ガイド](https://candy-line.gitbooks.io/candy-pi-lite/content/)をご覧ください。
 
 # 管理者向け
 ## モジュールリリース時の注意
