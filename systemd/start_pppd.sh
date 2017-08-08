@@ -36,6 +36,7 @@ ABORT \"NO ANSWER\" \
 \"\" AT \
 OK ATE0 \
 OK AT+CGDCONT=1,\\\"IP\\\",\\\"${APN}\\\",,0,0 \
+OK AT\\\$QCPDPP=1 \
 OK ATD*99# \
 CONNECT \
 '"
