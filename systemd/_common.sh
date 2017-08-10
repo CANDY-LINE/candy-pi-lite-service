@@ -135,6 +135,28 @@ function wait_for_ppp_online {
   fi
 }
 
+function wait_for_serial_available {
+  init_serialport
+  if [ "${CURRENT_BAUDRATE}" != "None" ]; then
+    return
+  fi
+  MAX=40
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    init_serialport
+    if [ "${CURRENT_BAUDRATE}" != "None" ]; then
+      break
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${CURRENT_BAUDRATE}" == "None" ]; then
+    log "[ERROR] No serialport is available"
+    exit 1
+  fi
+}
+
 function _adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
@@ -149,7 +171,10 @@ function _adjust_time {
 function init_modem {
   wait_for_ppp_offline
   perst
-  sleep 0.1
+  wait_for_serial_available
   init_serialport
+  if [ "${CURRENT_BAUDRATE}" == "None" ]; then
+    exit 1
+  fi
   _adjust_time
 }
