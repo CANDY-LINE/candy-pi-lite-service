@@ -62,8 +62,8 @@ function init_serialport {
   fi
   CURRENT_BAUDRATE=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_baudrate('${UART_PORT}'))"`
   if [ "${CURRENT_BAUDRATE}" == "None" ]; then
-    log "[ERROR] Modem is missing, bye"
-    exit 1
+    log "[ERROR] Modem is missing"
+    return
   elif [ -n "${MODEM_BAUDRATE}" ]; then
     candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
     log "[INFO] Modem baudrate changed: ${CURRENT_BAUDRATE} => ${MODEM_BAUDRATE}"
