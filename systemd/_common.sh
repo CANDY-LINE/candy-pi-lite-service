@@ -131,7 +131,7 @@ function wait_for_ppp_online {
   done
   if [ "${RET}" != "0" ]; then
     log "[ERROR] PPP cannot be online"
-    exit 1
+    return
   fi
 }
 
