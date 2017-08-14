@@ -15,3 +15,11 @@ PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%
 
 # Set 1 for disabling NTP service
 NTP_DISABLED=%NTP_DISABLED%
+
+# Set 1 for enabling PPPD debug logging and chat command logging
+# Leave blank for disable the logging
+PPPD_DEBUG=%PPPD_DEBUG%
+
+# Set 1 for enabling verbose output in chat command
+# Leave blank for disable the output
+CHAT_VERBOSE=%CHAT_VERBOSE%

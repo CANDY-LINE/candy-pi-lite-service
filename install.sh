@@ -46,6 +46,8 @@ fi
 WELCOME_FLOW_URL=https://git.io/vKhk3
 PPP_PING_INTERVAL_SEC=${PPP_PING_INTERVAL_SEC:-0}
 NTP_DISABLED=${NTP_DISABLED:-1}
+PPPD_DEBUG=${PPPD_DEBUG}
+CHAT_VERBOSE=${CHAT_VERBOSE}
 
 REBOOT=0
 
@@ -234,6 +236,8 @@ function install_service {
   sed -i -e "s/%BOOT_APN%/${BOOT_APN//\//\\/}/g" ${SERVICE_HOME}/environment
   sed -i -e "s/%PPP_PING_INTERVAL_SEC%/${PPP_PING_INTERVAL_SEC//\//\\/}/g" ${SERVICE_HOME}/environment
   sed -i -e "s/%NTP_DISABLED%/${NTP_DISABLED//\//\\/}/g" ${SERVICE_HOME}/environment
+  sed -i -e "s/%PPPD_DEBUG%/${PPPD_DEBUG//\//\\/}/g" ${SERVICE_HOME}/environment
+  sed -i -e "s/%CHAT_VERBOSE%/${CHAT_VERBOSE//\//\\/}/g" ${SERVICE_HOME}/environment
   FILES=`ls ${SRC_DIR}/systemd/*.sh`
   FILES="${FILES} `ls ${SRC_DIR}/systemd/server_*.py`"
   for f in ${FILES}

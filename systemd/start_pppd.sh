@@ -25,9 +25,14 @@ if [ "$?" != "0" ]; then
   exit 1
 fi
 eval ${CREDS}
-if [ -n "${DEBUG}" ]; then DEBUG="debug"; fi
+if [ -n "${PPPD_DEBUG}" ]; then
+  PPPD_DEBUG="debug"
+  CHAT_VERBOSE="-v"
+elif [ -n "${CHAT_VERBOSE}" ]; then
+  CHAT_VERBOSE="-v"
+fi
 
-CONNECT="'chat -s -v \
+CONNECT="'chat -s ${CHAT_VERBOSE} \
 ABORT \"NO CARRIER\" \
 ABORT \"ERROR\" \
 ABORT \"NO DIALTONE\" \
@@ -41,7 +46,7 @@ OK ATD*99# \
 CONNECT \
 '"
 
-DISCONNECT="'chat -s -v \
+DISCONNECT="'chat -s ${CHAT_VERBOSE} \
 ABORT OK \
 ABORT BUSY \
 ABORT DELAYED \
@@ -73,7 +78,7 @@ function init {
 }
 
 function connect {
-  pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${DEBUG} \
+  pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${PPPD_DEBUG} \
     user "${APN_USER}" \
     password "${APN_PASSWORD}" \
     connect "'${CONNECT}'" \
