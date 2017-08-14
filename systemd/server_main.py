@@ -230,8 +230,6 @@ def server_main(serial_port, bps, nic,
     logger.debug("server_main() : Setting up SockServer...")
     server = candy_board_qws.SockServer(resolve_version(),
                                         sock_path, serial)
-    if 'DEBUG' in os.environ and os.environ['DEBUG'] == "1":
-        server.debug = True
 
     if 'BLINKY' in os.environ and os.environ['BLINKY'] == "1":
         logger.debug("server_main() : Starting blinky timer...")
