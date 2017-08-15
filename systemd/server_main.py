@@ -58,14 +58,18 @@ shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
 PID = str(os.getpid())
 try:
-    restart_at = croniter(os.environ['RESTART_SCHEDULE_CRON']).get_next() \
+    restart_at = None
+    cron = croniter(os.environ['RESTART_SCHEDULE_CRON']) \
         if 'RESTART_SCHEDULE_CRON' in os.environ else None
-    logger.info("candy-pi-lite service will restart within %d seconds" %
-                (restart_at - time.time()))
+    if cron:
+        restart_at = cron.get_next()
+        if restart_at - time.time() < 60:
+            restart_at = cron.get_next()
+        logger.info("candy-pi-lite service will restart within %d seconds" %
+                    (restart_at - time.time()))
 except Exception:
     logger.warn("RESTART_SCHEDULE_CRON=>[%s] is ignored"
                 % os.environ['RESTART_SCHEDULE_CRON'])
-    restart_at = None
 
 
 class Pinger(threading.Thread):
