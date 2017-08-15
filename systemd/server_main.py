@@ -57,19 +57,6 @@ online = False
 shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
 PID = str(os.getpid())
-try:
-    restart_at = None
-    cron = croniter(os.environ['RESTART_SCHEDULE_CRON']) \
-        if 'RESTART_SCHEDULE_CRON' in os.environ else None
-    if cron:
-        restart_at = cron.get_next()
-        if restart_at - time.time() < 60:
-            restart_at = cron.get_next()
-        logger.info("candy-pi-lite service will restart within %d seconds" %
-                    (restart_at - time.time()))
-except Exception:
-    logger.warn("RESTART_SCHEDULE_CRON=>[%s] is ignored"
-                % os.environ['RESTART_SCHEDULE_CRON'])
 
 
 class Pinger(threading.Thread):
@@ -111,6 +98,20 @@ class Monitor(threading.Thread):
     def __init__(self, nic):
         super(Monitor, self).__init__()
         self.nic = nic
+        try:
+            self.restart_at = None
+            cron = croniter(os.environ['RESTART_SCHEDULE_CRON']) \
+                if 'RESTART_SCHEDULE_CRON' in os.environ else None
+            if cron:
+                self.restart_at = cron.get_next()
+                if self.restart_at - time.time() < 60:
+                    self.restart_at = cron.get_next()
+                logger.info(
+                    "candy-pi-lite service will restart within %d seconds" %
+                    (self.restart_at - time.time()))
+        except Exception:
+            logger.warn("RESTART_SCHEDULE_CRON=>[%s] is ignored"
+                        % os.environ['RESTART_SCHEDULE_CRON'])
 
     def terminate(self, restart=False):
         if os.path.isfile(shutdown_state_file):
@@ -125,9 +126,9 @@ class Monitor(threading.Thread):
         return True
 
     def time_to_restart(self):
-        if restart_at is None:
+        if self.restart_at is None:
             return False
-        return restart_at <= time.time()
+        return self.restart_at <= time.time()
 
     def run(self):
         global online
