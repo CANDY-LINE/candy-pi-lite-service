@@ -39,10 +39,10 @@ function setup_ports {
     if [ ! -f "/sys/class/gpio/gpio${!p}/direction" ]; then
       echo "${!p}"  > /sys/class/gpio/export
       echo "out" > "/sys/class/gpio/gpio${!p}/direction"
-      default_value="${p}_DEFAULT"
-      pin_value="${p}_PIN"
-      echo "${!default_value}" > "${!pin_value}/value"
     fi
+    default_value="${p}_DEFAULT"
+    pin_value="${p}_PIN"
+    echo "${!default_value}" > "${!pin_value}/value"
   done
 }
 
