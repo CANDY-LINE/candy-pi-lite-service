@@ -31,6 +31,7 @@ import re
 import candy_board_qws
 import logging
 import logging.handlers
+from croniter import croniter
 
 # sys.argv[0] ... Serial Port
 # sys.argv[1] ... The path to socket file,
@@ -56,6 +57,15 @@ online = False
 shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
 PID = str(os.getpid())
+try:
+    restart_at = croniter(os.environ['RESTART_SCHEDULE_CRON']).get_next() \
+        if 'RESTART_SCHEDULE_CRON' in os.environ else None
+    logger.info("candy-pi-lite service will restart within %d seconds" %
+                (restart_at - time.time()))
+except Exception:
+    logger.warn("RESTART_SCHEDULE_CRON=>[%s] is ignored"
+                % os.environ['RESTART_SCHEDULE_CRON'])
+    restart_at = None
 
 
 class Pinger(threading.Thread):
@@ -98,18 +108,30 @@ class Monitor(threading.Thread):
         super(Monitor, self).__init__()
         self.nic = nic
 
-    def terminate(self):
+    def terminate(self, restart=False):
         if os.path.isfile(shutdown_state_file):
             return False
-        logger.error("CANDY Pi Lite modem is terminated. Shutting down.")
         # exit from non-main thread
-        os.kill(os.getpid(), signal.SIGTERM)
+        if restart:
+            logger.error("candy-pi-lite service will be restarted...")
+            os.kill(os.getpid(), signal.SIGQUIT)
+        else:
+            logger.error("candy-pi-lite service is terminated. Shutting down.")
+            os.kill(os.getpid(), signal.SIGTERM)
         return True
+
+    def time_to_restart(self):
+        if restart_at is None:
+            return False
+        return restart_at <= time.time()
 
     def run(self):
         global online
         while True:
             try:
+                if self.time_to_restart():
+                    if self.terminate(True):
+                        return
                 if not os.path.isfile(PIDFILE):
                     if self.terminate():
                         return

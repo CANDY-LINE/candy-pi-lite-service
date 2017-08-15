@@ -19,6 +19,9 @@ NTP_DISABLED=%NTP_DISABLED%
 # Adjusting time in seconds for calculating current epoch time
 DELAY_SEC=1.0
 
+# Cron expression to schedule this service restarting
+RESTART_SCHEDULE_CRON=%RESTART_SCHEDULE_CRON%
+
 # Set 1 for enabling PPPD debug logging and chat command logging
 # Leave blank for disable the logging
 PPPD_DEBUG=%PPPD_DEBUG%
