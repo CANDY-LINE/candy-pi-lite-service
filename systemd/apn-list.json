@@ -2,4 +2,5 @@
    "soracom.io":{"user":"sora","password":"sora"}
   ,"lte-d.ocn.ne.jp":{"user":"mobileid@ocn","password":"mobile"}
   ,"3g-d-2.ocn.ne.jp":{"user":"mobileid@ocn","password":"mobile"}
+  ,"iijmio.jp":{"user":"mio@iij","password":"iij"}
 }

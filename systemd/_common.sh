@@ -20,6 +20,7 @@ UART_PORT="/dev/ttySC1"
 QWS_UC20_PORT="/dev/QWS.UC20.AT"
 QWS_EC21_PORT="/dev/QWS.EC21.AT"
 IF_NAME="${IF_NAME:-ppp0}"
+DELAY_SEC=${DELAY_SEC:-1}
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -131,7 +132,7 @@ function wait_for_ppp_online {
   done
   if [ "${RET}" != "0" ]; then
     log "[ERROR] PPP cannot be online"
-    exit 1
+    return
   fi
 }
 
@@ -162,7 +163,7 @@ function _adjust_time {
   candy_command modem show
   MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
   DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
-  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+1)"`
+  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+${DELAY_SEC})"`
   date -s "@${EPOCHTIME}"
   log "[INFO] Module Model: ${MODEL}"
   log "[INFO] Adjusted the current time => ${DATETIME}"

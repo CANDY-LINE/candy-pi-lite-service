@@ -147,11 +147,15 @@ if [ "${NTP_DISABLED}" == "1" ]; then
   if [ "${MODEL}" == "UC20" ]; then
     log "Trying to establish the first connetion for time adjustment..."
     wait_for_ppp_online
-    sleep 3
-    poff
-    init_modem
-    log "Time adjusted. Trying to establish the data connetion..."
-    connect
+    if [ "${RET}" == "0" ]; then
+      sleep 3
+      poff
+      init_modem
+      log "Time adjusted. Trying to establish the data connetion..."
+      connect
+    else
+      log "Failed to connect. Restart this service in order to adjust time later."
+    fi
   fi
 fi
 
