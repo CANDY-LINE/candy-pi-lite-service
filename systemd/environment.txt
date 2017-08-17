@@ -1,0 +1,31 @@
+# Environment Variables
+# Software Version
+VERSION=%VERSION%
+
+# 1 for enabling LED blinking, 0 for disabling it
+BLINKY=1
+# Blinking interval in seconds, > 0 and <= 60
+BLINKY_INTERVAL_SEC=0.4
+
+# LTE/3G access point name defined in `apn-list.json`
+APN=%BOOT_APN%
+
+# Network retaining request interval in PPP Modem-mode (<5: disabled)
+PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%
+
+# Set 1 for disabling NTP service
+NTP_DISABLED=%NTP_DISABLED%
+
+# Adjusting time in seconds for calculating current epoch time
+DELAY_SEC=1.0
+
+# Cron expression to schedule this service restarting
+RESTART_SCHEDULE_CRON=%RESTART_SCHEDULE_CRON%
+
+# Set 1 for enabling PPPD debug logging and chat command logging
+# Leave blank for disable the logging
+PPPD_DEBUG=%PPPD_DEBUG%
+
+# Set 1 for enabling verbose output in chat command
+# Leave blank for disable the output
+CHAT_VERBOSE=%CHAT_VERBOSE%

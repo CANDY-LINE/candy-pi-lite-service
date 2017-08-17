@@ -1,0 +1,18 @@
+[Unit]
+Description=CANDY Pi Lite Service, version:%VERSION%
+After=wpa_supplicant.service ntp.service dhcpcd.service
+Before=
+
+[Service]
+Type=simple
+RemainAfterExit=no
+Restart=on-failure
+RestartPreventExitStatus=10
+ExecStart=/opt/candy-line/candy-pi-lite/start_systemd.sh
+ExecStop=/opt/candy-line/candy-pi-lite/stop_systemd.sh
+Environment="HOME=/opt/candy-line/candy-pi-lite/"
+WorkingDirectory=/opt/candy-line/candy-pi-lite/
+EnvironmentFile=/opt/candy-line/candy-pi-lite/environment
+
+[Install]
+WantedBy=multi-user.target
