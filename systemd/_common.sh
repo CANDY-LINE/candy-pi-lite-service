@@ -116,7 +116,7 @@ function wait_for_ppp_offline {
   if [ "$?" != "0" ]; then
     return
   fi
-  poff
+  poff -a
   MAX=40
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];

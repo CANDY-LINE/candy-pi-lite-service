@@ -136,7 +136,7 @@ function connect {
     if [ "${RET}" == "0" ]; then
       break
     fi
-    poff
+    poff -a
     let CONN_COUNTER=CONN_COUNTER+1
   done
 }
@@ -158,7 +158,7 @@ if [ "${NTP_DISABLED}" == "1" ]; then
   if [ "${MODEL}" == "UC20" ]; then
     log "Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
-      poff
+      poff -a
       sleep 3 # waiting for pppd exiting
       adjust_time
       log "Time adjusted. Trying to establish the data connetion..."
