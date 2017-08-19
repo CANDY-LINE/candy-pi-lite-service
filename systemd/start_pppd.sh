@@ -97,8 +97,7 @@ function connect {
     ipcp-max-configure 30 \
     local \
     lock \
-    modem \
-    &
+    modem
 }
 
 # main
