@@ -50,5 +50,9 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
+* 1.1.0
+    - USBシリアル接続のサポートを改善
+    - UC20の再接続処理を簡素化
+
 * 1.0.0
     - 初版
