@@ -92,6 +92,7 @@ function connect {
     defaultroute \
     ipcp-accept-local \
     ipcp-accept-remote \
+    novj novjccomp noccp \
     &
 }
 
