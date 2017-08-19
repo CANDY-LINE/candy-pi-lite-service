@@ -127,7 +127,18 @@ function boot_ip_addr_fin {
 
 function connect {
   ip route del default
-  . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh
+  CONN_MAX=5
+  CONN_COUNTER=0
+  while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
+  do
+    . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh
+    wait_for_ppp_online
+    if [ "${RET}" == "0" ]; then
+      break
+    fi
+    poff
+    let CONN_COUNTER=CONN_COUNTER+1
+  done
 }
 
 # main
@@ -145,18 +156,19 @@ connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   systemctl stop ntp
   if [ "${MODEL}" == "UC20" ]; then
-    log "Trying to establish the first connetion for time adjustment..."
-    wait_for_ppp_online
+    log "Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
-      sleep 3
       poff
-      init_modem
+      sleep 3 # waiting for pppd exiting
+      adjust_time
       log "Time adjusted. Trying to establish the data connetion..."
       connect
     else
       log "Failed to connect. Restart this service in order to adjust time later."
     fi
   fi
+elif [ "${RET}" != "0" ]; then
+  log "Failed to connect. Restart this service later."
 fi
 
 # end banner

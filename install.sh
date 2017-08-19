@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.0.0
+VERSION=1.1.0
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
@@ -142,7 +142,6 @@ function install_ppp {
   # _common.sh is copied by install_service
   cp -f ${SRC_DIR}/systemd/apn-list.json ${SERVICE_HOME}/apn-list.json
   port="${UART_PORT}"
-  sed -i -e "s/%MODEM_SERIAL_PORT%/${port//\//\\/}/g" ${SERVICE_HOME}/_common.sh
   sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/_common.sh
 
   _ufw_setup

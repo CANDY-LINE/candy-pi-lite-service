@@ -84,7 +84,6 @@ function connect {
     connect "'${CONNECT}'" \
     disconnect "'${DISCONNECT}'" \
     hide-password \
-    nolock \
     nocrtscts \
     usepeerdns \
     noauth \
@@ -92,7 +91,13 @@ function connect {
     defaultroute \
     ipcp-accept-local \
     ipcp-accept-remote \
-    &
+    novj \
+    novjccomp \
+    noccp \
+    ipcp-max-configure 30 \
+    local \
+    lock \
+    modem
 }
 
 # main

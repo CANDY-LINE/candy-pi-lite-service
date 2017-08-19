@@ -14,11 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MODEM_SERIAL_PORT=${MODEM_SERIAL_PORT:-%MODEM_SERIAL_PORT%}
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-%MODEM_BAUDRATE%}
 UART_PORT="/dev/ttySC1"
-QWS_UC20_PORT="/dev/QWS.UC20.AT"
-QWS_EC21_PORT="/dev/QWS.EC21.AT"
+QWS_UC20_PORT="/dev/QWS.UC20.MODEM"
+QWS_EC21_PORT="/dev/QWS.EC21.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 
@@ -36,29 +35,51 @@ function log {
   fi
 }
 
+function detect_usb_device {
+  USB_SERIAL=`lsusb | grep "2c7c:0121"`
+  if [ "$?" == "0" ]; then
+    USB_SERIAL_PORT=${QWS_EC21_PORT}
+  else
+    USB_SERIAL=`lsusb | grep "05c6:9003"`
+    if [ "$?" == "0" ]; then
+      USB_SERIAL_PORT=${QWS_UC20_PORT}
+    fi
+  fi
+  USB_SERIAL=""
+}
+
 function look_for_modem_port {
   MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
   if [ "${MODEM_SERIAL_PORT}" == "None" ]; then
-    if [ -e "${UART_PORT}" ]; then
-      log "[INFO] Trying to adjust baudrate"
-      CURRENT_BAUDRATE=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_baudrate('${UART_PORT}'))"`
-      if [ "${CURRENT_BAUDRATE}" != "None" ]; then
-        MODEM_SERIAL_PORT=${UART_PORT}
-      else
-        log "[ERROR] Serial port is missing, good-bye"
-        exit 10
-      fi
-    else
-      log "[ERROR] Serial port is missing, bye"
-      exit 10
-    fi
-  else
-    log "Serial port: ${MODEM_SERIAL_PORT} is selected"
+    MODEM_SERIAL_PORT=""
+    return
+  elif [ -n "${USB_SERIAL_PORT}" ] && [ "${USB_SERIAL_PORT}" != "${MODEM_SERIAL_PORT}" ]; then
+    MODEM_SERIAL_PORT=""
+    return
   fi
+  log "Serial port: ${MODEM_SERIAL_PORT} is selected"
 }
 
 function init_serialport {
+  CURRENT_BAUDRATE="None"
+  if [ -z "${MODEM_SERIAL_PORT}" ]; then
+    look_for_modem_port
+    if [ -z "${MODEM_SERIAL_PORT}" ]; then
+      return
+    fi
+  fi
+  if [ "${MODEM_INIT}" != "0" ]; then
+    return
+  fi
   if [ "${MODEM_SERIAL_PORT}" != "${UART_PORT}" ]; then
+    if [ -e "${MODEM_SERIAL_PORT}" ]; then
+      CURRENT_BAUDRATE=115200
+      MODEM_INIT=1
+      log "[INFO] Initialization Done. Modem Serial Port => ${MODEM_SERIAL_PORT}"
+    else
+      log "[ERROR] The path [${MODEM_SERIAL_PORT}] is missing"
+      return
+    fi
     return
   fi
   CURRENT_BAUDRATE=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_baudrate('${UART_PORT}'))"`
@@ -72,7 +93,8 @@ function init_serialport {
   else
     candy_command modem init
   fi
-  log "[INFO] Modem baudrate => ${CURRENT_BAUDRATE}"
+  MODEM_INIT=1
+  log "[INFO] Initialization Done. Modem Serial Port => ${MODEM_SERIAL_PORT} Modem baudrate => ${CURRENT_BAUDRATE}"
 }
 
 function candy_command {
@@ -118,7 +140,7 @@ function wait_for_ppp_online {
   if [ "$?" == "0" ]; then
     return
   fi
-  MAX=40
+  MAX=9
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
@@ -138,7 +160,7 @@ function wait_for_ppp_online {
 
 function wait_for_serial_available {
   init_serialport
-  if [ "${CURRENT_BAUDRATE}" != "None" ]; then
+  if [ "${MODEM_INIT}" != "0" ]; then
     return
   fi
   MAX=40
@@ -152,13 +174,13 @@ function wait_for_serial_available {
     sleep 1
     let COUNTER=COUNTER+1
   done
-  if [ "${CURRENT_BAUDRATE}" == "None" ]; then
+  if [ "${MODEM_INIT}" == "0" ]; then
     log "[ERROR] No serialport is available"
     exit 1
   fi
 }
 
-function _adjust_time {
+function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
   MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
@@ -170,12 +192,13 @@ function _adjust_time {
 }
 
 function init_modem {
+  MODEM_INIT=0
+  detect_usb_device
   wait_for_ppp_offline
   perst
   wait_for_serial_available
-  init_serialport
-  if [ "${CURRENT_BAUDRATE}" == "None" ]; then
+  if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
   fi
-  _adjust_time
+  adjust_time
 }
