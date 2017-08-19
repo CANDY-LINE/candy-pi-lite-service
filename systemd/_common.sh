@@ -21,6 +21,7 @@ QWS_UC20_PORT="/dev/QWS.UC20.AT"
 QWS_EC21_PORT="/dev/QWS.EC21.AT"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
+MODEM_INIT=0
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -61,6 +62,9 @@ function init_serialport {
   if [ "${MODEM_SERIAL_PORT}" != "${UART_PORT}" ]; then
     return
   fi
+  if [ "${MODEM_INIT}" != "0" ]; then
+    return
+  fi
   CURRENT_BAUDRATE=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_baudrate('${UART_PORT}'))"`
   if [ "${CURRENT_BAUDRATE}" == "None" ]; then
     log "[ERROR] Modem is missing"
@@ -72,7 +76,8 @@ function init_serialport {
   else
     candy_command modem init
   fi
-  log "[INFO] Modem baudrate => ${CURRENT_BAUDRATE}"
+  MODEM_INIT=1
+  log "[INFO] Initialization Done. Modem baudrate => ${CURRENT_BAUDRATE}"
 }
 
 function candy_command {
@@ -138,7 +143,7 @@ function wait_for_ppp_online {
 
 function wait_for_serial_available {
   init_serialport
-  if [ "${CURRENT_BAUDRATE}" != "None" ]; then
+  if [ "${MODEM_INIT}" != "0" ]; then
     return
   fi
   MAX=40
@@ -152,7 +157,7 @@ function wait_for_serial_available {
     sleep 1
     let COUNTER=COUNTER+1
   done
-  if [ "${CURRENT_BAUDRATE}" == "None" ]; then
+  if [ "${MODEM_INIT}" == "0" ]; then
     log "[ERROR] No serialport is available"
     exit 1
   fi
@@ -173,8 +178,7 @@ function init_modem {
   wait_for_ppp_offline
   perst
   wait_for_serial_available
-  init_serialport
-  if [ "${CURRENT_BAUDRATE}" == "None" ]; then
+  if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
   fi
   _adjust_time
