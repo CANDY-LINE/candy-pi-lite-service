@@ -122,7 +122,7 @@ function wait_for_ppp_online {
   if [ "$?" == "0" ]; then
     return
   fi
-  MAX=40
+  MAX=9
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
@@ -162,7 +162,7 @@ function wait_for_serial_available {
   fi
 }
 
-function _adjust_time {
+function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
   MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
@@ -180,5 +180,5 @@ function init_modem {
   if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
   fi
-  _adjust_time
+  adjust_time
 }
