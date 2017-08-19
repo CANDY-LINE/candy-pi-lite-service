@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MODEM_SERIAL_PORT=${MODEM_SERIAL_PORT:-%MODEM_SERIAL_PORT%}
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-%MODEM_BAUDRATE%}
 UART_PORT="/dev/ttySC1"
 QWS_UC20_PORT="/dev/QWS.UC20.AT"
