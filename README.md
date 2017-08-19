@@ -39,7 +39,7 @@ $ make PI_HOST=shinycandypi.local
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.0.0 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.1.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 MAX_OLD_SPACE_SIZE=256 ./install.sh
