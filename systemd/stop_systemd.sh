@@ -62,7 +62,7 @@ logger -t ${PRODUCT_DIR_NAME} "Inactivating ${PRODUCT}..."
 touch ${SHUDOWN_STATE_FILE}
 
 init
-poff
+poff -a
 stop_server_main
 led_off
 systemctl --no-block restart dhcpcd
