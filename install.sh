@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.2.0
+VERSION=1.2.1
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
@@ -162,9 +162,6 @@ function install_candy_board {
   pip install --upgrade candy-board-cli
   pip install --upgrade candy-board-qws
   pip install --upgrade croniter
-
-  # Install udev rules
-  cp -r ${SRC_DIR}/etc/* /etc/
 }
 
 function install_candy_red {
@@ -261,6 +258,9 @@ function install_service {
   systemctl enable ${SERVICE_NAME}
 
   install -o root -g root -D -m 755 ${SRC_DIR}/uninstall.sh ${SERVICE_HOME}/uninstall.sh
+
+  # Install udev rules
+  cp -r ${SRC_DIR}/etc/* /etc/
 
   info "${SERVICE_NAME} service has been installed"
   REBOOT=1
