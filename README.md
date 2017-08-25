@@ -39,7 +39,7 @@ $ make PI_HOST=shinycandypi.local
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.1.1 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.2.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 MAX_OLD_SPACE_SIZE=256 ./install.sh
@@ -50,8 +50,9 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
-* \*.\*.\*
+* 1.2.0
     - インストール時に`ltepi2`サービスがインストールされているときはアンインストールしなければインストールを実施しないように変更
+    - udevルールのインストールができていない問題を修正
 
 * 1.1.1
     - PPP接続に`persist`を追加
