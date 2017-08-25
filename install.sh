@@ -162,6 +162,9 @@ function install_candy_board {
   pip install --upgrade candy-board-cli
   pip install --upgrade candy-board-qws
   pip install --upgrade croniter
+
+  # Install udev rules
+  cp -r ${SRC_DIR}/etc/* /etc/
 }
 
 function install_candy_red {
