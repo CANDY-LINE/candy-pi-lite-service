@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.1.1
+VERSION=1.2.0
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
@@ -86,6 +86,10 @@ function test_connectivity {
 function ask_to_unistall_if_installed {
   if [ -f "${SERVICE_HOME}/environment" ]; then
     alert "Please uninstall candy-pi-lite-service first by 'sudo /opt/candy-line/candy-pi-lite/uninstall.sh'"
+    exit 1
+  fi
+  if [ -f "${VENDOR_HOME}/ltepi2/environment" ]; then
+    alert "Please uninstall ltepi2-service first by 'sudo /opt/candy-line/ltepi2/uninstall.sh'"
     exit 1
   fi
 }
@@ -158,6 +162,9 @@ function install_candy_board {
   pip install --upgrade candy-board-cli
   pip install --upgrade candy-board-qws
   pip install --upgrade croniter
+
+  # Install udev rules
+  cp -r ${SRC_DIR}/etc/* /etc/
 }
 
 function install_candy_red {
