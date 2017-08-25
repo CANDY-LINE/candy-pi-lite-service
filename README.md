@@ -50,6 +50,9 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
+* \*.\*.\*
+    - インストール時に`ltepi2`サービスがインストールされているときはアンインストールしなければインストールを実施しないように変更
+
 * 1.1.1
     - PPP接続に`persist`を追加
     - PPP接続確認タイムアウト時間を延長
