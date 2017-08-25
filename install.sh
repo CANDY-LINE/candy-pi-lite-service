@@ -262,6 +262,9 @@ function install_service {
 
   install -o root -g root -D -m 755 ${SRC_DIR}/uninstall.sh ${SERVICE_HOME}/uninstall.sh
 
+  # Install udev rules
+  cp -r ${SRC_DIR}/etc/* /etc/
+
   info "${SERVICE_NAME} service has been installed"
   REBOOT=1
 }
