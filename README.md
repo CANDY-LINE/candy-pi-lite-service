@@ -33,13 +33,19 @@ $ make
 ホストを指定するときは、`PI_HOST`を指定する。
 ```bash
 $ make PI_HOST=shinycandypi.local
-(enter RPi password)
+(enter ssh user password)
+```
+
+ユーザー名を指定するときは、`PI_USER`を指定する。
+```bash
+$ make PI_USER=linaro PI_HOST=192.168.1.10
+(enter ssh user password)
 ```
 
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.2.1 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.3.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 MAX_OLD_SPACE_SIZE=256 ./install.sh
@@ -50,6 +56,9 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
+* 1.3.0
+    - ASUS Tinker Boardでも動作できるように対応
+
 * 1.2.1
     - インターネットインストール時にudevルールのインストールができていない問題を修正
 
