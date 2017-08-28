@@ -16,20 +16,34 @@
 
 echo -e "\033[93m[WARN] *** INTERNAL USE, DO NOT RUN DIRECTLY *** \033[0m"
 
+# Test if the board is RPi
+python -c "import RPi.GPIO" > /dev/null 2>&1
+if [ "$?" == "0" ]; then
+  LED2=4
+  PERST=20
+  W_DISABLE=12
+else
+  uname -a | grep linaro
+  if [ "$?" == "0" ]; then
+    LED2=17
+    PERST=187
+    W_DISABLE=239
+  else
+    echo -e "\033[93m[FATAL] *** UNSUPPORTED BOARD *** \033[0m"
+  fi
+fi
+
 # Orange LED (Online Status Indicator)
-LED2=4
 LED2_PIN="/sys/class/gpio/gpio${LED2}"
 LED2_DIR="${LED2_PIN}/direction"
 LED2_DEFAULT=0
 
 # SC16IS75X RESET & PERST
-PERST=20
 PERST_PIN="/sys/class/gpio/gpio${PERST}"
 PERST_DIR="${PERST_PIN}/direction"
 PERST_DEFAULT=1
 
 # W_DISABLE
-W_DISABLE=12
 W_DISABLE_PIN="/sys/class/gpio/gpio${W_DISABLE}"
 W_DISABLE_DIR="${W_DISABLE_PIN}/direction"
 W_DISABLE_DEFAULT=1

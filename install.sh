@@ -66,6 +66,10 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
+  python -c "import RPi.GPIO" > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    BOARD="RPi"
+  fi
 }
 
 function assert_root {
@@ -124,6 +128,9 @@ function _ufw_setup {
 }
 
 function configure_sc16is7xx {
+  if [ "${BOARD}" != "RPi" ]; then
+    return
+  fi
   info "Configuring SC16IS7xx..."
   SC16IS7xx_DTO="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
   if [ ! -f "${SC16IS7xx_DTO}" ]; then
