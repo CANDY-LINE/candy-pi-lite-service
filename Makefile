@@ -1,5 +1,6 @@
 PI_HOST ?= raspberrypi.local
+PI_USER ?= pi
 
 deploy:
 	./install.sh pack && \
-	scp ./candy-pi-lite-service-*.tgz pi@$(PI_HOST):~
+	scp ./candy-pi-lite-service-*.tgz $(PI_USER)@$(PI_HOST):~

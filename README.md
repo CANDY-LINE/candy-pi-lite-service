@@ -33,7 +33,13 @@ $ make
 ホストを指定するときは、`PI_HOST`を指定する。
 ```bash
 $ make PI_HOST=shinycandypi.local
-(enter RPi password)
+(enter ssh user password)
+```
+
+ユーザー名を指定するときは、`PI_USER`を指定する。
+```bash
+$ make PI_USER=linaro PI_HOST=192.168.1.10
+(enter ssh user password)
 ```
 
 ### 動作確認 (RPi)
