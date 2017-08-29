@@ -140,7 +140,7 @@ function wait_for_ppp_online {
   if [ "$?" == "0" ]; then
     return
   fi
-  MAX=20
+  MAX=70
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
