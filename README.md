@@ -56,6 +56,9 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
+* 1.3.x
+    - 3G/LTEモジュールへのdefault routeが存在しないとき、自動的に追加されない問題を修正
+
 * 1.3.1
     - 3Gモデルでタイムアウトを長くとる方が接続確立が安定するためタイムアウトを延長
 
