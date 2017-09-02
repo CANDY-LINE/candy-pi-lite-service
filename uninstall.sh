@@ -90,6 +90,10 @@ function uninstall_service {
   REBOOT=1
 }
 
+function uninstall_udev_rules {
+  rm -f /etc/udev/rules.d/76-rpi-ether-netnames.rules
+}
+
 function teardown {
   [ "$(ls -A ${SERVICE_HOME})" ] || rmdir ${SERVICE_HOME}
   [ "$(ls -A ${VENDOR_HOME})" ] || rmdir ${VENDOR_HOME}
@@ -103,4 +107,5 @@ assert_root
 uninstall_service
 uninstall_candy_board
 uninstall_ppp
+uninstall_udev_rules
 teardown

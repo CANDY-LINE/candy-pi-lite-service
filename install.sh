@@ -49,6 +49,7 @@ NTP_DISABLED=${NTP_DISABLED:-1}
 PPPD_DEBUG=${PPPD_DEBUG:-""}
 CHAT_VERBOSE=${CHAT_VERBOSE:-""}
 RESTART_SCHEDULE_CRON=${RESTART_SCHEDULE_CRON:-""}
+CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 
 REBOOT=0
 
@@ -266,8 +267,11 @@ function install_service {
 
   install -o root -g root -D -m 755 ${SRC_DIR}/uninstall.sh ${SERVICE_HOME}/uninstall.sh
 
-  # Install udev rules
-  cp -r ${SRC_DIR}/etc/* /etc/
+  cp -f ${SRC_DIR}/etc/udev/rules.d/99* /etc/udev/rules.d/
+  if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+    # assign the fixed name `eth-rpi` for RPi B+/2B/3B
+    cp -f ${SRC_DIR}/etc/udev/rules.d/76* /etc/udev/rules.d/
+  fi
 
   info "${SERVICE_NAME} service has been installed"
   REBOOT=1
