@@ -46,6 +46,10 @@ function boot_ip_reset {
 }
 
 function boot_ip_addr {
+  if [ ! -e "/sys/class/net/eth-rpi" ]; then
+    log "Skip to configure IP address as eth-rpi is missing"
+    return
+  fi
   LIST=`ls -1 /boot/boot-ip*.json`
   if [ "$?" == "0" ]; then
     NUM=`ls -1 /boot/boot-ip*.json | wc -l`
@@ -70,7 +74,7 @@ function boot_ip_addr {
   fi
 
   log "Checking /etc/dhcpcd.conf..."
-  for p in interface ip_address routers domain_name_servers
+  for p in ip_address routers domain_name_servers
   do
     VAL=`/usr/bin/env python -c "with open('${LIST}') as f:import json;print(('${p}=%s') % json.load(f)['${p}'])"`
     if [ "$?" != "0" ]; then
@@ -81,6 +85,7 @@ function boot_ip_addr {
     eval ${VAL}
   done
 
+  interface=${interface:-"eth-rpi"}
   NUM=`grep -wc "^[^#;]*interface\s*${interface}" "${DHCPCD_CNF}"`
   if [ "${NUM}" == "0" ]; then # update org_candy unless I/F is configured
     cp -f "${DHCPCD_CNF}" "${DHCPCD_ORG}"

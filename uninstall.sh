@@ -85,11 +85,13 @@ function uninstall_service {
   rm -f ${SERVICE_HOME}/*.py
   rm -f ${SERVICE_HOME}/*.pyc
   rm -f ${SERVICE_HOME}/*.json
-  rm -f /etc/chatscripts/candy-pi-lite-*
-  rm -f /etc/ppp/peers/candy-pi-lite*
   systemctl daemon-reload
   info "${SERVICE_NAME} has been uninstalled"
   REBOOT=1
+}
+
+function uninstall_udev_rules {
+  rm -f /etc/udev/rules.d/76-rpi-ether-netnames.rules
 }
 
 function teardown {
@@ -105,4 +107,5 @@ assert_root
 uninstall_service
 uninstall_candy_board
 uninstall_ppp
+uninstall_udev_rules
 teardown

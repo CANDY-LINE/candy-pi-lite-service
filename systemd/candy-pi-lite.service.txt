@@ -1,7 +1,7 @@
 [Unit]
 Description=CANDY Pi Lite Service, version:%VERSION%
-After=wpa_supplicant.service ntp.service dhcpcd.service
-Before=
+After=wpa_supplicant.service ntp.service
+Before=dhcpcd.service
 
 [Service]
 Type=simple

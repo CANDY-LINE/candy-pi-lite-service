@@ -160,7 +160,7 @@ class Monitor(threading.Thread):
                                               shell=True,
                                               stdout=subprocess.PIPE
                                               ).stdout.read()
-                    logger.debug("ls_nic => %s" % ls_nic)
+                    logger.debug("ls_nic => [%s]" % ls_nic)
                     for nic in ls_nic.split("\n"):
                         if nic:
                             ip_cmd = ("ip route | grep %s " +
@@ -170,6 +170,18 @@ class Monitor(threading.Thread):
                                                   ).stdout.read()
                             subprocess.call("ip route del default via %s" % ip,
                                             shell=True)
+                else:
+                    ip_cmd = ("ip route | grep %s "
+                              "| awk '{ print $9 }'"
+                              ) % self.nic
+                    ip = subprocess.Popen(ip_cmd, shell=True,
+                                          stdout=subprocess.PIPE
+                                          ).stdout.read()
+                    subprocess.call(
+                        "ip route add default via %s" % ip,
+                        shell=True,
+                        stdout=Monitor.FNULL,
+                        stderr=subprocess.STDOUT)
                 time.sleep(5)
 
             except Exception:

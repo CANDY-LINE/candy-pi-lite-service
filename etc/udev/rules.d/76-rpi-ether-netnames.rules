@@ -1,0 +1,1 @@
+SUBSYSTEM=="net", ACTION=="add", ATTRS{idVendor}=="0424", ATTRS{idProduct}=="ec00", NAME="eth-rpi"
