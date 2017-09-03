@@ -45,18 +45,24 @@ $ make PI_USER=linaro PI_HOST=192.168.1.10
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.3.1 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.4.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
+$ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 MAX_OLD_SPACE_SIZE=256 ./install.sh
-$ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ./install.sh
+$ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 CONFIGURE_STATIC_IP_ON_BOOT=1 BOOT_APN=soracom.io ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io PPP_PING_INTERVAL_SEC=5 ./install.sh
 
 $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
-* 1.3.x
+* 1.4.0
+    - ラズパイ起動時に有線LANの固定IPを設定する機能を有効にするインストールオプション`CONFIGURE_STATIC_IP_ON_BOOT`を追加（デフォルトでは無効）
+      - このオプションを有効にしてインストールすると、ラズパイ付属のEthernetに固定のインタフェース名`eth-rpi`を用意します
+      - ネットワークインタフェース「`eth-rpi`」が有効にならない場合、この機能は動作しません
+      - candy-pi-lite-serviceをアンインストールすると、固定のインタフェース名`eth-rpi`を定義するudevルールは削除されます
+      - 詳細は、[利用ガイドの「有線LAN固定IP設定」]((https://candy-line.gitbooks.io/candy-pi-lite/content/configuration/ether-static-ip.html))をご覧ください
     - 3G/LTEモジュールへのdefault routeが存在しないとき、自動的に追加されない問題を修正
 
 * 1.3.1
