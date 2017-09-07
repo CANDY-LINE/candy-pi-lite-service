@@ -202,3 +202,23 @@ function init_modem {
   fi
   adjust_time
 }
+
+function stop_ntp {
+  systemctl status ntp > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    systemctl stop ntp
+  fi
+  if [ -n "$(which timedatectl)" ]; then
+    timedatectl set-ntp false
+  fi
+}
+
+function start_ntp {
+  systemctl status ntp > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    systemctl --no-block start ntp
+  fi
+  if [ -n "$(which timedatectl)" ]; then
+    timedatectl set-ntp true
+  fi
+}

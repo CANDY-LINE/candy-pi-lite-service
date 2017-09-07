@@ -159,7 +159,7 @@ log "Initializing ${PRODUCT}..."
 init_modem
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
-  systemctl stop ntp
+  stop_ntp
   if [ "${MODEL}" == "UC20" ]; then
     log "Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
