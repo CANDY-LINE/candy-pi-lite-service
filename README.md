@@ -45,7 +45,7 @@ $ make PI_USER=linaro PI_HOST=192.168.1.10
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.4.0 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.4.1 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
@@ -57,6 +57,10 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
+* 1.4.1
+    - 時刻調整時にタイムゾーンの計算をしていない問題を修正
+    - ネットワークインタフェース「`eth-rpi`」に対するUFW許可ルールがない問題を修正（アンインストール時にはこのルールは削除されます）
+    - Raspbian Stretchから有効になったsystemd-timesyncd.serviceへの対処を追加
 * 1.4.0
     - ラズパイ起動時に有線LANの固定IPを設定する機能を有効にするインストールオプション`CONFIGURE_STATIC_IP_ON_BOOT`を追加（デフォルトでは無効）
       - このオプションを有効にしてインストールすると、ラズパイ付属のEthernetに固定のインタフェース名`eth-rpi`を用意します
