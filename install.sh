@@ -114,7 +114,9 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   ufw --force disable
-  ufw allow in on rpi-eth
+  if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+    ufw allow in on eth-rpi
+  fi
   ufw deny in on ppp0
   for n in `ls /sys/class/net`
   do
