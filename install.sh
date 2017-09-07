@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.4.0
+VERSION=1.4.1
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
@@ -114,6 +114,9 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   ufw --force disable
+  if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+    ufw allow in on eth-rpi
+  fi
   ufw deny in on ppp0
   for n in `ls /sys/class/net`
   do

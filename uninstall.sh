@@ -57,6 +57,7 @@ function uninstall_ppp {
   RET=$?
   if [ "${RET}" == "0" ]; then
     ufw --force disable
+    ufw delete allow in on eth-rpi
     OUTPUT=`ufw --force reset`
     for f in `${echo $OUTPUT | grep -oP "/etc/ufw/[0-9a-zA-Z_\.]*"}`
     do

@@ -185,7 +185,8 @@ function adjust_time {
   candy_command modem show
   MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
   DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
-  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+${DELAY_SEC})"`
+  TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])"`
+  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+${TIMEZONE}*3600+${DELAY_SEC})"`
   date -s "@${EPOCHTIME}"
   log "[INFO] Module Model: ${MODEL}"
   log "[INFO] Adjusted the current time => ${DATETIME}"
@@ -201,4 +202,24 @@ function init_modem {
     exit 1
   fi
   adjust_time
+}
+
+function stop_ntp {
+  systemctl status ntp > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    systemctl stop ntp
+  fi
+  if [ -n "$(which timedatectl)" ]; then
+    timedatectl set-ntp false
+  fi
+}
+
+function start_ntp {
+  systemctl status ntp > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    systemctl --no-block start ntp
+  fi
+  if [ -n "$(which timedatectl)" ]; then
+    timedatectl set-ntp true
+  fi
 }
