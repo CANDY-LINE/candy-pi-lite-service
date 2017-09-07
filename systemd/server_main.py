@@ -130,6 +130,42 @@ class Monitor(threading.Thread):
             return False
         return self.restart_at <= time.time()
 
+    def del_default(self, ipv):
+        err = subprocess.call("ip -%s route | grep default | grep -v %s" %
+                              (ipv, self.nic), shell=True,
+                              stdout=Monitor.FNULL,
+                              stderr=subprocess.STDOUT)
+        if err == 0:
+            ls_nic_cmd = ("ip -%s route | grep default | grep -v %s "
+                          "| tr -s ' ' | cut -d ' ' -f 5") % (ipv, self.nic)
+            ls_nic = subprocess.Popen(ls_nic_cmd,
+                                      shell=True,
+                                      stdout=subprocess.PIPE
+                                      ).stdout.read()
+            logger.debug("ipv => [%s] : ls_nic => [%s]" % (ipv, ls_nic))
+            for nic in ls_nic.split("\n"):
+                if nic:
+                    ip_cmd = ("ip -%s route | grep %s "
+                              "| awk '/default/ { print $3 }'") % (ipv, nic)
+                    ip = subprocess.Popen(ip_cmd, shell=True,
+                                          stdout=subprocess.PIPE
+                                          ).stdout.read()
+                    subprocess.call("ip -%s route del default via %s" %
+                                    (ipv, ip),
+                                    shell=True)
+        else:
+            ip_cmd = ("ip -%s route | grep %s "
+                      "| awk '{ print $9 }'"
+                      ) % (ipv, self.nic)
+            ip = subprocess.Popen(ip_cmd, shell=True,
+                                  stdout=subprocess.PIPE
+                                  ).stdout.read()
+            subprocess.call(
+                "ip -%s route add default via %s" % (ipv, ip),
+                shell=True,
+                stdout=Monitor.FNULL,
+                stderr=subprocess.STDOUT)
+
     def run(self):
         global online
         while True:
@@ -149,39 +185,8 @@ class Monitor(threading.Thread):
                     time.sleep(5)
                     continue
 
-                err = subprocess.call("ip route | grep default | grep -v %s" %
-                                      self.nic, shell=True,
-                                      stdout=Monitor.FNULL,
-                                      stderr=subprocess.STDOUT)
-                if err == 0:
-                    ls_nic_cmd = ("ip route | grep default | grep -v %s " +
-                                  "| tr -s ' ' | cut -d ' ' -f 5") % self.nic
-                    ls_nic = subprocess.Popen(ls_nic_cmd,
-                                              shell=True,
-                                              stdout=subprocess.PIPE
-                                              ).stdout.read()
-                    logger.debug("ls_nic => [%s]" % ls_nic)
-                    for nic in ls_nic.split("\n"):
-                        if nic:
-                            ip_cmd = ("ip route | grep %s " +
-                                      "| awk '/default/ { print $3 }'") % nic
-                            ip = subprocess.Popen(ip_cmd, shell=True,
-                                                  stdout=subprocess.PIPE
-                                                  ).stdout.read()
-                            subprocess.call("ip route del default via %s" % ip,
-                                            shell=True)
-                else:
-                    ip_cmd = ("ip route | grep %s "
-                              "| awk '{ print $9 }'"
-                              ) % self.nic
-                    ip = subprocess.Popen(ip_cmd, shell=True,
-                                          stdout=subprocess.PIPE
-                                          ).stdout.read()
-                    subprocess.call(
-                        "ip route add default via %s" % ip,
-                        shell=True,
-                        stdout=Monitor.FNULL,
-                        stderr=subprocess.STDOUT)
+                self.del_default('6')
+                self.del_default('4')
                 time.sleep(5)
 
             except Exception:
