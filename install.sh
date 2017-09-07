@@ -114,6 +114,7 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   ufw --force disable
+  ufw allow in on rpi-eth
   ufw deny in on ppp0
   for n in `ls /sys/class/net`
   do
