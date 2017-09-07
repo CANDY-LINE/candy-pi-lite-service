@@ -59,7 +59,7 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 # 履歴
 * 1.4.1
     - 時刻調整時にタイムゾーンの計算をしていない問題を修正
-    - ネットワークインタフェース「`eth-rpi`」に対するUFW許可ルールがない問題を修正（アンインストール時にはこのルールは削除されます）
+    - `CONFIGURE_STATIC_IP_ON_BOOT=1`の場合にのみインストールされる（デフォルトは`0`）ネットワークインタフェース「`eth-rpi`」に対するUFW許可ルールがない問題を修正（アンインストール時にはこのルールは削除されます）
     - Raspbian Stretchから有効になったsystemd-timesyncd.serviceへの対処を追加
     - PPP接続中は、IPv6 デフォルトルートを利用しないように修正
 * 1.4.0
