@@ -248,13 +248,15 @@ function install_service {
   mkdir -p ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/boot-ip.*.json ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/environment.txt ${SERVICE_HOME}/environment
-  sed -i -e "s/%VERSION%/${VERSION//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%BOOT_APN%/${BOOT_APN//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%PPP_PING_INTERVAL_SEC%/${PPP_PING_INTERVAL_SEC//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%NTP_DISABLED%/${NTP_DISABLED//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%PPPD_DEBUG%/${PPPD_DEBUG//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%CHAT_VERBOSE%/${CHAT_VERBOSE//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%RESTART_SCHEDULE_CRON%/${RESTART_SCHEDULE_CRON//\//\\/}/g" ${SERVICE_HOME}/environment
+
+  for e in VERSION BOOT_APN \
+      PPP_PING_INTERVAL_SEC \
+      NTP_DISABLED \
+      PPPD_DEBUG \
+      CHAT_VERBOSE \
+      RESTART_SCHEDULE_CRON; do
+    sed -i -e "s/%${e}%/${!e//\//\\/}/g" ${SERVICE_HOME}/environment
+  done
   FILES=`ls ${SRC_DIR}/systemd/*.sh`
   FILES="${FILES} `ls ${SRC_DIR}/systemd/server_*.py`"
   for f in ${FILES}
