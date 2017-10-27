@@ -190,7 +190,7 @@ class Monitor(threading.Thread):
                 time.sleep(5)
 
             except Exception:
-                logger.error("Error on monitoring")
+                logging.exception("Error on monitoring")
                 if not self.terminate():
                     continue
 
