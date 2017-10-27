@@ -7,6 +7,10 @@ candy-pi-lite-serviceは、Raspberry Pi上で動作するCANDY Pi Liteを動作�
 
 candy-pi-lite-serviceや、CANDY Pi Liteに関する説明については、専用の[利用ガイド](https://candy-line.gitbooks.io/candy-pi-lite/content/)をご覧ください。
 
+ℹ️ 使い方の質問、不具合のご報告やご意見などは、[CANDY LINEフォーラム](https://forums.candy-line.io/c/candy-pi-lite)をご利用ください。
+
+ℹ️ 不具合のご報告に関しては、GitHubのIssuesをご利用いただいても構いません。
+
 # 管理者向け
 ## モジュールリリース時の注意
 1. [`install.sh`](install.sh)内の`VERSION=`にあるバージョンを修正してコミットする
