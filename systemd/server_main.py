@@ -107,21 +107,22 @@ class Monitor(threading.Thread):
                 if self.restart_at - time.time() < 60:
                     self.restart_at = cron.get_next()
                 logger.info(
-                    "candy-pi-lite service will restart within %d seconds" %
+                    "[NOTICE] <candy-pi-lite> Will restart within %d seconds" %
                     (self.restart_at - time.time()))
         except Exception:
-            logger.warn("RESTART_SCHEDULE_CRON=>[%s] is ignored"
-                        % os.environ['RESTART_SCHEDULE_CRON'])
+            logger.warn("[NOTICE] <candy-pi-lite> " +
+                        "RESTART_SCHEDULE_CRON=>[%s] is ignored" %
+                        os.environ['RESTART_SCHEDULE_CRON'])
 
     def terminate(self, restart=False):
         if os.path.isfile(shutdown_state_file):
             return False
         # exit from non-main thread
         if restart:
-            logger.error("candy-pi-lite service will be restarted...")
+            logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE")
             os.kill(os.getpid(), signal.SIGQUIT)
         else:
-            logger.error("candy-pi-lite service is terminated. Shutting down.")
+            logger.error("[NOTICE] <candy-pi-lite> SHUTTING DOWN")
             os.kill(os.getpid(), signal.SIGTERM)
         return True
 
@@ -264,7 +265,7 @@ def server_main(serial_port, bps, nic,
                 sock_path='/var/run/candy-board-service.sock'):
 
     if os.path.isfile(PIDFILE):
-        logger.error("server_main module is aleady running")
+        logger.error("[NOTICE] <candy-pi-lite> ALREADY RUNNING")
         sys.exit(1)
     file(PIDFILE, 'w').write(PID)
     delete_path(sock_path)
@@ -300,13 +301,14 @@ def server_main(serial_port, bps, nic,
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        logger.error("The Network Interface isn't ready. " +
-                     "Shutting down.")
+        logger.error("[NOTICE] <candy-pi-lite> " +
+                     "The Network Interface isn't ready. Shutting down.")
     elif len(sys.argv) > 4:
         candy_command(
             sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     else:
-        logger.info("serial_port:%s (%s bps), nic:%s" %
+        logger.info("[NOTICE] <candy-pi-lite> " +
+                    "serial_port:%s (%s bps), nic:%s" %
                     (sys.argv[1], sys.argv[2], sys.argv[3]))
         try:
             server_main(sys.argv[1], sys.argv[2], sys.argv[3])
