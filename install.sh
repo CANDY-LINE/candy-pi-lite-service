@@ -50,6 +50,7 @@ PPPD_DEBUG=${PPPD_DEBUG:-""}
 CHAT_VERBOSE=${CHAT_VERBOSE:-""}
 RESTART_SCHEDULE_CRON=${RESTART_SCHEDULE_CRON:-""}
 CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
+OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-""}
 
 REBOOT=0
 
@@ -254,7 +255,8 @@ function install_service {
       NTP_DISABLED \
       PPPD_DEBUG \
       CHAT_VERBOSE \
-      RESTART_SCHEDULE_CRON; do
+      RESTART_SCHEDULE_CRON \
+      OFFLINE_PERIOD_SEC; do
     sed -i -e "s/%${e}%/${!e//\//\\/}/g" ${SERVICE_HOME}/environment
   done
   FILES=`ls ${SRC_DIR}/systemd/*.sh`

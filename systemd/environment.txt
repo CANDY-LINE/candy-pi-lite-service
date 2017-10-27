@@ -29,3 +29,6 @@ PPPD_DEBUG=%PPPD_DEBUG%
 # Set 1 for enabling verbose output in chat command
 # Leave blank for disable the output
 CHAT_VERBOSE=%CHAT_VERBOSE%
+
+# Acceptable offline period threshold in seconds
+OFFLINE_PERIOD_SEC=%OFFLINE_PERIOD_SEC%

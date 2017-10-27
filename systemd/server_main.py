@@ -54,6 +54,9 @@ if led_sec < 0 or led_sec > 60:
 PPP_PING_INTERVAL_SEC = float(os.environ['PPP_PING_INTERVAL_SEC']) \
     if 'PPP_PING_INTERVAL_SEC' in os.environ else 0.0
 online = False
+offline_since = time.time()
+OFFLINE_PERIOD_SEC = float(os.environ['OFFLINE_PERIOD_SEC']) \
+    if 'OFFLINE_PERIOD_SEC' in os.environ else 30.0
 shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
 PID = str(os.getpid())
@@ -169,6 +172,7 @@ class Monitor(threading.Thread):
 
     def run(self):
         global online
+        global offline_since
         while True:
             try:
                 if self.time_to_restart():
@@ -181,8 +185,15 @@ class Monitor(threading.Thread):
                                       shell=True,
                                       stdout=Monitor.FNULL,
                                       stderr=subprocess.STDOUT)
+                was_online = online
                 online = (err == 0)
                 if not online:
+                    if was_online:
+                        online = False
+                        offline_since = time.time()
+                    elif time.time() - offline_since > OFFLINE_PERIOD_SEC:
+                        if self.terminate(True):
+                            return
                     time.sleep(5)
                     continue
 
