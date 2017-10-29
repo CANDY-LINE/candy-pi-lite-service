@@ -186,10 +186,11 @@ function adjust_time {
   MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
   DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
   TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])"`
-  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+${TIMEZONE}*3600+${DELAY_SEC})"`
+  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})"`
   date -s "@${EPOCHTIME}"
   log "[INFO] Module Model: ${MODEL}"
-  log "[INFO] Adjusted the current time => ${DATETIME}"
+  log "[INFO] Network Timezone: ${TIMEZONE}"
+  log "[INFO] Adjusted the current time => ${DATETIME} UTC"
 }
 
 function init_modem {
