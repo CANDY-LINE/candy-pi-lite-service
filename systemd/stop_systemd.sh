@@ -62,7 +62,7 @@ log "[INFO] Inactivating ${PRODUCT}..."
 touch ${SHUDOWN_STATE_FILE}
 
 init
-poff -a
+poff -a > /dev/null 2>&1
 stop_server_main
 led_off
 systemctl --no-block restart dhcpcd
