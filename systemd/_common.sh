@@ -144,7 +144,7 @@ function wait_for_ppp_online {
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
-    RET=`ip link show ${IF_NAME} 2>&1 | grep ${IF_NAME} | grep -v "state DOWN"`
+    RET=`ip link show ${IF_NAME} 2>&1 | grep ${IF_NAME} | grep "state" | grep -v "state DOWN"`
     RET="$?"
     if [ "${RET}" == "0" ]; then
       break
