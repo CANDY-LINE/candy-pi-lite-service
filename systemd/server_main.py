@@ -59,6 +59,8 @@ OFFLINE_PERIOD_SEC = float(os.environ['OFFLINE_PERIOD_SEC']) \
     if 'OFFLINE_PERIOD_SEC' in os.environ else 30.0
 shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
+pppd_exit_code_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   '__pppd_exit_code')
 PID = str(os.getpid())
 
 
@@ -170,6 +172,18 @@ class Monitor(threading.Thread):
                 stdout=Monitor.FNULL,
                 stderr=subprocess.STDOUT)
 
+    def pppd_exited_unexpectedly(self):
+        if not os.path.isfile(pppd_exit_code_file):
+            return True
+        with open(pppd_exit_code_file, 'r') as f:
+            try:
+                pid = int(f.read())
+            except ValueError:
+                pid = -1
+        if pid != 5:  # 5=>Exit by poff
+            return True
+        return False
+
     def run(self):
         global online
         global offline_since
@@ -192,7 +206,8 @@ class Monitor(threading.Thread):
                         online = False
                         offline_since = time.time()
                     elif time.time() - offline_since > OFFLINE_PERIOD_SEC:
-                        if self.terminate(True):
+                        if self.pppd_exited_unexpectedly() \
+                           and self.terminate(True):
                             return
                     time.sleep(5)
                     continue
