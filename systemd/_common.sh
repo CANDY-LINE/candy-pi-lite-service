@@ -152,6 +152,7 @@ function wait_for_ppp_online {
     log "[ERROR] PPP cannot be online"
     return
   fi
+  log "[INFO] PPP goes online"
 }
 
 function wait_for_serial_available {
