@@ -136,12 +136,14 @@ function connect {
   CONN_COUNTER=0
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh
+    . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
+    PPPD_PID="$!"
     wait_for_ppp_online
     if [ "${RET}" == "0" ]; then
       break
     fi
     poff -a > /dev/null 2>&1
+    kill -9 ${PPPD_PID}
     let CONN_COUNTER=CONN_COUNTER+1
   done
 }
