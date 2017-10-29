@@ -58,7 +58,7 @@ function led_off {
 }
 
 # start banner
-logger -t ${PRODUCT_DIR_NAME} "Inactivating ${PRODUCT}..."
+log "[INFO] Inactivating ${PRODUCT}..."
 touch ${SHUDOWN_STATE_FILE}
 
 init
@@ -71,4 +71,4 @@ if [ "${NTP_DISABLED}" == "1" ]; then
 fi
 
 # end banner
-logger -t ${PRODUCT_DIR_NAME} "${PRODUCT} is inactivated successfully!"
+log "[INFO] ${PRODUCT} is inactivated successfully!"
