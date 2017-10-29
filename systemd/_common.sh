@@ -136,10 +136,6 @@ function wait_for_ppp_offline {
 }
 
 function wait_for_ppp_online {
-  RET=`ip link show ${IF_NAME} 2>&1 | grep ${IF_NAME} | grep -v "state DOWN"`
-  if [ "$?" == "0" ]; then
-    return
-  fi
   MAX=70
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
