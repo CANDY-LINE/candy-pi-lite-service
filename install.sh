@@ -91,11 +91,11 @@ function test_connectivity {
 
 function ask_to_unistall_if_installed {
   if [ -f "${SERVICE_HOME}/environment" ]; then
-    alert "Please uninstall candy-pi-lite-service first by 'sudo /opt/candy-line/candy-pi-lite/uninstall.sh'"
+    alert "Please uninstall candy-pi-lite-service first by 'sudo ${SERVICE_HOME}/uninstall.sh'"
     exit 1
   fi
   if [ -f "${VENDOR_HOME}/ltepi2/environment" ]; then
-    alert "Please uninstall ltepi2-service first by 'sudo /opt/candy-line/ltepi2/uninstall.sh'"
+    alert "Please uninstall ltepi2-service first by 'sudo ${VENDOR_HOME}/ltepi2/uninstall.sh'"
     exit 1
   fi
 }
