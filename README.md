@@ -49,7 +49,7 @@ $ make PI_USER=linaro PI_HOST=192.168.1.10
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.4.1 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.5.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
@@ -62,6 +62,10 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
 # 履歴
+* 1.5.0
+    - UTC利用時に時刻調整後の時刻がずれる問題を修正
+    - PPP接続において`persistent`機能によって再接続できない事態が発生した時、サービス自体が再起動する機能を追加
+    - ハードウェアリセット後にUSB接続したまま起動するとモデム初期化が行われない問題を修正
 * 1.4.1
     - 時刻調整時にタイムゾーンの計算をしていない問題を修正
     - `CONFIGURE_STATIC_IP_ON_BOOT=1`の場合にのみインストールされる（デフォルトは`0`）ネットワークインタフェース「`eth-rpi`」に対するUFW許可ルールがない問題を修正（アンインストール時にはこのルールは削除されます）

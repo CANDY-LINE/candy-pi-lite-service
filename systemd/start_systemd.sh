@@ -146,6 +146,10 @@ function connect {
     kill -9 ${PPPD_PID}
     let CONN_COUNTER=CONN_COUNTER+1
   done
+  if [ "${RET}" != "0" ]; then
+    log "[ERROR] RESTARTING ${PRODUCT}..."
+    exit 3
+  fi
 }
 
 # main

@@ -57,11 +57,12 @@ function led_off {
   echo 0 > ${LED2_PIN}/value
 }
 
+touch ${SHUDOWN_STATE_FILE}
+init
+
 # start banner
 log "[INFO] Inactivating ${PRODUCT}..."
-touch ${SHUDOWN_STATE_FILE}
 
-init
 poff -a > /dev/null 2>&1
 stop_server_main
 led_off

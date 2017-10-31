@@ -76,6 +76,21 @@ function init_serialport {
       CURRENT_BAUDRATE=115200
       MODEM_INIT=1
       log "[INFO] Initialization Done. Modem Serial Port => ${MODEM_SERIAL_PORT}"
+      RET=1
+      MAX=40
+      COUNTER=0
+      while [ ${COUNTER} -lt ${MAX} ];
+      do
+        candy_command modem init
+        if [ "${RET}" == "0" ]; then
+          break
+        fi
+        sleep 1
+      done
+      if [ "${RET}" != "0" ]; then
+        log "[ERROR] Modem returned error"
+        return
+      fi
     else
       log "[ERROR] The path [${MODEM_SERIAL_PORT}] is missing"
       return
