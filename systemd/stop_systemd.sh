@@ -57,12 +57,13 @@ function led_off {
   echo 0 > ${LED2_PIN}/value
 }
 
-# start banner
-logger -t ${PRODUCT_DIR_NAME} "Inactivating ${PRODUCT}..."
 touch ${SHUDOWN_STATE_FILE}
-
 init
-poff -a
+
+# start banner
+log "[INFO] Inactivating ${PRODUCT}..."
+
+poff -a > /dev/null 2>&1
 stop_server_main
 led_off
 systemctl --no-block restart dhcpcd
@@ -71,4 +72,4 @@ if [ "${NTP_DISABLED}" == "1" ]; then
 fi
 
 # end banner
-logger -t ${PRODUCT_DIR_NAME} "${PRODUCT} is inactivated successfully!"
+log "[INFO] ${PRODUCT} is inactivated successfully!"

@@ -76,6 +76,21 @@ function init_serialport {
       CURRENT_BAUDRATE=115200
       MODEM_INIT=1
       log "[INFO] Initialization Done. Modem Serial Port => ${MODEM_SERIAL_PORT}"
+      RET=1
+      MAX=40
+      COUNTER=0
+      while [ ${COUNTER} -lt ${MAX} ];
+      do
+        candy_command modem init
+        if [ "${RET}" == "0" ]; then
+          break
+        fi
+        sleep 1
+      done
+      if [ "${RET}" != "0" ]; then
+        log "[ERROR] Modem returned error"
+        return
+      fi
     else
       log "[ERROR] The path [${MODEM_SERIAL_PORT}] is missing"
       return
@@ -116,7 +131,7 @@ function wait_for_ppp_offline {
   if [ "$?" != "0" ]; then
     return
   fi
-  poff -a
+  poff -a > /dev/null 2>&1
   MAX=40
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
@@ -136,15 +151,11 @@ function wait_for_ppp_offline {
 }
 
 function wait_for_ppp_online {
-  RET=`ip link show ${IF_NAME} | grep ${IF_NAME} | grep -v "state DOWN"`
-  if [ "$?" == "0" ]; then
-    return
-  fi
   MAX=70
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
-    RET=`ip link show ${IF_NAME} | grep ${IF_NAME} | grep -v "state DOWN"`
+    RET=`ip link show ${IF_NAME} 2>&1 | grep ${IF_NAME} | grep "state" | grep -v "state DOWN"`
     RET="$?"
     if [ "${RET}" == "0" ]; then
       break
@@ -156,6 +167,7 @@ function wait_for_ppp_online {
     log "[ERROR] PPP cannot be online"
     return
   fi
+  log "[INFO] PPP goes online"
 }
 
 function wait_for_serial_available {
@@ -186,10 +198,11 @@ function adjust_time {
   MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
   DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
   TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])"`
-  EPOCHTIME=`/usr/bin/env python -c "import datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))+${TIMEZONE}*3600+${DELAY_SEC})"`
+  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})"`
   date -s "@${EPOCHTIME}"
   log "[INFO] Module Model: ${MODEL}"
-  log "[INFO] Adjusted the current time => ${DATETIME}"
+  log "[INFO] Network Timezone: ${TIMEZONE}"
+  log "[INFO] Adjusted the current time => ${DATETIME} UTC"
 }
 
 function init_modem {

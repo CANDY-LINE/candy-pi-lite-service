@@ -54,8 +54,13 @@ if led_sec < 0 or led_sec > 60:
 PPP_PING_INTERVAL_SEC = float(os.environ['PPP_PING_INTERVAL_SEC']) \
     if 'PPP_PING_INTERVAL_SEC' in os.environ else 0.0
 online = False
+offline_since = time.time()
+OFFLINE_PERIOD_SEC = float(os.environ['OFFLINE_PERIOD_SEC']) \
+    if 'OFFLINE_PERIOD_SEC' in os.environ else 30.0
 shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
+pppd_exit_code_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   '__pppd_exit_code')
 PID = str(os.getpid())
 
 
@@ -107,21 +112,22 @@ class Monitor(threading.Thread):
                 if self.restart_at - time.time() < 60:
                     self.restart_at = cron.get_next()
                 logger.info(
-                    "candy-pi-lite service will restart within %d seconds" %
+                    "[NOTICE] <candy-pi-lite> Will restart within %d seconds" %
                     (self.restart_at - time.time()))
         except Exception:
-            logger.warn("RESTART_SCHEDULE_CRON=>[%s] is ignored"
-                        % os.environ['RESTART_SCHEDULE_CRON'])
+            logger.warn("[NOTICE] <candy-pi-lite> " +
+                        "RESTART_SCHEDULE_CRON=>[%s] is ignored" %
+                        os.environ['RESTART_SCHEDULE_CRON'])
 
     def terminate(self, restart=False):
         if os.path.isfile(shutdown_state_file):
             return False
         # exit from non-main thread
         if restart:
-            logger.error("candy-pi-lite service will be restarted...")
+            logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE")
             os.kill(os.getpid(), signal.SIGQUIT)
         else:
-            logger.error("candy-pi-lite service is terminated. Shutting down.")
+            logger.error("[NOTICE] <candy-pi-lite> SHUTTING DOWN")
             os.kill(os.getpid(), signal.SIGTERM)
         return True
 
@@ -166,8 +172,21 @@ class Monitor(threading.Thread):
                 stdout=Monitor.FNULL,
                 stderr=subprocess.STDOUT)
 
+    def pppd_exited_unexpectedly(self):
+        if not os.path.isfile(pppd_exit_code_file):
+            return True
+        with open(pppd_exit_code_file, 'r') as f:
+            try:
+                pid = int(f.read())
+            except ValueError:
+                pid = -1
+        if pid != 5:  # 5=>Exit by poff
+            return True
+        return False
+
     def run(self):
         global online
+        global offline_since
         while True:
             try:
                 if self.time_to_restart():
@@ -180,8 +199,16 @@ class Monitor(threading.Thread):
                                       shell=True,
                                       stdout=Monitor.FNULL,
                                       stderr=subprocess.STDOUT)
+                was_online = online
                 online = (err == 0)
                 if not online:
+                    if was_online:
+                        online = False
+                        offline_since = time.time()
+                    elif time.time() - offline_since > OFFLINE_PERIOD_SEC:
+                        if self.pppd_exited_unexpectedly() \
+                           and self.terminate(True):
+                            return
                     time.sleep(5)
                     continue
 
@@ -190,7 +217,7 @@ class Monitor(threading.Thread):
                 time.sleep(5)
 
             except Exception:
-                logger.error("Error on monitoring")
+                logging.exception("Error on monitoring")
                 if not self.terminate():
                     continue
 
@@ -264,7 +291,7 @@ def server_main(serial_port, bps, nic,
                 sock_path='/var/run/candy-board-service.sock'):
 
     if os.path.isfile(PIDFILE):
-        logger.error("server_main module is aleady running")
+        logger.error("[NOTICE] <candy-pi-lite> ALREADY RUNNING")
         sys.exit(1)
     file(PIDFILE, 'w').write(PID)
     delete_path(sock_path)
@@ -300,13 +327,14 @@ def server_main(serial_port, bps, nic,
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        logger.error("The Network Interface isn't ready. " +
-                     "Shutting down.")
+        logger.error("[NOTICE] <candy-pi-lite> " +
+                     "The Network Interface isn't ready. Shutting down.")
     elif len(sys.argv) > 4:
         candy_command(
             sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     else:
-        logger.info("serial_port:%s (%s bps), nic:%s" %
+        logger.info("[NOTICE] <candy-pi-lite> " +
+                    "serial_port:%s (%s bps), nic:%s" %
                     (sys.argv[1], sys.argv[2], sys.argv[3]))
         try:
             server_main(sys.argv[1], sys.argv[2], sys.argv[3])

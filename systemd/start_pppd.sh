@@ -78,6 +78,7 @@ function init {
 }
 
 function connect {
+  rm -f /opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code
   pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${PPPD_DEBUG} \
     user "${APN_USER}" \
     password "${APN_PASSWORD}" \
@@ -98,11 +99,17 @@ function connect {
     local \
     lock \
     modem \
-    persist
+    persist \
+    nodetach > /dev/null 2>&1
 }
 
 # main
-log "Starting ppp: ${MODEM_SERIAL_PORT}"
+log "[INFO] Starting ppp: ${MODEM_SERIAL_PORT}"
 init
 assert_root
 connect
+EXIT_CODE="$?"
+log "[INFO] ppp terminated: Exit Code => ${EXIT_CODE}"
+
+# EXIT_CODE: poff=>5, Modem hangup=>16
+echo ${EXIT_CODE} > /opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code

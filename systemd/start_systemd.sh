@@ -39,7 +39,7 @@ function boot_ip_reset {
     rm -f "/boot/boot-ip-reset"
     if [ -f "${DHCPCD_ORG}" ]; then
       mv -f "${DHCPCD_ORG}" "${DHCPCD_CNF}"
-      log "Rebooting for resetting boot-ip..."
+      log "[INFO] Rebooting for resetting boot-ip..."
       reboot
     fi
   fi
@@ -47,14 +47,14 @@ function boot_ip_reset {
 
 function boot_ip_addr {
   if [ ! -e "/sys/class/net/eth-rpi" ]; then
-    log "Skip to configure IP address as eth-rpi is missing"
+    log "[INFO] Skip to configure IP address as eth-rpi is missing"
     return
   fi
   LIST=`ls -1 /boot/boot-ip*.json`
   if [ "$?" == "0" ]; then
     NUM=`ls -1 /boot/boot-ip*.json | wc -l`
     if [ "${NUM}" != "1" ]; then
-      log "Skip to configure IP address as more than 2 boot-ip files are found => [${LIST}]"
+      log "[INFO] Skip to configure IP address as more than 2 boot-ip files are found => [${LIST}]"
       unset LIST # not remove boot-ip*.json files
       return
     fi
@@ -62,23 +62,23 @@ function boot_ip_addr {
     return
   fi
   if [ ! -f "${LIST}" ]; then
-    log "${LIST} is missing." # this should not happen
+    log "[ERROR] ${LIST} is missing." # this should not happen
     unset LIST
     return
   fi
   SIZE=`ls -lrt ${LIST} | nawk '{print $5}'`
   if [[ "${SIZE}" -gt "1000" ]]; then
-    log "Too big to read. Aborted."
+    log "[ERROR] Too big to read. Aborted."
     unset LIST # not remove boot-ip*.json files
     return
   fi
 
-  log "Checking /etc/dhcpcd.conf..."
+  log "[INFO] Checking /etc/dhcpcd.conf..."
   for p in ip_address routers domain_name_servers
   do
     VAL=`/usr/bin/env python -c "with open('${LIST}') as f:import json;print(('${p}=%s') % json.load(f)['${p}'])"`
     if [ "$?" != "0" ]; then
-      log "Unexpected format => ${LIST}. Configruation aborted."
+      log "[ERROR] Unexpected format => ${LIST}. Configruation aborted."
       unset LIST # not remove boot-ip*.json files
       return
     fi
@@ -95,18 +95,18 @@ function boot_ip_addr {
     rm -f "${DHCPCD_TMP}"
     cp -f "${DHCPCD_ORG}" "${DHCPCD_TMP}"
   else
-    log "Static IP is already configured in ${DHCPCD_CNF}"
+    log "[INFO] Static IP is already configured in ${DHCPCD_CNF}"
     return
   fi
 
   NUM=`grep -wc "^[^#;]*interface\s*${interface}" "${DHCPCD_TMP}"`
   if [ "${NUM}" != "0" ]; then # double-check
-    log "Cannot configure IP as static IP is already configured..."
+    log "[INFO] Cannot configure IP as static IP is already configured..."
     rm -f "${DHCPCD_ORG}"
     return
   fi
 
-  log "Configuring IP address..."
+  log "[INFO] Configuring IP address..."
   echo -e "# Appended by candy-pi-lite-service" >> "${DHCPCD_TMP}"
   echo -e "interface ${interface}" >> "${DHCPCD_TMP}"
   for p in ip_address routers domain_name_servers
@@ -117,7 +117,7 @@ function boot_ip_addr {
   if [ ! -f "${LIST}" ]; then
     mv -f ${DHCPCD_TMP} ${DHCPCD_CNF}
     if [ ! -f "${DHCPCD_TMP}" ] && [ -f "${DHCPCD_CNF}" ]; then
-      log "Restarting..."
+      log "[INFO] Restarting..."
       reboot
     fi
   fi
@@ -136,14 +136,20 @@ function connect {
   CONN_COUNTER=0
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh
+    . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
+    PPPD_PID="$!"
     wait_for_ppp_online
     if [ "${RET}" == "0" ]; then
       break
     fi
-    poff -a
+    poff -a > /dev/null 2>&1
+    kill -9 ${PPPD_PID}
     let CONN_COUNTER=CONN_COUNTER+1
   done
+  if [ "${RET}" != "0" ]; then
+    log "[ERROR] RESTARTING ${PRODUCT}..."
+    exit 3
+  fi
 }
 
 # main
@@ -155,29 +161,29 @@ boot_ip_addr
 boot_ip_addr_fin
 
 # start banner
-log "Initializing ${PRODUCT}..."
+log "[INFO] Initializing ${PRODUCT}..."
 init_modem
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
   if [ "${MODEL}" == "UC20" ]; then
-    log "Trying to close the first connetion for time adjustment..."
+    log "[INFO] Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
-      poff -a
+      poff -a > /dev/null 2>&1
       sleep 3 # waiting for pppd exiting
       adjust_time
-      log "Time adjusted. Trying to establish the data connetion..."
+      log "[INFO] Time adjusted. Trying to establish the data connetion..."
       connect
     else
-      log "Failed to connect. Restart this service in order to adjust time later."
+      log "[INFO] Failed to connect. Restart this service in order to adjust time later."
     fi
   fi
 elif [ "${RET}" != "0" ]; then
-  log "Failed to connect. Restart this service later."
+  log "[INFO] Failed to connect. Restart this service later."
 fi
 
 # end banner
-log "${PRODUCT} is initialized successfully!"
+log "[INFO] ${PRODUCT} is initialized successfully!"
 /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
 EXIT_CODE="$?"
 if [ "${EXIT_CODE}" == "143" ] && [ ! -f "${SHUDOWN_STATE_FILE}" ]; then

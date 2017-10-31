@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.4.1
+VERSION=1.5.0
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
@@ -50,6 +50,7 @@ PPPD_DEBUG=${PPPD_DEBUG:-""}
 CHAT_VERBOSE=${CHAT_VERBOSE:-""}
 RESTART_SCHEDULE_CRON=${RESTART_SCHEDULE_CRON:-""}
 CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
+OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
 
 REBOOT=0
 
@@ -90,11 +91,11 @@ function test_connectivity {
 
 function ask_to_unistall_if_installed {
   if [ -f "${SERVICE_HOME}/environment" ]; then
-    alert "Please uninstall candy-pi-lite-service first by 'sudo /opt/candy-line/candy-pi-lite/uninstall.sh'"
+    alert "Please uninstall candy-pi-lite-service first by 'sudo ${SERVICE_HOME}/uninstall.sh'"
     exit 1
   fi
   if [ -f "${VENDOR_HOME}/ltepi2/environment" ]; then
-    alert "Please uninstall ltepi2-service first by 'sudo /opt/candy-line/ltepi2/uninstall.sh'"
+    alert "Please uninstall ltepi2-service first by 'sudo ${VENDOR_HOME}/ltepi2/uninstall.sh'"
     exit 1
   fi
 }
@@ -248,13 +249,16 @@ function install_service {
   mkdir -p ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/boot-ip.*.json ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/environment.txt ${SERVICE_HOME}/environment
-  sed -i -e "s/%VERSION%/${VERSION//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%BOOT_APN%/${BOOT_APN//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%PPP_PING_INTERVAL_SEC%/${PPP_PING_INTERVAL_SEC//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%NTP_DISABLED%/${NTP_DISABLED//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%PPPD_DEBUG%/${PPPD_DEBUG//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%CHAT_VERBOSE%/${CHAT_VERBOSE//\//\\/}/g" ${SERVICE_HOME}/environment
-  sed -i -e "s/%RESTART_SCHEDULE_CRON%/${RESTART_SCHEDULE_CRON//\//\\/}/g" ${SERVICE_HOME}/environment
+
+  for e in VERSION BOOT_APN \
+      PPP_PING_INTERVAL_SEC \
+      NTP_DISABLED \
+      PPPD_DEBUG \
+      CHAT_VERBOSE \
+      RESTART_SCHEDULE_CRON \
+      OFFLINE_PERIOD_SEC; do
+    sed -i -e "s/%${e}%/${!e//\//\\/}/g" ${SERVICE_HOME}/environment
+  done
   FILES=`ls ${SRC_DIR}/systemd/*.sh`
   FILES="${FILES} `ls ${SRC_DIR}/systemd/server_*.py`"
   for f in ${FILES}

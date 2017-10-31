@@ -86,6 +86,8 @@ function uninstall_service {
   rm -f ${SERVICE_HOME}/*.py
   rm -f ${SERVICE_HOME}/*.pyc
   rm -f ${SERVICE_HOME}/*.json
+  rm -f ${SERVICE_HOME}/__shutdown
+  rm -f ${SERVICE_HOME}/__pppd_exit_code
   systemctl daemon-reload
   info "${SERVICE_NAME} has been uninstalled"
   REBOOT=1
