@@ -20,6 +20,7 @@ QWS_UC20_PORT="/dev/QWS.UC20.MODEM"
 QWS_EC21_PORT="/dev/QWS.EC21.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
+SHOW_CANDY_CMD_ERROR=0
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -102,7 +103,20 @@ function init_serialport {
     log "[ERROR] Modem is missing"
     return
   elif [ -n "${MODEM_BAUDRATE}" ]; then
-    candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
+    MAX=40
+    COUNTER=0
+    while [ ${COUNTER} -lt ${MAX} ];
+    do
+      candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
+      if [ "${RET}" == "0" ]; then
+        break
+      fi
+      sleep 1
+    done
+    if [ "${RET}" != "0" ]; then
+      log "[ERROR] Modem returned error"
+      return
+    fi
     log "[INFO] Modem baudrate changed: ${CURRENT_BAUDRATE} => ${MODEM_BAUDRATE}"
     CURRENT_BAUDRATE=${MODEM_BAUDRATE}
   else
@@ -116,6 +130,9 @@ function candy_command {
   CURRENT_BAUDRATE=${CURRENT_BAUDRATE:-${MODEM_BAUDRATE:-115200}}
   RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} /var/run/candy-board-service.sock`
   RET=$?
+  if [ "${SHOW_CANDY_CMD_ERROR}" == "1" ] && [ "${RET}" != "0" ]; then
+    log "candy_command[category:$1][action:$2] => [${RESULT}]"
+  fi
 }
 
 function perst {
