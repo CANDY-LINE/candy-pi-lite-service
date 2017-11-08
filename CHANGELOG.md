@@ -3,6 +3,7 @@
     - Raspberry PiのハードウェアWatchdogを有効にできるインストールオプションを追加(Raspbian JESSIEのみ)
     - EnOcean USBゲートウェイ接続時に固定のパス`/dev/enocean`を使用できるudevルールファイルを追加
     - 3G/LTE接続中にEthernetケーブルを接続するとsyslogにエラーログが出る問題を修正
+    - poffされた時に再び接続に行く場合がある問題を修正
 * 1.5.1
     - シリアルUART接続においてモデムの初期化をより安定して行えるように修正
 * 1.5.0
