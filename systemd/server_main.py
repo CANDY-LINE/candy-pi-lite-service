@@ -187,7 +187,8 @@ class Monitor(threading.Thread):
                 pid = int(f.read())
             except ValueError:
                 pid = -1
-        if pid != 5:  # 5=>Exit by poff
+        if pid != 5 and pid != 16:
+            # 5,16=>Exit by poff
             return True
         return False
 
