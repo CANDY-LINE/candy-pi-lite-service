@@ -1,6 +1,6 @@
 # 履歴
 * 1.6.0
-    - Raspberry PiのハードウェアWatchdogを有効にできるインストールオプションを追加(Raspbian JESSIEのみ)
+    - Raspberry PiのハードウェアWatchdogを有効にできるインストールオプションを追加(Raspbian Stretch のみ)
     - EnOcean USBゲートウェイ接続時に固定のパス`/dev/enocean`を使用できるudevルールファイルを追加
     - 3G/LTE接続中にEthernetケーブルを接続するとsyslogにエラーログが出る問題を修正
     - poffされた時に再び接続に行く場合がある問題を修正
