@@ -136,7 +136,7 @@ class Monitor(threading.Thread):
             return False
         return self.restart_at <= time.time()
 
-    def ls_nic(self, position):
+    def ls_nic(self, ipv, position):
         ls_nic_cmd = ("ip -%s route | grep default | grep -v %s "
                       "| tr -s ' ' | cut -d ' ' -f %d"
                       ) % (ipv, self.nic, position)
@@ -152,9 +152,9 @@ class Monitor(threading.Thread):
                               stdout=Monitor.FNULL,
                               stderr=subprocess.STDOUT)
         if err == 0:
-            ls_nic = self.ls_nic(5)
+            ls_nic = self.ls_nic(ipv, 5)
             if ls_nic[0:6] == 'kernel':
-                ls_nic = self.ls_nic(3)
+                ls_nic = self.ls_nic(ipv, 3)
             logger.debug("ipv => [%s] : ls_nic => [%s]" % (ipv, ls_nic))
             for nic in ls_nic.split("\n"):
                 if nic:
