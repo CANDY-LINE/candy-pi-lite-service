@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.5.1
+VERSION=1.6.0
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
@@ -51,6 +51,8 @@ CHAT_VERBOSE=${CHAT_VERBOSE:-""}
 RESTART_SCHEDULE_CRON=${RESTART_SCHEDULE_CRON:-""}
 CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
+ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-0}
+COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
 
 REBOOT=0
 
@@ -148,6 +150,48 @@ function configure_sc16is7xx {
     fi
     echo "dtoverlay=${SC16IS7xx_DT_NAME}" >> /boot/config.txt
   fi
+  info "SC16IS7xx configuration done"
+}
+
+function configure_watchdog {
+  if [ "${BOARD}" != "RPi" ]; then
+    return
+  fi
+  if [ "${ENABLE_WATCHDOG}" != "1" ]; then
+    return
+  fi
+  info "Configuring Hardware Watchdog..."
+  RET=`modprobe bcm2835_wdt`
+  if [ "$?" != "0" ]; then
+    info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+    return
+  fi
+  RET=`grep "^dtparam=watchdog=on" /boot/config.txt`
+  if [ "$?" != "0" ]; then
+    RET=`grep "^dtparam=watchdog=off" /boot/config.txt`
+    if [ "$?" != "0" ]; then
+      echo "dtparam=watchdog=on" >> /boot/config.txt
+    else
+      info "Skip to configure Hardware Watchdog as it's already disabled."
+      return
+    fi
+  fi
+  if [ ! -f "/etc/modprobe.d/bcm2835-wdt.conf" ]; then
+    echo "options bcm2835_wdt heartbeat=14 nowayout=0" >> /etc/modprobe.d/bcm2835-wdt.conf
+  fi
+  if [ -f "/etc/systemd/system.conf" ]; then
+    RET=`grep "^RuntimeWatchdogSec=" /etc/systemd/system.conf`
+    if [ "$?" != "0" ]; then
+      RET=`grep "^#RuntimeWatchdogSec=" /etc/systemd/system.conf`
+      if [ "$?" != "0" ]; then
+        echo "RuntimeWatchdogSec=14" >> /etc/systemd/system.conf
+      else
+        sed -i -e "s/#RuntimeWatchdogSec=.*/RuntimeWatchdogSec=14/g" /etc/systemd/system.conf
+        rm -f /etc/systemd/system.conf-e
+      fi
+    fi
+  fi
+  info "Hardware Watchdog configuration done"
 }
 
 function install_ppp {
@@ -277,7 +321,10 @@ function install_service {
   cp -f ${SRC_DIR}/etc/udev/rules.d/99* /etc/udev/rules.d/
   if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
     # assign the fixed name `eth-rpi` for RPi B+/2B/3B
-    cp -f ${SRC_DIR}/etc/udev/rules.d/76* /etc/udev/rules.d/
+    cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+  fi
+  if [ "${COFIGURE_ENOCEAN_PORT}" == "1" ]; then
+    cp -f ${SRC_DIR}/etc/udev/rules.d/70-enocean-stick.rules /etc/udev/rules.d/
   fi
 
   info "${SERVICE_NAME} service has been installed"
@@ -311,4 +358,5 @@ install_candy_red
 install_service
 install_ppp
 configure_sc16is7xx
+configure_watchdog
 teardown

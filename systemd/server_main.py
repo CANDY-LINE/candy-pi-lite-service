@@ -136,18 +136,25 @@ class Monitor(threading.Thread):
             return False
         return self.restart_at <= time.time()
 
+    def ls_nic(self, ipv, position):
+        ls_nic_cmd = ("ip -%s route | grep default | grep -v %s "
+                      "| tr -s ' ' | cut -d ' ' -f %d"
+                      ) % (ipv, self.nic, position)
+        ls_nic = subprocess.Popen(ls_nic_cmd,
+                                  shell=True,
+                                  stdout=subprocess.PIPE
+                                  ).stdout.read()
+        return ls_nic
+
     def del_default(self, ipv):
         err = subprocess.call("ip -%s route | grep default | grep -v %s" %
                               (ipv, self.nic), shell=True,
                               stdout=Monitor.FNULL,
                               stderr=subprocess.STDOUT)
         if err == 0:
-            ls_nic_cmd = ("ip -%s route | grep default | grep -v %s "
-                          "| tr -s ' ' | cut -d ' ' -f 5") % (ipv, self.nic)
-            ls_nic = subprocess.Popen(ls_nic_cmd,
-                                      shell=True,
-                                      stdout=subprocess.PIPE
-                                      ).stdout.read()
+            ls_nic = self.ls_nic(ipv, 5)
+            if ls_nic[0:6] == 'kernel':
+                ls_nic = self.ls_nic(ipv, 3)
             logger.debug("ipv => [%s] : ls_nic => [%s]" % (ipv, ls_nic))
             for nic in ls_nic.split("\n"):
                 if nic:
@@ -180,7 +187,8 @@ class Monitor(threading.Thread):
                 pid = int(f.read())
             except ValueError:
                 pid = -1
-        if pid != 5:  # 5=>Exit by poff
+        if pid != 5 and pid != 16:
+            # 5,16=>Exit by poff
             return True
         return False
 

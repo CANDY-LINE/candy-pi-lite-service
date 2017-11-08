@@ -49,59 +49,21 @@ $ make PI_USER=linaro PI_HOST=192.168.1.10
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.5.1 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.6.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 MAX_OLD_SPACE_SIZE=256 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ./install.sh
+$ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ENABLE_WATCHDOG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 CONFIGURE_STATIC_IP_ON_BOOT=1 BOOT_APN=soracom.io ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io PPP_PING_INTERVAL_SEC=5 ./install.sh
 
 $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
 
-# 履歴
-* 1.5.1
-    - シリアルUART接続においてモデムの初期化をより安定して行えるように修正
-* 1.5.0
-    - UTC利用時に時刻調整後の時刻がずれる問題を修正
-    - PPP接続において`persistent`機能によって再接続できない事態が発生した時、サービス自体が再起動する機能を追加
-    - ハードウェアリセット後にUSB接続したまま起動するとモデム初期化が行われない問題を修正
-* 1.4.1
-    - 時刻調整時にタイムゾーンの計算をしていない問題を修正
-    - `CONFIGURE_STATIC_IP_ON_BOOT=1`の場合にのみインストールされる（デフォルトは`0`）ネットワークインタフェース「`eth-rpi`」に対するUFW許可ルールがない問題を修正（アンインストール時にはこのルールは削除されます）
-    - Raspbian Stretchから有効になったsystemd-timesyncd.serviceへの対処を追加
-    - PPP接続中は、IPv6 デフォルトルートを利用しないように修正
-* 1.4.0
-    - ラズパイ起動時に有線LANの固定IPを設定する機能を有効にするインストールオプション`CONFIGURE_STATIC_IP_ON_BOOT`を追加（デフォルトでは無効）
-      - このオプションを有効にしてインストールすると、ラズパイ付属のEthernetに固定のインタフェース名`eth-rpi`を用意します
-      - ネットワークインタフェース「`eth-rpi`」が有効にならない場合、この機能は動作しません
-      - candy-pi-lite-serviceをアンインストールすると、固定のインタフェース名`eth-rpi`を定義するudevルールは削除されます
-      - 詳細は、[利用ガイドの「有線LAN固定IP設定」]((https://candy-line.gitbooks.io/candy-pi-lite/content/configuration/ether-static-ip.html))をご覧ください
-    - 3G/LTEモジュールへのdefault routeが存在しないとき、自動的に追加されない問題を修正
+# ライセンス
 
-* 1.3.1
-    - 3Gモデルでタイムアウトを長くとる方が接続確立が安定するためタイムアウトを延長
+Copyright (c) 2017 [CANDY LINE INC.](https://www.candy-line.io)
 
-* 1.3.0
-    - ASUS Tinker Boardでも動作できるように対応
-
-* 1.2.1
-    - インターネットインストール時にudevルールのインストールができていない問題を修正
-
-* 1.2.0
-    - インストール時に`ltepi2`サービスがインストールされているときはアンインストールしなければインストールを実施しないように変更
-    - udevルールのインストールができていない問題を修正
-
-* 1.1.1
-    - PPP接続に`persist`を追加
-    - PPP接続確認タイムアウト時間を延長
-    - PPP接続切断時に全てのPPP接続をOFFするように変更
-
-* 1.1.0
-    - USBシリアル接続のサポートを改善
-    - UC20の再接続処理を簡素化
-
-* 1.0.0
-    - 初版
+[Apache Software License 2.0](LICENSE)
