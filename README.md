@@ -55,6 +55,7 @@ $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 MAX_OLD_SPACE_SIZE=256 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ./install.sh
+$ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ENABLE_WATCHDOG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 CONFIGURE_STATIC_IP_ON_BOOT=1 BOOT_APN=soracom.io ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io PPP_PING_INTERVAL_SEC=5 ./install.sh
 
