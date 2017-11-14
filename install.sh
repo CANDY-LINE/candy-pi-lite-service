@@ -25,7 +25,9 @@ UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 
-ARMv6_NODEJS_VERSION="6.11.2"
+# v6 Maintenance LTS : April 2018 - April 2019
+# v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
+ARMv6_NODEJS_VERSION="6.12.0"
 NODEJS_VERSIONS="v6"
 
 if [ -n "`which free`" ]; then
