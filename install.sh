@@ -261,7 +261,7 @@ function install_candy_red {
   apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
   cd ~
   npm cache clean
-  info "Installing CANDY-RED..."
+  info "Installing CANDY RED..."
   WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODE_OPTS=${CANDY_RED_NODE_OPTS} npm install -g --unsafe-perm candy-red
   REBOOT=1
 }
