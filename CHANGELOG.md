@@ -1,4 +1,6 @@
 # 履歴
+* 1.6.1
+    - ufwの設定ファイルを用いて初期設定を行うことができるように変更
 * 1.6.0
     - Raspberry PiのハードウェアWatchdogを有効にできるインストールオプションを追加(Raspbian Stretch のみ)
     - EnOcean USBゲートウェイ接続時に固定のパス`/dev/enocean`を使用できるudevルールファイルを追加
