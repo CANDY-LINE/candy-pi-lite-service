@@ -116,22 +116,24 @@ function download {
 
 function _ufw_setup {
   info "Configuring ufw..."
+  cp -f ${SRC_DIR}/etc/ufw/user.rules /etc/ufw/
   ufw --force disable
-  if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-    ufw allow in on eth-rpi
-  fi
-  ufw deny in on ppp0
-  for n in `ls /sys/class/net`
-  do
-    if [ "${n}" != "lo" ] && [ "${n}" != "ppp0" ]; then
-      ufw allow in on ${n}
-      if [ "$?" != "0" ]; then
-        err "Failed to configure ufw for the network interface: ${n}"
-        exit 4
-      fi
+  if [ "$?" == "0" ]; then
+    if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+      ufw allow in on eth-rpi
     fi
-  done
-  ufw --force enable
+    for n in `ls /sys/class/net`
+    do
+      if [ "${n}" != "lo" ] && [ "${n}" != "ppp0" ] && [ "${n}" != "wwan0" ]; then
+        ufw allow in on ${n}
+        if [ "$?" != "0" ]; then
+          err "Failed to configure ufw for the network interface: ${n}"
+          exit 4
+        fi
+      fi
+    done
+    ufw --force enable
+  fi
 }
 
 function configure_sc16is7xx {
