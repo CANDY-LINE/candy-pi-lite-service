@@ -112,8 +112,8 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   cp -f ${SRC_DIR}/etc/ufw/user.rules /etc/ufw/
-  ufw --force disable
-  if [ "$?" == "0" ]; then
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    ufw --force disable
     if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
       ufw allow in on eth-rpi
     fi
@@ -132,7 +132,12 @@ function _ufw_setup {
 }
 
 function configure_sc16is7xx {
-  if [ "${BOARD}" != "RPi" ]; then
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    if [ "${BOARD}" != "RPi" ]; then
+      return
+    fi
+  fi
+  if [ ! -f "/boot/config.txt" ]; then
     return
   fi
   info "Configuring SC16IS7xx..."
@@ -151,17 +156,24 @@ function configure_sc16is7xx {
 }
 
 function configure_watchdog {
-  if [ "${BOARD}" != "RPi" ]; then
-    return
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    if [ "${BOARD}" != "RPi" ]; then
+      return
+    fi
   fi
   if [ "${ENABLE_WATCHDOG}" != "1" ]; then
     return
   fi
-  info "Configuring Hardware Watchdog..."
-  RET=`modprobe bcm2835_wdt`
-  if [ "$?" != "0" ]; then
-    info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+  if [ ! -f "/boot/config.txt" ]; then
     return
+  fi
+  info "Configuring Hardware Watchdog..."
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    RET=`modprobe bcm2835_wdt`
+    if [ "$?" != "0" ]; then
+      info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+      return
+    fi
   fi
   RET=`grep "^dtparam=watchdog=on" /boot/config.txt`
   if [ "$?" != "0" ]; then
@@ -259,7 +271,7 @@ function install_candy_red {
   cd ~
   npm cache clean
   info "Installing CANDY RED..."
-  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODE_OPTS=${CANDY_RED_NODE_OPTS} npm install -g --unsafe-perm candy-red
+  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} npm install -g --unsafe-perm candy-red
   REBOOT=1
 }
 
