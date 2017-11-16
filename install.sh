@@ -30,13 +30,6 @@ SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 ARMv6_NODEJS_VERSION="6.12.0"
 NODEJS_VERSIONS="v6"
 
-if [ -n "`which free`" ]; then
-  MEM=`free -m | grep "Mem:" | awk '{print $2}'`
-  MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-`expr ${MEM} / 3`}
-fi
-MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-256}
-CANDY_RED_NODE_OPTS="--max-old-space-size=${MAX_OLD_SPACE_SIZE}"
-
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
 CANDY_RED=${CANDY_RED:-1}
