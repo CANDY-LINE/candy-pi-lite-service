@@ -38,7 +38,9 @@ CONTAINER_MODE=0
 if [ "${KERNEL}" != "$(uname -r)" ]; then
   CONTAINER_MODE=1
 fi
-WELCOME_FLOW_URL=https://git.io/vKhk3
+if [ "${FORCE_INSTALL}" != "1" ]; then
+  WELCOME_FLOW_URL=https://git.io/vKhk3
+fi
 PPP_PING_INTERVAL_SEC=${PPP_PING_INTERVAL_SEC:-0}
 NTP_DISABLED=${NTP_DISABLED:-1}
 PPPD_DEBUG=${PPPD_DEBUG:-""}
