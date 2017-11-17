@@ -18,22 +18,17 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.6.1
+VERSION=1.6.2
 BOOT_APN=${BOOT_APN:-soracom.io}
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 
-ARMv6_NODEJS_VERSION="6.11.2"
+# v6 Maintenance LTS : April 2018 - April 2019
+# v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
+ARMv6_NODEJS_VERSION="6.12.0"
 NODEJS_VERSIONS="v6"
-
-if [ -n "`which free`" ]; then
-  MEM=`free -m | grep "Mem:" | awk '{print $2}'`
-  MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-`expr ${MEM} / 3`}
-fi
-MAX_OLD_SPACE_SIZE=${MAX_OLD_SPACE_SIZE:-256}
-CANDY_RED_NODE_OPTS="--max-old-space-size=${MAX_OLD_SPACE_SIZE}"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
@@ -43,7 +38,9 @@ CONTAINER_MODE=0
 if [ "${KERNEL}" != "$(uname -r)" ]; then
   CONTAINER_MODE=1
 fi
-WELCOME_FLOW_URL=https://git.io/vKhk3
+if [ "${FORCE_INSTALL}" != "1" ]; then
+  WELCOME_FLOW_URL=https://git.io/vKhk3
+fi
 PPP_PING_INTERVAL_SEC=${PPP_PING_INTERVAL_SEC:-0}
 NTP_DISABLED=${NTP_DISABLED:-1}
 PPPD_DEBUG=${PPPD_DEBUG:-""}
@@ -51,7 +48,7 @@ CHAT_VERBOSE=${CHAT_VERBOSE:-""}
 RESTART_SCHEDULE_CRON=${RESTART_SCHEDULE_CRON:-""}
 CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
-ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-0}
+ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
 
 REBOOT=0
@@ -117,8 +114,8 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   cp -f ${SRC_DIR}/etc/ufw/user.rules /etc/ufw/
-  ufw --force disable
-  if [ "$?" == "0" ]; then
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    ufw --force disable
     if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
       ufw allow in on eth-rpi
     fi
@@ -137,7 +134,12 @@ function _ufw_setup {
 }
 
 function configure_sc16is7xx {
-  if [ "${BOARD}" != "RPi" ]; then
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    if [ "${BOARD}" != "RPi" ]; then
+      return
+    fi
+  fi
+  if [ ! -f "/boot/config.txt" ]; then
     return
   fi
   info "Configuring SC16IS7xx..."
@@ -156,17 +158,24 @@ function configure_sc16is7xx {
 }
 
 function configure_watchdog {
-  if [ "${BOARD}" != "RPi" ]; then
-    return
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    if [ "${BOARD}" != "RPi" ]; then
+      return
+    fi
   fi
   if [ "${ENABLE_WATCHDOG}" != "1" ]; then
     return
   fi
-  info "Configuring Hardware Watchdog..."
-  RET=`modprobe bcm2835_wdt`
-  if [ "$?" != "0" ]; then
-    info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+  if [ ! -f "/boot/config.txt" ]; then
     return
+  fi
+  info "Configuring Hardware Watchdog..."
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    RET=`modprobe bcm2835_wdt`
+    if [ "$?" != "0" ]; then
+      info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+      return
+    fi
   fi
   RET=`grep "^dtparam=watchdog=on" /boot/config.txt`
   if [ "$?" != "0" ]; then
@@ -263,8 +272,8 @@ function install_candy_red {
   apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
   cd ~
   npm cache clean
-  info "Installing CANDY-RED..."
-  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODE_OPTS=${CANDY_RED_NODE_OPTS} npm install -g --unsafe-perm candy-red
+  info "Installing CANDY RED..."
+  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} npm install -g --unsafe-perm candy-red
   REBOOT=1
 }
 
