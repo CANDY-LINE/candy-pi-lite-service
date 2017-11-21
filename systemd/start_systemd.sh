@@ -46,7 +46,7 @@ with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
 with open('/boot/apn') as f:
     try:
         apn = f.read()
-        apn = json.load(apn)
+        apn = json.loads(apn)
     except:
         pass
 if 'apn' in apn:
