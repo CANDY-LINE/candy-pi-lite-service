@@ -49,8 +49,6 @@ CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
 ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
-FALLBACK_APN=$(cat ${SRC_DIR}/systemd/fallback_apn)
-BOOT_APN=${BOOT_APN:-${FALLBACK_APN}}
 
 REBOOT=0
 
@@ -279,6 +277,8 @@ function install_candy_red {
 }
 
 function test_boot_apn {
+  FALLBACK_APN=$(cat ${SRC_DIR}/systemd/fallback_apn)
+  BOOT_APN=${BOOT_APN:-${FALLBACK_APN}}
   CREDS=`/usr/bin/env python -c "with open('${SRC_DIR}/systemd/apn-list.json') as f:import json;c=json.load(f);print('${BOOT_APN}' in c)"`
   if [ "${CREDS}" != "True" ]; then
     err "Invalid BOOT_APN value => ${BOOT_APN}"
