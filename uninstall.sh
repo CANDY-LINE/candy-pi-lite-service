@@ -88,6 +88,7 @@ function uninstall_service {
   rm -f ${SERVICE_HOME}/*.json
   rm -f ${SERVICE_HOME}/__shutdown
   rm -f ${SERVICE_HOME}/__pppd_exit_code
+  rm -f ${SERVICE_HOME}/*apn
   systemctl daemon-reload
   info "${SERVICE_NAME} has been uninstalled"
   REBOOT=1

@@ -34,6 +34,42 @@ function init {
   fi
 }
 
+function boot_apn {
+  if [ -f "/boot/apn" ]; then
+    log "[INFO] Provisioning APN..."
+    BOOT_APN=`/usr/bin/env python -c "
+import json
+apn = ''
+apn_list = {}
+with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
+    apn_list = json.load(f)
+with open('/boot/apn') as f:
+    try:
+        apn = f.read()
+        apn = json.loads(apn)
+    except:
+        pass
+if 'apn' in apn:
+    apn_list[apn['apn']] = {
+        'user': apn['user'] if 'user' in apn else '',
+        'password': apn['password'] if 'password' in apn else ''
+    }
+    with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json', 'w') as f:
+        json.dump(apn_list, f)
+    apn = apn['apn']
+    with open('/boot/apn', 'w') as f:
+        f.write(apn)
+print(str(apn).strip() in apn_list)
+"`
+    if [ "${BOOT_APN}" != "True" ]; then
+      log "[ERROR] Invalid /boot/apn content => $(cat /boot/apn), /boot/apn file is ignored"
+    else
+      log "[INFO] APN[$(cat /boot/apn)] is set"
+      mv -f /boot/apn /opt/candy-line/${PRODUCT_DIR_NAME}/apn
+    fi
+  fi
+}
+
 function boot_ip_reset {
   if [ -f "/boot/boot-ip-reset" ]; then
     rm -f "/boot/boot-ip-reset"
@@ -154,6 +190,9 @@ function connect {
 
 # main
 init
+
+# Configuring APN
+boot_apn
 
 # Configuring boot-ip
 boot_ip_reset

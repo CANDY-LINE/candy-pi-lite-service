@@ -8,7 +8,8 @@ BLINKY=1
 BLINKY_INTERVAL_SEC=0.4
 
 # LTE/3G access point name defined in `apn-list.json`
-APN=%BOOT_APN%
+# As of v1.7.0, APN in the `apn` file overrides this value.
+#APN=
 
 # Network retaining request interval in PPP Modem-mode (<5: disabled)
 PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%

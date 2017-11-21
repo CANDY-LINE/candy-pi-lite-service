@@ -18,8 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.6.2
-BOOT_APN=${BOOT_APN:-soracom.io}
+VERSION=1.7.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -50,6 +49,8 @@ CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
 ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
+FALLBACK_APN=$(cat ${SRC_DIR}/systemd/fallback_apn)
+BOOT_APN=${BOOT_APN:-${FALLBACK_APN}}
 
 REBOOT=0
 
@@ -304,8 +305,9 @@ function install_service {
   mkdir -p ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/boot-ip.*.json ${SERVICE_HOME}
   cp -f ${SRC_DIR}/systemd/environment.txt ${SERVICE_HOME}/environment
+  cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
-  for e in VERSION BOOT_APN \
+  for e in VERSION \
       PPP_PING_INTERVAL_SEC \
       NTP_DISABLED \
       PPPD_DEBUG \
@@ -320,6 +322,8 @@ function install_service {
   do
     install -o root -g root -D -m 755 ${f} ${SERVICE_HOME}
   done
+
+  echo "${BOOT_APN}" > ${SERVICE_HOME}/apn
 
   cp -f ${SRC_DIR}/systemd/${SERVICE_NAME}.service.txt ${SRC_DIR}/systemd/${SERVICE_NAME}.service
   sed -i -e "s/%VERSION%/${VERSION//\//\\/}/g" ${SRC_DIR}/systemd/${SERVICE_NAME}.service
