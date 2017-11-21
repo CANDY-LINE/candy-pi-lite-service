@@ -49,7 +49,7 @@ $ make PI_USER=linaro PI_HOST=192.168.1.10
 ### 動作確認 (RPi)
 
 ```bash
-$ VERSION=1.7.0 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.7.1 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
