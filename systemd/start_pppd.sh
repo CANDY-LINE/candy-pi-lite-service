@@ -19,7 +19,11 @@ PRODUCT_DIR_NAME="candy-pi-lite"
 # Run `poff` to stop
 
 FALLBACK_APN=$(cat /opt/candy-line/${PRODUCT_DIR_NAME}/fallback_apn)
+if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
+  APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
+fi
 APN=${APN:-${FALLBACK_APN}}
+
 CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s' % (c['user'],c['password']))" 2>&1`
 if [ "$?" != "0" ]; then
   log "Failed to start ppp. Error=>${CREDS}"

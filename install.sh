@@ -307,7 +307,7 @@ function install_service {
   cp -f ${SRC_DIR}/systemd/environment.txt ${SERVICE_HOME}/environment
   cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
-  for e in VERSION BOOT_APN \
+  for e in VERSION \
       PPP_PING_INTERVAL_SEC \
       NTP_DISABLED \
       PPPD_DEBUG \
@@ -322,6 +322,8 @@ function install_service {
   do
     install -o root -g root -D -m 755 ${f} ${SERVICE_HOME}
   done
+
+  echo "${BOOT_APN}" > ${SERVICE_HOME}/apn
 
   cp -f ${SRC_DIR}/systemd/${SERVICE_NAME}.service.txt ${SRC_DIR}/systemd/${SERVICE_NAME}.service
   sed -i -e "s/%VERSION%/${VERSION//\//\\/}/g" ${SRC_DIR}/systemd/${SERVICE_NAME}.service
