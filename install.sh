@@ -206,8 +206,10 @@ function configure_watchdog {
 
 function install_ppp {
   info "Installing ufw and ppp..."
-  apt-get update -y
-  apt-get install -y ufw ppp pppconfig
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    apt-get update -y
+    apt-get install -y ufw ppp
+  fi
 
   # _common.sh is copied by install_service
   cp -f ${SRC_DIR}/systemd/apn-list.json ${SERVICE_HOME}/apn-list.json
