@@ -276,7 +276,7 @@ function install_candy_red {
   cd ~
   npm cache clean
   info "Installing CANDY RED..."
-  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} npm install -g --unsafe-perm candy-red
+  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODES_CSV_PATH=${NODES_CSV_PATH} npm install -g --unsafe-perm candy-red
   REBOOT=1
 }
 
