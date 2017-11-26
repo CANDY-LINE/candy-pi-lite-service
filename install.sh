@@ -236,41 +236,43 @@ function install_candy_red {
   if [ "${CANDY_RED}" == "0" ]; then
     return
   fi
-  NODEJS_VER=`node -v`
-  if [ "$?" == "0" ]; then
-    for v in ${NODEJS_VERSIONS}
-    do
-      echo ${NODEJS_VER} | grep -oE "${v/./\\.}\..*"
-      if [ "$?" == "0" ]; then
-        unset NODEJS_VER
-      fi
-    done
-  else
-    NODEJS_VER="N/A"
-  fi
-  apt-get update -y
-  if [ -n "${NODEJS_VER}" ]; then
-    info "Installing Node.js..."
-    MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
-    if [ "$?" != "0" ]; then
-      alert "Unsupported environment"
-      exit 1
-    fi
-    apt-get remove -y nodered nodejs nodejs-legacy npm
-    echo ${MODEL_NAME} | grep -o "ARMv6"
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    NODEJS_VER=`node -v`
     if [ "$?" == "0" ]; then
-      cd /tmp
-      wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-      tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-      cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
-      cp -R * /usr/local/
+      for v in ${NODEJS_VERSIONS}
+      do
+        echo ${NODEJS_VER} | grep -oE "${v/./\\.}\..*"
+        if [ "$?" == "0" ]; then
+          unset NODEJS_VER
+        fi
+      done
     else
-      curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-      apt-get install -y nodejs
+      NODEJS_VER="N/A"
     fi
+    apt-get update -y
+    if [ -n "${NODEJS_VER}" ]; then
+      info "Installing Node.js..."
+      MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
+      if [ "$?" != "0" ]; then
+        alert "Unsupported environment"
+        exit 1
+      fi
+      apt-get remove -y nodered nodejs nodejs-legacy npm
+      echo ${MODEL_NAME} | grep -o "ARMv6"
+      if [ "$?" == "0" ]; then
+        cd /tmp
+        wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
+        tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
+        cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
+        cp -R * /usr/local/
+      else
+        curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+        apt-get install -y nodejs
+      fi
+    fi
+    info "Installing dependencies..."
+    apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
   fi
-  info "Installing dependencies..."
-  apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
   cd ~
   npm cache clean
   info "Installing CANDY RED..."
