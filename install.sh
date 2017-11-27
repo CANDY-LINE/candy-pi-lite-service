@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.7.1
+VERSION=1.7.2
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -49,6 +49,7 @@ CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
 ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
+CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
 
 REBOOT=0
 
@@ -204,10 +205,20 @@ function configure_watchdog {
   info "Hardware Watchdog configuration done"
 }
 
+function apt_get_update {
+  if [ "${CANDY_PI_LITE_APT_GET_UPDATED}" == "1" ]; then
+    return
+  fi
+  CANDY_PI_LITE_APT_GET_UPDATED=1
+  apt-get update -y
+}
+
 function install_ppp {
   info "Installing ufw and ppp..."
-  apt-get update -y
-  apt-get install -y ufw ppp pppconfig
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    apt_get_update
+    apt-get install -y ufw ppp
+  fi
 
   # _common.sh is copied by install_service
   cp -f ${SRC_DIR}/systemd/apn-list.json ${SERVICE_HOME}/apn-list.json
@@ -234,46 +245,52 @@ function install_candy_red {
   if [ "${CANDY_RED}" == "0" ]; then
     return
   fi
-  NODEJS_VER=`node -v`
-  if [ "$?" == "0" ]; then
-    for v in ${NODEJS_VERSIONS}
-    do
-      echo ${NODEJS_VER} | grep -oE "${v/./\\.}\..*"
-      if [ "$?" == "0" ]; then
-        unset NODEJS_VER
-      fi
-    done
-  else
-    NODEJS_VER="N/A"
-  fi
-  apt-get update -y
-  if [ -n "${NODEJS_VER}" ]; then
-    info "Installing Node.js..."
-    MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
-    if [ "$?" != "0" ]; then
-      alert "Unsupported environment"
-      exit 1
-    fi
-    apt-get remove -y nodered nodejs nodejs-legacy npm
-    echo ${MODEL_NAME} | grep -o "ARMv6"
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    NODEJS_VER=`node -v`
     if [ "$?" == "0" ]; then
-      cd /tmp
-      wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-      tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-      cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
-      cp -R * /usr/local/
+      for v in ${NODEJS_VERSIONS}
+      do
+        echo ${NODEJS_VER} | grep -oE "${v/./\\.}\..*"
+        if [ "$?" == "0" ]; then
+          unset NODEJS_VER
+        fi
+      done
     else
-      curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-      apt-get install -y nodejs
+      NODEJS_VER="N/A"
     fi
+    apt_get_update
+    if [ -n "${NODEJS_VER}" ]; then
+      info "Installing Node.js..."
+      MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
+      if [ "$?" != "0" ]; then
+        alert "Unsupported environment"
+        exit 1
+      fi
+      apt-get remove -y nodered nodejs nodejs-legacy npm
+      echo ${MODEL_NAME} | grep -o "ARMv6"
+      if [ "$?" == "0" ]; then
+        cd /tmp
+        wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
+        tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
+        cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
+        cp -R * /usr/local/
+      else
+        curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+        apt-get install -y nodejs
+      fi
+    fi
+    info "Installing dependencies..."
+    apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
   fi
-  info "Installing dependencies..."
-  apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
   cd ~
   npm cache clean
   info "Installing CANDY RED..."
-  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} npm install -g --unsafe-perm candy-red
+  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} \
+    NODES_CSV_PATH=${NODES_CSV_PATH} \
+    CANDY_RED_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED} \
+    npm install -g --unsafe-perm candy-red
   REBOOT=1
+  CANDY_PI_LITE_APT_GET_UPDATED=1
 }
 
 function test_boot_apn {
