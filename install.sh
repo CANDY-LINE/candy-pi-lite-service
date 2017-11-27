@@ -49,6 +49,7 @@ CONFIGURE_STATIC_IP_ON_BOOT=${CONFIGURE_STATIC_IP_ON_BOOT:-""}
 OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
 ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
+CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
 
 REBOOT=0
 
@@ -204,10 +205,18 @@ function configure_watchdog {
   info "Hardware Watchdog configuration done"
 }
 
+function apt_get_update {
+  if [ "${CANDY_PI_LITE_APT_GET_UPDATED}" == "1" ]; then
+    return
+  fi
+  CANDY_PI_LITE_APT_GET_UPDATED=1
+  apt-get update -y
+}
+
 function install_ppp {
   info "Installing ufw and ppp..."
   if [ "${FORCE_INSTALL}" != "1" ]; then
-    apt-get update -y
+    apt_get_update
     apt-get install -y ufw ppp
   fi
 
@@ -249,7 +258,7 @@ function install_candy_red {
     else
       NODEJS_VER="N/A"
     fi
-    apt-get update -y
+    apt_get_update
     if [ -n "${NODEJS_VER}" ]; then
       info "Installing Node.js..."
       MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
@@ -276,8 +285,12 @@ function install_candy_red {
   cd ~
   npm cache clean
   info "Installing CANDY RED..."
-  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} NODES_CSV_PATH=${NODES_CSV_PATH} npm install -g --unsafe-perm candy-red
+  WELCOME_FLOW_URL=${WELCOME_FLOW_URL} \
+    NODES_CSV_PATH=${NODES_CSV_PATH} \
+    CANDY_RED_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED} \
+    npm install -g --unsafe-perm candy-red
   REBOOT=1
+  CANDY_PI_LITE_APT_GET_UPDATED=1
 }
 
 function test_boot_apn {
