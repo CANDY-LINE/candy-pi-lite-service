@@ -1,0 +1,41 @@
+// Definitions for SC16IS752 UART on spi2.1 for ASUS Tinker Board
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "rockchip,rk3288-miniarm", "rockchip,rk3288";
+
+    fragment@0 {
+        target = <&spi2>;
+        __overlay__ {
+             status = "okay";
+             spidev@1{
+                 status = "disabled";
+             };
+        };
+    };
+
+    fragment@1 {
+       target = <&spi2>;
+       __overlay__ {
+          #address-cells = <1>;
+          #size-cells = <0>;
+          status = "okay";
+
+          sc16is752: sc16is752@1 {
+             compatible = "nxp,sc16is752";
+             reg = <1>; /* CE1 */
+             spi-max-frequency = <4000000>;
+             interrupt-parent = <&gpio6>;
+             interrupts = <4 0x2>; /* gpio 188 => 4 is the index of the interrupt within the gpio6 interrupt-controller, falling edge */
+             clocks = <&klok>;
+
+             klok: klok {
+                compatible = "fixed-clock";
+                #clock-cells = <0>;
+                clock-frequency = <14745600>;
+             };
+          };
+       };
+    };
+};

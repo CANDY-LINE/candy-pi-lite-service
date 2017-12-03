@@ -40,6 +40,23 @@ function assert_root {
   fi
 }
 
+function setup {
+  python -c "import RPi.GPIO" > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    BOARD="RPi"
+  else
+    DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+    case ${DT_MODEL} in
+      "Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
+  fi
+}
+
 function uninstall_ppp {
   PPP_MODE_DETECTED=0
   for f in "/etc/chatscripts/candy-pi-lite" "/etc/ppp/peers/candy-pi-lite"
@@ -109,6 +126,7 @@ function teardown {
 
 # main
 assert_root
+setup
 uninstall_service
 uninstall_candy_board
 uninstall_ppp
