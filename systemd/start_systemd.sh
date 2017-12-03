@@ -82,8 +82,13 @@ function boot_ip_reset {
 }
 
 function boot_ip_addr {
-  if [ ! -e "/sys/class/net/eth-rpi" ]; then
-    log "[INFO] Skip to configure IP address as eth-rpi is missing"
+  interface=""
+  if [ -e "/sys/class/net/eth0" ]; then
+    interface="eth0"
+  elif [ -e "/sys/class/net/eth-rpi" ]; then
+    interface="eth-rpi"
+  else
+    log "[INFO] Skip to configure IP address as fixed NIC name is missing"
     return
   fi
   LIST=`ls -1 /boot/boot-ip*.json`
@@ -121,7 +126,6 @@ function boot_ip_addr {
     eval ${VAL}
   done
 
-  interface=${interface:-"eth-rpi"}
   NUM=`grep -wc "^[^#;]*interface\s*${interface}" "${DHCPCD_CNF}"`
   if [ "${NUM}" == "0" ]; then # update org_candy unless I/F is configured
     cp -f "${DHCPCD_CNF}" "${DHCPCD_ORG}"
