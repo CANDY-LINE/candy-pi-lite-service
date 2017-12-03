@@ -303,10 +303,10 @@ function install_ppp {
 }
 
 function install_avahi_daemon {
-  info "Installing avahi daemon..."
   if [ "${FORCE_INSTALL}" != "1" ]; then
     systemctl status avahi-daemon > /dev/null 2>&1
     if [ "$?" != "0" ]; then
+      info "Installing avahi daemon..."
       apt_get_update
       apt-get install -y avahi-daemon
     fi
