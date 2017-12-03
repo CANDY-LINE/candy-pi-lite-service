@@ -3,7 +3,7 @@ candy-pi-lite-service
 [![GitHub release](https://img.shields.io/github/release/CANDY-LINE/candy-pi-lite-service.svg)](https://github.com/CANDY-LINE/candy-pi-lite-service/releases/latest)
 [![License ASL 2.0](https://img.shields.io/github/license/CANDY-LINE/candy-pi-lite-service.svg)](https://opensource.org/licenses/Apache-2.0)
 
-candy-pi-lite-serviceは、Raspberry Pi上で動作するCANDY Pi Liteを動作させるためのシステムサービス（Raspberry Pi上で自動的に動作するソフトウェア）です。
+candy-pi-lite-serviceは、Raspberry Pi(Raspbian Stretch)及びASUS Tinker Board(Tinker OS 2.0.3+)上で動作するCANDY Pi Liteを動作させるためのシステムサービス（OS上で自動的に動作するソフトウェア）です。
 
 candy-pi-lite-serviceや、CANDY Pi Liteに関する説明については、専用の[利用ガイド](https://candy-line.gitbooks.io/candy-pi-lite/content/)をご覧ください。
 
@@ -42,11 +42,11 @@ $ make PI_HOST=shinycandypi.local
 
 ユーザー名を指定するときは、`PI_USER`を指定する。
 ```bash
-$ make PI_USER=linaro PI_HOST=192.168.1.10
+$ make PI_USER=linaro PI_HOST=tinkerboard.local
 (enter ssh user password)
 ```
 
-### 動作確認 (RPi)
+### 動作確認 (RPi/ATB)
 
 ```bash
 $ VERSION=1.7.2 && rm -fr tmp && mkdir tmp && cd tmp && \
