@@ -69,16 +69,17 @@ function setup {
   python -c "import RPi.GPIO" > /dev/null 2>&1
   if [ "$?" == "0" ]; then
     BOARD="RPi"
+  else
+    DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+    case ${DT_MODEL} in
+      "Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
   fi
-  DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
-  case ${DT_MODEL} in
-    "Tinker Board")
-      BOARD="ATB"
-      ;;
-    *)
-      BOARD=""
-      ;;
-  esac
 }
 
 function assert_root {
