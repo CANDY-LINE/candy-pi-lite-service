@@ -16,21 +16,42 @@
 
 echo -e "\033[93m[WARN] *** INTERNAL USE, DO NOT RUN DIRECTLY *** \033[0m"
 
-# Test if the board is RPi
+# Detect board type and assign the appropriate pinmappings
 python -c "import RPi.GPIO" > /dev/null 2>&1
 if [ "$?" == "0" ]; then
   LED2=4
   PERST=20
   W_DISABLE=12
 else
-  uname -a | grep linaro
-  if [ "$?" == "0" ]; then
-    LED2=17
-    PERST=187
-    W_DISABLE=239
-  else
-    echo -e "\033[93m[FATAL] *** UNSUPPORTED BOARD *** \033[0m"
+  if [ ! -e "/proc/device-tree/model" ]; then
+    echo -e "\033[93m[FATAL] *** UNSUPPORTED OS *** \033[0m"
+    exit 3
   fi
+  DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+  if [ -z "${DT_MODEL}" ]; then
+    RESOLVE_MAX=30
+    RESOLVE_COUNTER=0
+    while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
+    do
+      DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+      if [ -n "${DT_MODEL}" ]; then
+        break
+      fi
+      sleep 2
+      let RESOLVE_COUNTER=RESOLVE_COUNTER+1
+    done
+  fi
+  case ${DT_MODEL} in
+    "Tinker Board")
+      LED2=17
+      PERST=187
+      W_DISABLE=239
+      ;;
+    *)
+      echo -e "\033[93m[FATAL] *** UNSUPPORTED BOARD *** \033[0m"
+      exit 3
+      ;;
+  esac
 fi
 
 # Orange LED (Online Status Indicator)
