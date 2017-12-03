@@ -366,7 +366,10 @@ function install_candy_red {
       fi
     fi
     info "Installing dependencies..."
-    apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
+    apt-get install -y python-dev bluez libudev-dev
+    if [ "${BOARD}" == "RPi" ]; then
+      apt-get install -y python-rpi.gpio
+    fi
   fi
   cd ~
   npm cache clean
