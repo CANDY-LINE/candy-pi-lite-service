@@ -206,9 +206,11 @@ boot_ip_addr_fin
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
 init_modem
-connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
+fi
+connect
+if [ "${NTP_DISABLED}" == "1" ]; then
   if [ "${MODEL}" == "UC20" ]; then
     log "[INFO] Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
