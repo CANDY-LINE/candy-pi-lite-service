@@ -67,23 +67,23 @@ PID = str(os.getpid())
 class Pinger(threading.Thread):
     DEST_ADDR = '<broadcast>'
     DEST_PORT = 60100
-    CAT_PPP0_TX_STAT = 'cat /sys/class/net/ppp0/statistics/tx_bytes'
 
-    def __init__(self, interval_sec):
+    def __init__(self, interval_sec, nic):
         super(Pinger, self).__init__()
         self.interval_sec = interval_sec
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', 0))
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.last_tx_bytes = 0
+        self.cat_tx_stat = 'cat /sys/class/net/%s/statistics/tx_bytes' % nic
 
     def run(self):
         while self.interval_sec >= 5:
-            if not os.path.isfile(Pinger.CAT_PPP0_TX_STAT):
+            if not os.path.isfile(self.cat_tx_stat):
                 time.sleep(self.interval_sec)
                 continue
             try:
-                self.tx_bytes = subprocess.Popen(Pinger.CAT_PPP0_TX_STAT,
+                self.tx_bytes = subprocess.Popen(self.cat_tx_stat,
                                                  shell=True,
                                                  stdout=subprocess.PIPE
                                                  ).stdout.read()
@@ -316,7 +316,7 @@ def server_main(serial_port, bps, nic,
     logger.debug("server_main() : Setting up Monitor...")
     monitor = Monitor(nic)
     logger.debug("server_main() : Setting up Pinger...")
-    pinger = Pinger(PPP_PING_INTERVAL_SEC)
+    pinger = Pinger(PPP_PING_INTERVAL_SEC, nic)
 
     logger.debug("server_main() : Starting SockServer...")
     server.start()
