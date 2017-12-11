@@ -132,7 +132,7 @@ function download {
 
 function _ufw_setup {
   info "Configuring ufw..."
-  cp -f ${SRC_DIR}/etc/ufw/user.rules /etc/ufw/
+  cp -f ${SRC_DIR}/etc/ufw/*.rules /etc/ufw/
   if [ "${FORCE_INSTALL}" != "1" ]; then
     ufw --force disable
     if [ "${BOARD}" == "RPi" ]; then
