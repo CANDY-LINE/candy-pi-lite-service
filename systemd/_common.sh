@@ -242,6 +242,13 @@ function init_modem {
     exit 1
   fi
   adjust_time
+  if [ -z "${USB_SERIAL_PORT}" ]; then
+    detect_usb_device # retry
+    if [ -n "${USB_SERIAL_PORT}" ]; then
+      log "[INFO] Restarting ${PRODUCT} Service as new USB serial ports are detected"
+      exit 1
+    fi
+  fi
 }
 
 function stop_ntp {
