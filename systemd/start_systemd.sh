@@ -126,6 +126,7 @@ function boot_ip_addr {
     eval ${VAL}
   done
 
+  interface=${interface:-"eth-rpi"}
   NUM=`grep -wc "^[^#;]*interface\s*${interface}" "${DHCPCD_CNF}"`
   if [ "${NUM}" == "0" ]; then # update org_candy unless I/F is configured
     cp -f "${DHCPCD_CNF}" "${DHCPCD_ORG}"
@@ -211,7 +212,7 @@ if [ "${NTP_DISABLED}" == "1" ]; then
 fi
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
-  if [ "${MODEL}" == "UC20" ]; then
+  if [ "$(date +%Y)" == "1980" ]; then
     log "[INFO] Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
       poff -a > /dev/null 2>&1
@@ -229,7 +230,7 @@ fi
 
 # end banner
 log "[INFO] ${PRODUCT} is initialized successfully!"
-/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
 EXIT_CODE="$?"
 if [ "${EXIT_CODE}" == "143" ] && [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
   # SIGTERM(15) is signaled by a thread in server_main module
