@@ -51,6 +51,9 @@ function detect_usb_device {
     fi
   fi
   USB_SERIAL=""
+  if [ -n "${USB_SERIAL_PORT}" ]; then
+    log "[INFO] USB Serial Ports are found => ${USB_SERIAL_PORT}, ${USB_SERIAL_AT_PORT}"
+  fi
 }
 
 function look_for_modem_at_port {
