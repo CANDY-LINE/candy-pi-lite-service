@@ -205,7 +205,7 @@ init_modem
 connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
-  if [ "${MODEL}" == "UC20" ]; then
+  if [ "$(date +%Y)" == "1980" ]; then
     log "[INFO] Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
       poff -a > /dev/null 2>&1
