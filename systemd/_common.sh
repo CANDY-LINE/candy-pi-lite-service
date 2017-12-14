@@ -16,8 +16,10 @@
 
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-%MODEM_BAUDRATE%}
 UART_PORT="/dev/ttySC1"
-QWS_UC20_PORT="/dev/QWS.UC20.MODEM"
-QWS_EC21_PORT="/dev/QWS.EC21.MODEM"
+QWS_UC20="/dev/QWS.UC20"
+QWS_EC21="/dev/QWS.EC21"
+QWS_UC20_PORT="${QWS_UC20}.MODEM"
+QWS_EC21_PORT="${QWS_EC21}.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
@@ -40,31 +42,39 @@ function detect_usb_device {
   USB_SERIAL=`lsusb | grep "2c7c:0121"`
   if [ "$?" == "0" ]; then
     USB_SERIAL_PORT=${QWS_EC21_PORT}
+    USB_SERIAL_AT_PORT="${QWS_EC21}.AT"
   else
     USB_SERIAL=`lsusb | grep "05c6:9003"`
     if [ "$?" == "0" ]; then
       USB_SERIAL_PORT=${QWS_UC20_PORT}
+      USB_SERIAL_AT_PORT="${QWS_UC20}.AT"
     fi
   fi
   USB_SERIAL=""
+  if [ -n "${USB_SERIAL_PORT}" ]; then
+    log "[INFO] USB Serial Ports are found => ${USB_SERIAL_PORT}, ${USB_SERIAL_AT_PORT}"
+  fi
 }
 
-function look_for_modem_port {
+function look_for_modem_at_port {
   MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
+  AT_SERIAL_PORT="${USB_SERIAL_AT_PORT:-${MODEM_SERIAL_PORT}}"
   if [ "${MODEM_SERIAL_PORT}" == "None" ]; then
     MODEM_SERIAL_PORT=""
+    AT_SERIAL_PORT=""
     return
   elif [ -n "${USB_SERIAL_PORT}" ] && [ "${USB_SERIAL_PORT}" != "${MODEM_SERIAL_PORT}" ]; then
     MODEM_SERIAL_PORT=""
+    AT_SERIAL_PORT=""
     return
   fi
-  log "Serial port: ${MODEM_SERIAL_PORT} is selected"
+  log "Modem Serial port: ${MODEM_SERIAL_PORT} and AT Serial port: ${AT_SERIAL_PORT} are selected"
 }
 
 function init_serialport {
   CURRENT_BAUDRATE="None"
   if [ -z "${MODEM_SERIAL_PORT}" ]; then
-    look_for_modem_port
+    look_for_modem_at_port
     if [ -z "${MODEM_SERIAL_PORT}" ]; then
       return
     fi
@@ -232,6 +242,13 @@ function init_modem {
     exit 1
   fi
   adjust_time
+  if [ -z "${USB_SERIAL_PORT}" ]; then
+    detect_usb_device # retry
+    if [ -n "${USB_SERIAL_PORT}" ]; then
+      log "[INFO] Restarting ${PRODUCT} Service as new USB serial ports are detected"
+      exit 1
+    fi
+  fi
 }
 
 function stop_ntp {
