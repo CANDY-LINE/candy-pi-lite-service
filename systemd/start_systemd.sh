@@ -223,7 +223,7 @@ fi
 
 # end banner
 log "[INFO] ${PRODUCT} is initialized successfully!"
-/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
 EXIT_CODE="$?"
 if [ "${EXIT_CODE}" == "143" ] && [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
   # SIGTERM(15) is signaled by a thread in server_main module
