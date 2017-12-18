@@ -137,8 +137,10 @@ function _ufw_setup {
   if [ "${FORCE_INSTALL}" != "1" ]; then
     ufw --force disable
     if [ "${BOARD}" == "RPi" ]; then
-      if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-        ufw allow in on eth-rpi
+      if [ ! -e "/sys/class/net/eth0" ]; then
+        if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+          ufw allow in on eth-rpi
+        fi
       fi
     fi
     for n in `ls /sys/class/net`
@@ -446,9 +448,11 @@ function install_service {
 
   cp -f ${SRC_DIR}/etc/udev/rules.d/99* /etc/udev/rules.d/
   if [ "${BOARD}" == "RPi" ]; then
-    if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-      # assign the fixed name `eth-rpi` for RPi B+/2B/3B
-      cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+    if [ ! -e "/sys/class/net/eth0" ]; then
+      if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+        # assign the fixed name `eth-rpi` for RPi B+/2B/3B
+        cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+      fi
     fi
   fi
   if [ "${COFIGURE_ENOCEAN_PORT}" == "1" ]; then
