@@ -51,6 +51,9 @@ led_sec = float(os.environ['BLINKY_INTERVAL_SEC']) \
     if 'BLINKY_INTERVAL_SEC' in os.environ else 1.0
 if led_sec < 0 or led_sec > 60:
     led_sec = 1.0
+DISABLE_DEFAULT_ROUTE_ADJUSTER = \
+    int(os.environ['DISABLE_DEFAULT_ROUTE_ADJUSTER']) \
+    if 'DISABLE_DEFAULT_ROUTE_ADJUSTER' in os.environ else 0
 PPP_PING_INTERVAL_SEC = float(os.environ['PPP_PING_INTERVAL_SEC']) \
     if 'PPP_PING_INTERVAL_SEC' in os.environ else 0.0
 online = False
@@ -147,6 +150,8 @@ class Monitor(threading.Thread):
         return ls_nic
 
     def del_default(self, ipv):
+        if DISABLE_DEFAULT_ROUTE_ADJUSTER:
+            return
         err = subprocess.call("ip -%s route | grep default | grep -v %s" %
                               (ipv, self.nic), shell=True,
                               stdout=Monitor.FNULL,
@@ -309,6 +314,9 @@ def server_main(serial_port, bps, nic,
     logger.debug("server_main() : Setting up SockServer...")
     server = candy_board_qws.SockServer(resolve_version(),
                                         sock_path, serial)
+    if DISABLE_DEFAULT_ROUTE_ADJUSTER:
+        logger.info(
+            "[NOTICE] <candy-pi-lite> Will disable default route adjuster")
 
     if 'BLINKY' in os.environ and os.environ['BLINKY'] == "1":
         logger.debug("server_main() : Starting blinky timer...")
