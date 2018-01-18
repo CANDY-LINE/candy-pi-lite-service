@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2017 CANDY LINE INC.
+# Copyright (c) 2018 CANDY LINE INC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,6 +51,9 @@ led_sec = float(os.environ['BLINKY_INTERVAL_SEC']) \
     if 'BLINKY_INTERVAL_SEC' in os.environ else 1.0
 if led_sec < 0 or led_sec > 60:
     led_sec = 1.0
+DISABLE_DEFAULT_ROUTE_ADJUSTER = \
+    int(os.environ['DISABLE_DEFAULT_ROUTE_ADJUSTER']) \
+    if 'DISABLE_DEFAULT_ROUTE_ADJUSTER' in os.environ else 0
 PPP_PING_INTERVAL_SEC = float(os.environ['PPP_PING_INTERVAL_SEC']) \
     if 'PPP_PING_INTERVAL_SEC' in os.environ else 0.0
 online = False
@@ -67,23 +70,23 @@ PID = str(os.getpid())
 class Pinger(threading.Thread):
     DEST_ADDR = '<broadcast>'
     DEST_PORT = 60100
-    CAT_PPP0_TX_STAT = 'cat /sys/class/net/ppp0/statistics/tx_bytes'
 
-    def __init__(self, interval_sec):
+    def __init__(self, interval_sec, nic):
         super(Pinger, self).__init__()
         self.interval_sec = interval_sec
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', 0))
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.last_tx_bytes = 0
+        self.cat_tx_stat = 'cat /sys/class/net/%s/statistics/tx_bytes' % nic
 
     def run(self):
         while self.interval_sec >= 5:
-            if not os.path.isfile(Pinger.CAT_PPP0_TX_STAT):
+            if not os.path.isfile(self.cat_tx_stat):
                 time.sleep(self.interval_sec)
                 continue
             try:
-                self.tx_bytes = subprocess.Popen(Pinger.CAT_PPP0_TX_STAT,
+                self.tx_bytes = subprocess.Popen(self.cat_tx_stat,
                                                  shell=True,
                                                  stdout=subprocess.PIPE
                                                  ).stdout.read()
@@ -147,6 +150,8 @@ class Monitor(threading.Thread):
         return ls_nic
 
     def del_default(self, ipv):
+        if DISABLE_DEFAULT_ROUTE_ADJUSTER:
+            return
         err = subprocess.call("ip -%s route | grep default | grep -v %s" %
                               (ipv, self.nic), shell=True,
                               stdout=Monitor.FNULL,
@@ -309,6 +314,9 @@ def server_main(serial_port, bps, nic,
     logger.debug("server_main() : Setting up SockServer...")
     server = candy_board_qws.SockServer(resolve_version(),
                                         sock_path, serial)
+    if DISABLE_DEFAULT_ROUTE_ADJUSTER:
+        logger.info(
+            "[NOTICE] <candy-pi-lite> Will disable default route adjuster")
 
     if 'BLINKY' in os.environ and os.environ['BLINKY'] == "1":
         logger.debug("server_main() : Starting blinky timer...")
@@ -316,7 +324,7 @@ def server_main(serial_port, bps, nic,
     logger.debug("server_main() : Setting up Monitor...")
     monitor = Monitor(nic)
     logger.debug("server_main() : Setting up Pinger...")
-    pinger = Pinger(PPP_PING_INTERVAL_SEC)
+    pinger = Pinger(PPP_PING_INTERVAL_SEC, nic)
 
     logger.debug("server_main() : Starting SockServer...")
     server.start()

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017 CANDY LINE INC.
+# Copyright (c) 2018 CANDY LINE INC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,6 +37,23 @@ function assert_root {
   if [[ $EUID -ne 0 ]]; then
      echo "This script must be run as root"
      exit 1
+  fi
+}
+
+function setup {
+  python -c "import RPi.GPIO" > /dev/null 2>&1
+  if [ "$?" == "0" ]; then
+    BOARD="RPi"
+  else
+    DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+    case ${DT_MODEL} in
+      "Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
   fi
 }
 
@@ -109,6 +126,7 @@ function teardown {
 
 # main
 assert_root
+setup
 uninstall_service
 uninstall_candy_board
 uninstall_ppp

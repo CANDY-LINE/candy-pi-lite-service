@@ -1,3 +1,4 @@
 *.tgz
 *.log
 *.dtbo
+!boot/overlays/*.dtbo

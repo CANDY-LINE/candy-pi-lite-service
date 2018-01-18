@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017 CANDY LINE INC.
+# Copyright (c) 2018 CANDY LINE INC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.7.3
+VERSION=1.8.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
-SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
 
 # v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
@@ -50,6 +49,8 @@ OFFLINE_PERIOD_SEC=${OFFLINE_PERIOD_SEC:-30}
 ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
 CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
+CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR:-false}
+DISABLE_DEFAULT_ROUTE_ADJUSTER=${DISABLE_DEFAULT_ROUTE_ADJUSTER:-0}
 
 REBOOT=0
 
@@ -70,6 +71,16 @@ function setup {
   python -c "import RPi.GPIO" > /dev/null 2>&1
   if [ "$?" == "0" ]; then
     BOARD="RPi"
+  else
+    DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+    case ${DT_MODEL} in
+      "Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
   fi
 }
 
@@ -77,6 +88,16 @@ function assert_root {
   if [[ $EUID -ne 0 ]]; then
      alert "This script must be run as root"
      exit 1
+  fi
+}
+
+function fix_perm_issues {
+  ETC_DEFAULT_PERMS=`namei -m /etc/default 2>&1`
+  if [[ ! ${ETC_DEFAULT_PERMS} == *"drwxr-xr-x etc"* ]]; then
+    chmod 755 /etc
+  fi
+  if [[ ! ${ETC_DEFAULT_PERMS} == *"drwxr-xr-x default"* ]]; then
+    chmod 755 /etc/default
   fi
 }
 
@@ -113,11 +134,15 @@ function download {
 
 function _ufw_setup {
   info "Configuring ufw..."
-  cp -f ${SRC_DIR}/etc/ufw/user.rules /etc/ufw/
+  cp -f ${SRC_DIR}/etc/ufw/*.rules /etc/ufw/
   if [ "${FORCE_INSTALL}" != "1" ]; then
     ufw --force disable
-    if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-      ufw allow in on eth-rpi
+    if [ "${BOARD}" == "RPi" ]; then
+      if [ ! -e "/sys/class/net/eth0" ]; then
+        if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+          ufw allow in on eth-rpi
+        fi
+      fi
     fi
     for n in `ls /sys/class/net`
     do
@@ -135,18 +160,34 @@ function _ufw_setup {
 
 function configure_sc16is7xx {
   if [ "${FORCE_INSTALL}" != "1" ]; then
-    if [ "${BOARD}" != "RPi" ]; then
+    if [ -z "${BOARD}" ]; then
       return
     fi
   fi
-  if [ ! -f "/boot/config.txt" ]; then
-    return
-  fi
   info "Configuring SC16IS7xx..."
-  SC16IS7xx_DTO="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
-  if [ ! -f "${SC16IS7xx_DTO}" ]; then
-    dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTO} ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dts
+  case ${BOARD} in
+    RPi)
+      do_configure_sc16is7xx_rpi
+      ;;
+    ATB)
+      do_configure_sc16is7xx_atb
+      ;;
+    *)
+      err "Unsupported board: ${BOARD}"
+      exit 5
+      ;;
+  esac
+  info "SC16IS7xx configuration done"
+}
+
+function do_configure_sc16is7xx_rpi {
+  SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
+  SC16IS7xx_DTB="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
+  if [ ! -f "${SC16IS7xx_DTB}" ]; then
+    info "Installing SC16IS7xx Device Tree Blob..."
+    dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTB} ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dts
   fi
+
   RET=`grep "^dtoverlay=${SC16IS7xx_DT_NAME}" /boot/config.txt`
   if [ "$?" != "0" ]; then
     if [ ! -f "/boot/config.txt.bak" ]; then
@@ -154,29 +195,68 @@ function configure_sc16is7xx {
     fi
     echo "dtoverlay=${SC16IS7xx_DT_NAME}" >> /boot/config.txt
   fi
-  info "SC16IS7xx configuration done"
+}
+
+function do_configure_sc16is7xx_atb {
+  RET=`grep "sc16is7xx.ko" /lib/modules/$(uname -r)/modules.dep`
+  if [ "$?" != "0" ]; then
+    info "Installing SC16IS7xx Kernel Module..."
+    mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+    cp -f ${SRC_DIR}/lib/modules/4.4.71+/kernel/drivers/tty/serial/sc16is7xx.ko \
+      /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+    depmod -a
+  fi
+
+  SC16IS7xx_DT_NAME="sc16is752-spi2-ce1-atb"
+  SC16IS7xx_DTB="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
+  if [ ! -f "${SC16IS7xx_DTB}" ]; then
+    info "Installing SC16IS7xx Device Tree Blob..."
+    cp -f ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo ${SC16IS7xx_DTB}
+  fi
+
+  RET=`grep "^intf:dtoverlay=${SC16IS7xx_DT_NAME}" /boot/hw_intf.conf`
+  if [ "$?" != "0" ]; then
+    if [ ! -f "/boot/hw_intf.conf.bak" ]; then
+      cp /boot/hw_intf.conf /boot/hw_intf.conf.bak
+    fi
+    echo "intf:dtoverlay=${SC16IS7xx_DT_NAME}" >> /boot/hw_intf.conf
+  fi
 }
 
 function configure_watchdog {
   if [ "${FORCE_INSTALL}" != "1" ]; then
-    if [ "${BOARD}" != "RPi" ]; then
+    if [ -z "${BOARD}" ]; then
       return
     fi
   fi
   if [ "${ENABLE_WATCHDOG}" != "1" ]; then
     return
   fi
-  if [ ! -f "/boot/config.txt" ]; then
-    return
-  fi
   info "Configuring Hardware Watchdog..."
-  if [ "${FORCE_INSTALL}" != "1" ]; then
-    RET=`modprobe bcm2835_wdt`
-    if [ "$?" != "0" ]; then
-      info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+  case ${BOARD} in
+    RPi)
+      if [ "${FORCE_INSTALL}" != "1" ]; then
+        RET=`modprobe bcm2835_wdt`
+        if [ "$?" != "0" ]; then
+          info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+          return
+        fi
+      fi
+      do_configure_bcm2835_wdt
+      ;;
+    ATB)
+      info "Hardware Watchdog isn't yet supported on ASUS Tinker Board."
       return
-    fi
-  fi
+      ;;
+    *)
+      err "Unsupported board: ${BOARD}"
+      exit 5
+      ;;
+  esac
+  info "Hardware Watchdog configuration done"
+}
+
+function do_configure_bcm2835_wdt {
   RET=`grep "^dtparam=watchdog=on" /boot/config.txt`
   if [ "$?" != "0" ]; then
     RET=`grep "^dtparam=watchdog=off" /boot/config.txt`
@@ -202,7 +282,6 @@ function configure_watchdog {
       fi
     fi
   fi
-  info "Hardware Watchdog configuration done"
 }
 
 function apt_get_update {
@@ -226,6 +305,17 @@ function install_ppp {
   sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/_common.sh
 
   _ufw_setup
+}
+
+function install_avahi_daemon {
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    systemctl status avahi-daemon > /dev/null 2>&1
+    if [ "$?" != "0" ]; then
+      info "Installing avahi daemon..."
+      apt_get_update
+      apt-get install -y avahi-daemon
+    fi
+  fi
 }
 
 function install_candy_board {
@@ -280,14 +370,21 @@ function install_candy_red {
       fi
     fi
     info "Installing dependencies..."
-    apt-get install -y python-dev python-rpi.gpio bluez libudev-dev
+    apt-get install -y python-dev bluez libudev-dev
+    if [ "${BOARD}" == "RPi" ]; then
+      apt-get install -y python-rpi.gpio
+    fi
   fi
   cd ~
   npm cache clean
   info "Installing CANDY RED..."
+  if [ "${BOARD}" == "ATB" ]; then
+    CANDY_RED_BIND_IPV4_ADDR=true
+  fi
   WELCOME_FLOW_URL=${WELCOME_FLOW_URL} \
     NODES_CSV_PATH=${NODES_CSV_PATH} \
     CANDY_RED_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED} \
+    CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR} \
     npm install -g --unsafe-perm candy-red
   REBOOT=1
   CANDY_PI_LITE_APT_GET_UPDATED=1
@@ -325,6 +422,7 @@ function install_service {
   cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
   for e in VERSION \
+      DISABLE_DEFAULT_ROUTE_ADJUSTER \
       PPP_PING_INTERVAL_SEC \
       NTP_DISABLED \
       PPPD_DEBUG \
@@ -351,9 +449,13 @@ function install_service {
   install -o root -g root -D -m 755 ${SRC_DIR}/uninstall.sh ${SERVICE_HOME}/uninstall.sh
 
   cp -f ${SRC_DIR}/etc/udev/rules.d/99* /etc/udev/rules.d/
-  if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-    # assign the fixed name `eth-rpi` for RPi B+/2B/3B
-    cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+  if [ "${BOARD}" == "RPi" ]; then
+    if [ ! -e "/sys/class/net/eth0" ]; then
+      if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+        # assign the fixed name `eth-rpi` for RPi B+/2B/3B
+        cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+      fi
+    fi
   fi
   if [ "${COFIGURE_ENOCEAN_PORT}" == "1" ]; then
     cp -f ${SRC_DIR}/etc/udev/rules.d/70-enocean-stick.rules /etc/udev/rules.d/
@@ -385,10 +487,12 @@ assert_root
 test_connectivity
 ask_to_unistall_if_installed
 setup
+fix_perm_issues
 install_candy_board
 install_candy_red
 install_service
 install_ppp
+install_avahi_daemon
 configure_sc16is7xx
 configure_watchdog
 teardown

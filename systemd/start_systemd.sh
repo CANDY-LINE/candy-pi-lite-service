@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017 CANDY LINE INC.
+# Copyright (c) 2018 CANDY LINE INC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -82,8 +82,13 @@ function boot_ip_reset {
 }
 
 function boot_ip_addr {
-  if [ ! -e "/sys/class/net/eth-rpi" ]; then
-    log "[INFO] Skip to configure IP address as eth-rpi is missing"
+  interface=""
+  if [ -e "/sys/class/net/eth0" ]; then
+    interface="eth0"
+  elif [ -e "/sys/class/net/eth-rpi" ]; then
+    interface="eth-rpi"
+  else
+    log "[INFO] Skip to configure IP address as fixed NIC name is missing"
     return
   fi
   LIST=`ls -1 /boot/boot-ip*.json`
@@ -202,9 +207,11 @@ boot_ip_addr_fin
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
 init_modem
-connect
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
+fi
+connect
+if [ "${NTP_DISABLED}" == "1" ]; then
   if [ "$(date +%Y)" == "1980" ]; then
     log "[INFO] Trying to close the first connetion for time adjustment..."
     if [ "${RET}" == "0" ]; then
