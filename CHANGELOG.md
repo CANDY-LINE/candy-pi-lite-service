@@ -1,4 +1,6 @@
 # 履歴
+* 1.8.1
+    - ボード種類を指定しても無視される問題を修正（Raspberry Pi及びASUS Tinker Board利用者への影響はありません）
 * 1.8.0
     - ASUS Tinker Board/ASUS Tinker Board Sへ正式対応(ただしTinker OS 2.0.4以降に限る)
     - デフォルトルートをppp0に設定してそのまま固定する機能を無効にするオプションを追加

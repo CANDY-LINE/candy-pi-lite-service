@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.8.0
+VERSION=1.8.1
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -68,20 +68,30 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
-  python -c "import RPi.GPIO" > /dev/null 2>&1
-  if [ "$?" == "0" ]; then
-    BOARD="RPi"
-  else
-    DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
-    case ${DT_MODEL} in
-      "Tinker Board")
-        BOARD="ATB"
-        ;;
-      *)
-        BOARD=""
-        ;;
-    esac
+  if [ -z "${BOARD}" ]; then
+    python -c "import RPi.GPIO" > /dev/null 2>&1
+    if [ "$?" == "0" ]; then
+      BOARD="RPi"
+    else
+      DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+      case ${DT_MODEL} in
+        "Tinker Board")
+          BOARD="ATB"
+          ;;
+        *)
+          BOARD=""
+          ;;
+      esac
+    fi
   fi
+  case ${BOARD} in
+    RPi|ATB)
+      ;;
+    *)
+      err "Unsupported board: ${BOARD}"
+      exit 5
+      ;;
+  esac
 }
 
 function assert_root {
@@ -164,17 +174,13 @@ function configure_sc16is7xx {
       return
     fi
   fi
-  info "Configuring SC16IS7xx..."
+  info "Configuring SC16IS7xx for ${BOARD} ..."
   case ${BOARD} in
     RPi)
       do_configure_sc16is7xx_rpi
       ;;
     ATB)
       do_configure_sc16is7xx_atb
-      ;;
-    *)
-      err "Unsupported board: ${BOARD}"
-      exit 5
       ;;
   esac
   info "SC16IS7xx configuration done"
@@ -232,7 +238,7 @@ function configure_watchdog {
   if [ "${ENABLE_WATCHDOG}" != "1" ]; then
     return
   fi
-  info "Configuring Hardware Watchdog..."
+  info "Configuring Hardware Watchdog for ${BOARD} ..."
   case ${BOARD} in
     RPi)
       if [ "${FORCE_INSTALL}" != "1" ]; then
@@ -247,10 +253,6 @@ function configure_watchdog {
     ATB)
       info "Hardware Watchdog isn't yet supported on ASUS Tinker Board."
       return
-      ;;
-    *)
-      err "Unsupported board: ${BOARD}"
-      exit 5
       ;;
   esac
   info "Hardware Watchdog configuration done"
