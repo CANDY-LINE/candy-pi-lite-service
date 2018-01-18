@@ -3,7 +3,7 @@ candy-pi-lite-service
 [![GitHub release](https://img.shields.io/github/release/CANDY-LINE/candy-pi-lite-service.svg)](https://github.com/CANDY-LINE/candy-pi-lite-service/releases/latest)
 [![License ASL 2.0](https://img.shields.io/github/license/CANDY-LINE/candy-pi-lite-service.svg)](https://opensource.org/licenses/Apache-2.0)
 
-candy-pi-lite-serviceは、Raspberry Pi(Raspbian Stretch)及びASUS Tinker Board(Tinker OS 2.0.3+)上で動作するCANDY Pi Liteを動作させるためのシステムサービス（OS上で自動的に動作するソフトウェア）です。
+candy-pi-lite-serviceは、Raspberry Pi(Raspbian Stretch)及びASUS Tinker Board(Tinker OS 2.0.4+)上で動作するCANDY Pi Liteを動作させるためのシステムサービス（OS上で自動的に動作するソフトウェア）です。
 
 candy-pi-lite-serviceや、CANDY Pi Liteに関する説明については、専用の[利用ガイド](https://candy-line.gitbooks.io/candy-pi-lite/content/)をご覧ください。
 
@@ -49,7 +49,7 @@ $ make PI_USER=linaro PI_HOST=tinkerboard.local
 ### 動作確認 (RPi/ATB)
 
 ```bash
-$ VERSION=1.7.3 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=1.8.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CONFIGURE_STATIC_IP_ON_BOOT=1 ./install.sh
@@ -63,6 +63,6 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 
 # ライセンス
 
-Copyright (c) 2017 [CANDY LINE INC.](https://www.candy-line.io)
+Copyright (c) 2018 [CANDY LINE INC.](https://www.candy-line.io)
 
 [Apache Software License 2.0](LICENSE)

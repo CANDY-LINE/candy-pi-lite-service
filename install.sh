@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017 CANDY LINE INC.
+# Copyright (c) 2018 CANDY LINE INC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.7.3
+VERSION=1.8.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -50,6 +50,7 @@ ENABLE_WATCHDOG=${ENABLE_WATCHDOG:-1}
 COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
 CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
 CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR:-false}
+DISABLE_DEFAULT_ROUTE_ADJUSTER=${DISABLE_DEFAULT_ROUTE_ADJUSTER:-0}
 
 REBOOT=0
 
@@ -137,8 +138,10 @@ function _ufw_setup {
   if [ "${FORCE_INSTALL}" != "1" ]; then
     ufw --force disable
     if [ "${BOARD}" == "RPi" ]; then
-      if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-        ufw allow in on eth-rpi
+      if [ ! -e "/sys/class/net/eth0" ]; then
+        if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+          ufw allow in on eth-rpi
+        fi
       fi
     fi
     for n in `ls /sys/class/net`
@@ -419,6 +422,7 @@ function install_service {
   cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
   for e in VERSION \
+      DISABLE_DEFAULT_ROUTE_ADJUSTER \
       PPP_PING_INTERVAL_SEC \
       NTP_DISABLED \
       PPPD_DEBUG \
@@ -446,9 +450,11 @@ function install_service {
 
   cp -f ${SRC_DIR}/etc/udev/rules.d/99* /etc/udev/rules.d/
   if [ "${BOARD}" == "RPi" ]; then
-    if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
-      # assign the fixed name `eth-rpi` for RPi B+/2B/3B
-      cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+    if [ ! -e "/sys/class/net/eth0" ]; then
+      if [ "${CONFIGURE_STATIC_IP_ON_BOOT}" == "1" ]; then
+        # assign the fixed name `eth-rpi` for RPi B+/2B/3B
+        cp -f ${SRC_DIR}/etc/udev/rules.d/76-rpi-ether-netnames.rules /etc/udev/rules.d/
+      fi
     fi
   fi
   if [ "${COFIGURE_ENOCEAN_PORT}" == "1" ]; then

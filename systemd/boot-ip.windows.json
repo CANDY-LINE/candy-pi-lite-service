@@ -1,5 +1,4 @@
 {
-  "interface":"eth-rpi",
   "ip_address":"192.168.137.200/24",
   "routers":"192.168.137.1",
   "domain_name_servers":"192.168.137.1"
