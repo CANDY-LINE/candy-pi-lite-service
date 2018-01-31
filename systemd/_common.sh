@@ -18,8 +18,10 @@ MODEM_BAUDRATE=${MODEM_BAUDRATE:-%MODEM_BAUDRATE%}
 UART_PORT="/dev/ttySC1"
 QWS_UC20="/dev/QWS.UC20"
 QWS_EC21="/dev/QWS.EC21"
+QWS_EC25="/dev/QWS.EC25"
 QWS_UC20_PORT="${QWS_UC20}.MODEM"
 QWS_EC21_PORT="${QWS_EC21}.MODEM"
+QWS_EC25_PORT="${QWS_EC25}.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
@@ -48,6 +50,12 @@ function detect_usb_device {
     if [ "$?" == "0" ]; then
       USB_SERIAL_PORT=${QWS_UC20_PORT}
       USB_SERIAL_AT_PORT="${QWS_UC20}.AT"
+    else
+      USB_SERIAL=`lsusb | grep "2c7c:0125"`
+      if [ "$?" == "0" ]; then
+        USB_SERIAL_PORT=${QWS_EC25_PORT}
+        USB_SERIAL_AT_PORT="${QWS_EC25}.AT"
+      fi
     fi
   fi
   USB_SERIAL=""

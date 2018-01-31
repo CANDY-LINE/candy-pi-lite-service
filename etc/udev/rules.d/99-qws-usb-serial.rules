@@ -5,3 +5,6 @@ SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="05c6", ATTRS{idProd
 
 SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0121", ENV{.LOCAL_ifNum}=="02",  SYMLINK+="QWS.EC21.AT",  MODE="0660"
 SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0121", ENV{.LOCAL_ifNum}=="03",  SYMLINK+="QWS.EC21.MODEM",  MODE="0660"
+
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{.LOCAL_ifNum}=="02",  SYMLINK+="QWS.EC25.AT",  MODE="0660"
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{.LOCAL_ifNum}=="03",  SYMLINK+="QWS.EC25.MODEM",  MODE="0660"
