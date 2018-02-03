@@ -57,14 +57,6 @@ function setup {
       esac
     fi
   fi
-  case ${BOARD} in
-    RPi|ATB)
-      ;;
-    *)
-      err "Unsupported board: ${BOARD}"
-      exit 5
-      ;;
-  esac
 }
 
 function uninstall_ppp {
