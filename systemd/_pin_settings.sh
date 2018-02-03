@@ -48,7 +48,7 @@ else
       W_DISABLE=239
       ;;
     *)
-      echo -e "\033[93m[FATAL] *** UNSUPPORTED BOARD *** \033[0m"
+      log "[FATAL] UNSUPPORTED BOARD => [${DT_MODEL}]"
       exit 3
       ;;
   esac
