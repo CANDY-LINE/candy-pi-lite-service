@@ -42,7 +42,7 @@ else
     done
   fi
   case ${DT_MODEL} in
-    "Tinker Board")
+    "Tinker Board" | "Tinker Board S")
       LED2=17
       PERST=187
       W_DISABLE=239
