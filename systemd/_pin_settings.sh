@@ -42,13 +42,13 @@ else
     done
   fi
   case ${DT_MODEL} in
-    "Tinker Board")
+    "Tinker Board" | "Tinker Board S")
       LED2=17
       PERST=187
       W_DISABLE=239
       ;;
     *)
-      echo -e "\033[93m[FATAL] *** UNSUPPORTED BOARD *** \033[0m"
+      log "[FATAL] UNSUPPORTED BOARD => [${DT_MODEL}]"
       exit 3
       ;;
   esac
