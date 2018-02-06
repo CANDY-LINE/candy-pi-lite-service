@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.8.2
+VERSION=1.8.3
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -73,7 +73,7 @@ function setup {
     if [ "$?" == "0" ]; then
       BOARD="RPi"
     else
-      DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+      DT_MODEL=`cat /proc/board_info 2>&1`
       case ${DT_MODEL} in
         "Tinker Board" | "Tinker Board S")
           BOARD="ATB"
