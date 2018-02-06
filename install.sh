@@ -73,7 +73,7 @@ function setup {
     if [ "$?" == "0" ]; then
       BOARD="RPi"
     else
-      DT_MODEL=`cat /proc/device-tree/model 2>&1 | sed '/\x00/d'`
+      DT_MODEL=`cat /proc/board_info 2>&1`
       case ${DT_MODEL} in
         "Tinker Board" | "Tinker Board S")
           BOARD="ATB"
