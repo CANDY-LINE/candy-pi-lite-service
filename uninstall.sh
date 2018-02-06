@@ -41,6 +41,7 @@ function assert_root {
 }
 
 function setup {
+  echo
 }
 
 function uninstall_ppp {
