@@ -24,7 +24,7 @@ if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
 fi
 APN=${APN:-${FALLBACK_APN}}
 
-CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s' % (c['user'],c['password']))" 2>&1`
+CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s APN_NW=%s' % (c['user'],c['password'],c['nw'] if 'nw' in c.keys() else 'auto'))" 2>&1`
 if [ "$?" != "0" ]; then
   log "Failed to start ppp. Error=>${CREDS}"
   exit 1
@@ -37,6 +37,15 @@ elif [ -n "${CHAT_VERBOSE}" ]; then
   CHAT_VERBOSE="-v"
 fi
 
+NW_CMD=""
+if [ "${APN_NW}" == "3g" ]; then
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",2,1"
+elif [ "${APN_NW}" == "lte" ]; then
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",3,1"
+elif [ "${APN_NW}" == "2g" ]; then
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",1,1"
+fi
+
 CONNECT="'chat -s ${CHAT_VERBOSE} \
 ABORT \"NO CARRIER\" \
 ABORT \"ERROR\" \
@@ -45,6 +54,8 @@ ABORT \"BUSY\" \
 ABORT \"NO ANSWER\" \
 \"\" AT \
 OK ATE0 \
+${NW_CMD} \
+OK AT+QCFG=\\\"nwscanmode\\\" \
 OK AT+CGDCONT=1,\\\"IP\\\",\\\"${APN}\\\",,0,0 \
 OK AT\\\$QCPDPP=1 \
 OK ATD*99# \
