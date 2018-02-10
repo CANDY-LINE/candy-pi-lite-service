@@ -360,6 +360,13 @@ function install_candy_red {
         exit 1
       fi
       apt-get remove -y nodered nodejs nodejs-legacy npm
+      rm -f \
+        /usr/bin/node \
+        /usr/bin/npm \
+        /usr/sbin/node \
+        /usr/sbin/npm \
+        /usr/local/bin/node \
+        /usr/local/bin/npm
       echo ${MODEL_NAME} | grep -o "ARMv6"
       if [ "$?" == "0" ]; then
         cd /tmp
