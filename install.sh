@@ -26,6 +26,7 @@ MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 # v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
 ARMv6_NODEJS_VERSION="6.12.3"
+ARMv7_NODEJS_VERSION="6.x"
 NODEJS_VERSIONS="v6"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
@@ -367,7 +368,7 @@ function install_candy_red {
         cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
         cp -R * /usr/local/
       else
-        curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+        curl -sL https://deb.nodesource.com/setup_${ARMv7_NODEJS_VERSION} | sudo bash -
         apt-get install -y nodejs
       fi
     fi
