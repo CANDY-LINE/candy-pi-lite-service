@@ -373,7 +373,7 @@ function install_candy_red {
         wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
         tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
         cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
-        cp -R * /usr/local/
+        cp -R * /usr/
       else
         curl -sL https://deb.nodesource.com/setup_${ARMv7_NODEJS_VERSION} | sudo bash -
         apt-get install -y nodejs
