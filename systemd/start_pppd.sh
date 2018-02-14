@@ -116,6 +116,7 @@ function connect {
     lock \
     modem \
     persist \
+    maxfail 3 \
     nodetach > /dev/null 2>&1
 }
 
