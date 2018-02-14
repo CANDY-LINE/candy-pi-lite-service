@@ -227,6 +227,36 @@ function wait_for_serial_available {
   fi
 }
 
+function wait_for_network_registration {
+  # init_modem must be performed prior to this function
+  MAX=180
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    candy_command network show
+    RET="$?"
+    if [ "${RET}" == "0" ]; then
+      CREG=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['registration'])"`
+      if [ "${CREG}" == "Registered" ]; then
+        log "[INFO] OK. Registered in the home network"
+        break
+      elif [ "${CREG}" == "Roaming" ]; then
+        log "[INFO] OK. Registered in the ROAMING network"
+        break
+      else
+        log "[INFO] Waiting for network registration => Status:${CREG}"
+        RET=1
+      fi
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${RET}" != "0" ]; then
+    log "[ERROR] Network Registration Failed"
+    exit 1
+  fi
+}
+
 function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
@@ -257,6 +287,7 @@ function init_modem {
       exit 1
     fi
   fi
+  wait_for_network_registration
 }
 
 function stop_ntp {
