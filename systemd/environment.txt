@@ -5,7 +5,7 @@ VERSION=%VERSION%
 # 1 for enabling LED blinking, 0 for disabling it
 BLINKY=1
 # Blinking interval in seconds, > 0 and <= 60
-BLINKY_INTERVAL_SEC=0.4
+BLINKY_INTERVAL_SEC=0.8
 
 # LTE/3G access point name defined in `apn-list.json`
 # As of v1.7.0, APN in the `apn` file overrides this value.
