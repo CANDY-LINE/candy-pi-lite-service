@@ -287,7 +287,6 @@ function init_modem {
       exit 1
     fi
   fi
-  wait_for_network_registration
 }
 
 function stop_ntp {
