@@ -207,7 +207,6 @@ boot_ip_addr_fin
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
 init_modem
-wait_for_network_registration
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
 fi

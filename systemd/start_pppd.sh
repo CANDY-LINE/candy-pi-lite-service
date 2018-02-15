@@ -24,12 +24,27 @@ if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
 fi
 APN=${APN:-${FALLBACK_APN}}
 
-CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s APN_NW=%s' % (c['user'],c['password'],c['nw'] if 'nw' in c.keys() else 'auto'))" 2>&1`
+CREDS=`
+  /usr/bin/env python -c \
+  "with open('apn-list.json') as f:
+  import json;c=json.load(f)['${APN}'];
+  print('APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
+  'APN_PDP=%s APN_CS=%s' %
+  (
+  c['user'],c['password'],
+  c['nw'] if 'nw' in c.keys() else 'auto',
+  c['pdp'] if 'pdp' in c.keys() else 'ipv4',
+  c['cs'] if 'cs' in c.keys() else False
+  ))" \
+  2>&1`
 if [ "$?" != "0" ]; then
-  log "Failed to start ppp. Error=>${CREDS}"
+  log "[ERROR] Failed to start ppp. Error=>${CREDS}"
   exit 1
 fi
 eval ${CREDS}
+
+wait_for_network_registration ${APN_CS}
+
 if [ -n "${PPPD_DEBUG}" ]; then
   PPPD_DEBUG="debug"
   CHAT_VERBOSE="-v"

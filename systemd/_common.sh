@@ -229,6 +229,10 @@ function wait_for_serial_available {
 
 function wait_for_network_registration {
   # init_modem must be performed prior to this function
+  REG_KEY="ps"
+  if [ "$1" == "True" ]; then
+    REG_KEY="cs"
+  fi
   MAX=180
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
@@ -236,15 +240,15 @@ function wait_for_network_registration {
     candy_command network show
     RET="$?"
     if [ "${RET}" == "0" ]; then
-      CREG=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['registration'])"`
-      if [ "${CREG}" == "Registered" ]; then
-        log "[INFO] OK. Registered in the home network"
+      STAT=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['registration']['${REG_KEY}'])"`
+      if [ "${STAT}" == "Registered" ]; then
+        log "[INFO] OK. Registered in the home ${REG_KEY} network"
         break
-      elif [ "${CREG}" == "Roaming" ]; then
-        log "[INFO] OK. Registered in the ROAMING network"
+      elif [ "${STAT}" == "Roaming" ]; then
+        log "[INFO] OK. Registered in the ROAMING ${REG_KEY} network"
         break
       else
-        log "[INFO] Waiting for network registration => Status:${CREG}"
+        log "[INFO] Waiting for network registration => Status:${STAT}"
         RET=1
       fi
     fi
