@@ -44,6 +44,8 @@ elif [ "${APN_NW}" == "lte" ]; then
   NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",3,1"
 elif [ "${APN_NW}" == "2g" ]; then
   NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",1,1"
+else
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",0,1"
 fi
 
 CONNECT="'chat -s ${CHAT_VERBOSE} \
