@@ -76,7 +76,7 @@ function look_for_modem_at_port {
     AT_SERIAL_PORT=""
     return
   fi
-  log "Modem Serial port: ${MODEM_SERIAL_PORT} and AT Serial port: ${AT_SERIAL_PORT} are selected"
+  log "[INFO] Modem Serial port: ${MODEM_SERIAL_PORT} and AT Serial port: ${AT_SERIAL_PORT} are selected"
 }
 
 function init_serialport {
@@ -149,7 +149,7 @@ function candy_command {
   RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} /var/run/candy-board-service.sock`
   RET=$?
   if [ "${SHOW_CANDY_CMD_ERROR}" == "1" ] && [ "${RET}" != "0" ]; then
-    log "candy_command[category:$1][action:$2] => [${RESULT}]"
+    log "[INFO] candy_command[category:$1][action:$2] => [${RESULT}]"
   fi
 }
 
