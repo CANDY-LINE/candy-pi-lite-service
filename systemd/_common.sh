@@ -285,7 +285,7 @@ function wait_for_network_registration {
       STAT=`
 /usr/bin/env python -c \
 "import json;r=json.loads('${RESULT}');
-print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'])"`
+print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'])" 2>&1`
       if [ "$?" != "0" ]; then
         RET=1
       elif [ "${STAT}" == "Registered" ]; then
@@ -315,7 +315,7 @@ function test_functionality {
     log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
     exit 1
   fi
-  FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])"`
+  FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])" 2>&1`
   log "[INFO] Phone Functionality => ${FUNC}"
   if [ "${FUNC}" == "Anomaly" ]; then
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
@@ -339,10 +339,10 @@ function save_apn {
 function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
-  MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
-  DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
-  TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])"`
-  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})"`
+  MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])" 2>&1`
+  DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])" 2>&1`
+  TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])" 2>&1`
+  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})" 2>&1`
   date -s "@${EPOCHTIME}"
   log "[INFO] Module Model: ${MODEL}"
   log "[INFO] Network Timezone: ${TIMEZONE}"
