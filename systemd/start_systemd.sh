@@ -255,14 +255,27 @@ if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
 fi
 retry_usb_auto_detection
-register_network
-adjust_time
-if [ "${NTP_DISABLED}" == "1" ]; then
-  if [ "$(date +%Y)" == "1980" ]; then
-    log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
-  fi
+if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+  log "[INFO] New USB serial ports are detected"
+  wait_for_serial_available
 fi
-retry_usb_auto_detection
+while true;
+do
+  register_network
+  adjust_time
+  if [ "${NTP_DISABLED}" == "1" ]; then
+    if [ "$(date +%Y)" == "1980" ]; then
+      log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+    fi
+  fi
+  retry_usb_auto_detection
+  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+    log "[INFO] Re-registering network as new USB serial ports are detected"
+    wait_for_serial_available
+    continue
+  fi
+  break
+done
 log "[INFO] Trying to establish the data connetion..."
 connect
 

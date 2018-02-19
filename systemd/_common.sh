@@ -41,6 +41,9 @@ function log {
 }
 
 function detect_usb_device {
+  if [ -n "${USB_SERIAL_PORT}" ]; then
+    return
+  fi
   USB_SERIAL=`lsusb | grep "2c7c:0121"`
   if [ "$?" == "0" ]; then
     USB_SERIAL_PORT=${QWS_EC21_PORT}
@@ -86,14 +89,17 @@ function look_for_usb_device {
 }
 
 function retry_usb_auto_detection {
+  USB_SERIAL_DETECTED=""
   if [ "${SERIAL_PORT_TYPE}" != "auto" ]; then
     return
   fi
   if [ -z "${USB_SERIAL_PORT}" ]; then
     detect_usb_device
     if [ -n "${USB_SERIAL_PORT}" ]; then
-      log "[INFO] Restarting ${PRODUCT} Service as new USB serial ports are detected"
-      exit 1
+      USB_SERIAL_DETECTED=1
+      MODEM_INIT=0
+      MODEM_SERIAL_PORT=""
+      AT_SERIAL_PORT=""
     fi
   fi
 }
@@ -345,9 +351,9 @@ function adjust_time {
 
 function init_modem {
   MODEM_INIT=0
-  look_for_usb_device
   wait_for_ppp_offline
   perst
+  look_for_usb_device
   wait_for_serial_available
   if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
