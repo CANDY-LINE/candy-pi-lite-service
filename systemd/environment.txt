@@ -2,6 +2,9 @@
 # Software Version
 VERSION=%VERSION%
 
+# 'auto' for automatic serial port selection, 'usb' for USB serial use only, 'uart' for ignoring USB serial
+SERIAL_PORT_TYPE=%SERIAL_PORT_TYPE%
+
 # 1 for enabling LED blinking, 0 for disabling it
 BLINKY=1
 # Blinking interval in seconds, > 0 and <= 60

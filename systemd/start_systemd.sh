@@ -254,6 +254,7 @@ init_modem
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
 fi
+retry_usb_auto_detection
 register_network
 adjust_time
 if [ "${NTP_DISABLED}" == "1" ]; then
@@ -261,6 +262,7 @@ if [ "${NTP_DISABLED}" == "1" ]; then
     log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
   fi
 fi
+retry_usb_auto_detection
 log "[INFO] Trying to establish the data connetion..."
 connect
 

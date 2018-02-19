@@ -64,6 +64,40 @@ function detect_usb_device {
   fi
 }
 
+function look_for_usb_device {
+  if [ "${SERIAL_PORT_TYPE}" == "uart" ]; then
+    return
+  fi
+  MAX=40
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    detect_usb_device
+    if [ "${SERIAL_PORT_TYPE}" == "auto" ] || [ -n "${USB_SERIAL_PORT}" ]; then
+      break
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${SERIAL_PORT_TYPE}" == "usb" ] && [ -z "${USB_SERIAL_PORT}" ]; then
+    log "[ERROR] USB Serial Ports are missing."
+    exit 2
+  fi
+}
+
+function retry_usb_auto_detection {
+  if [ "${SERIAL_PORT_TYPE}" != "auto" ]; then
+    return
+  fi
+  if [ -z "${USB_SERIAL_PORT}" ]; then
+    detect_usb_device
+    if [ -n "${USB_SERIAL_PORT}" ]; then
+      log "[INFO] Restarting ${PRODUCT} Service as new USB serial ports are detected"
+      exit 1
+    fi
+  fi
+}
+
 function look_for_modem_at_port {
   MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
   AT_SERIAL_PORT="${USB_SERIAL_AT_PORT:-${MODEM_SERIAL_PORT}}"
@@ -311,19 +345,12 @@ function adjust_time {
 
 function init_modem {
   MODEM_INIT=0
-  detect_usb_device
+  look_for_usb_device
   wait_for_ppp_offline
   perst
   wait_for_serial_available
   if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
-  fi
-  if [ -z "${USB_SERIAL_PORT}" ]; then
-    detect_usb_device # retry
-    if [ -n "${USB_SERIAL_PORT}" ]; then
-      log "[INFO] Restarting ${PRODUCT} Service as new USB serial ports are detected"
-      exit 1
-    fi
   fi
 }
 
