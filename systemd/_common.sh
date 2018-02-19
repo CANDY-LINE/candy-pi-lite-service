@@ -105,6 +105,7 @@ function init_serialport {
           break
         fi
         sleep 1
+        let COUNTER=COUNTER+1
       done
       if [ "${RET}" != "0" ]; then
         log "[ERROR] Modem returned error"
@@ -130,6 +131,7 @@ function init_serialport {
         break
       fi
       sleep 1
+      let COUNTER=COUNTER+1
     done
     if [ "${RET}" != "0" ]; then
       log "[ERROR] Modem returned error"
