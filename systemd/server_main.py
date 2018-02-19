@@ -262,20 +262,23 @@ def candy_command(category, action, serial_port, baudrate,
     delete_path(sock_path)
     atexit.register(delete_path, sock_path)
 
-    serial = candy_board_qws.SerialPort(serial_port, baudrate)
-    server = candy_board_qws.SockServer(resolve_version(),
-                                        sock_path, serial)
-    args = {}
     try:
-        args = json.loads(action)
-    except ValueError:
-        args['action'] = action
-    args['category'] = category
-    ret = server.perform(args)
-    logger.debug("candy_command() : %s:%s => %s" %
-                 (category, args['action'], ret))
-    print(ret)
-    sys.exit(json.loads(ret)['status'] != 'OK')
+        serial = candy_board_qws.SerialPort(serial_port, baudrate)
+        server = candy_board_qws.SockServer(resolve_version(),
+                                            sock_path, serial)
+        args = {}
+        try:
+            args = json.loads(action)
+        except ValueError:
+            args['action'] = action
+        args['category'] = category
+        ret = server.perform(args)
+        logger.debug("candy_command() : %s:%s => %s" %
+                     (category, args['action'], ret))
+        print(ret)
+        sys.exit(json.loads(ret)['status'] != 'OK')
+    except Exception:
+        sys.exit(1)
 
 
 def blinky(*args):
