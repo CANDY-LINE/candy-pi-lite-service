@@ -2,14 +2,13 @@
 # Software Version
 VERSION=%VERSION%
 
+# 'auto' for automatic serial port selection, 'usb' for USB serial use only, 'uart' for ignoring USB serial
+SERIAL_PORT_TYPE=%SERIAL_PORT_TYPE%
+
 # 1 for enabling LED blinking, 0 for disabling it
 BLINKY=1
 # Blinking interval in seconds, > 0 and <= 60
-BLINKY_INTERVAL_SEC=0.4
-
-# LTE/3G access point name defined in `apn-list.json`
-# As of v1.7.0, APN in the `apn` file overrides this value.
-#APN=
+BLINKY_INTERVAL_SEC=0.8
 
 # Network retaining request interval in PPP Modem-mode (<5: disabled)
 PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%

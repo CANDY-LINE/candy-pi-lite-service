@@ -18,8 +18,10 @@ MODEM_BAUDRATE=${MODEM_BAUDRATE:-%MODEM_BAUDRATE%}
 UART_PORT="/dev/ttySC1"
 QWS_UC20="/dev/QWS.UC20"
 QWS_EC21="/dev/QWS.EC21"
+QWS_EC25="/dev/QWS.EC25"
 QWS_UC20_PORT="${QWS_UC20}.MODEM"
 QWS_EC21_PORT="${QWS_EC21}.MODEM"
+QWS_EC25_PORT="${QWS_EC25}.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
@@ -39,6 +41,9 @@ function log {
 }
 
 function detect_usb_device {
+  if [ -n "${USB_SERIAL_PORT}" ]; then
+    return
+  fi
   USB_SERIAL=`lsusb | grep "2c7c:0121"`
   if [ "$?" == "0" ]; then
     USB_SERIAL_PORT=${QWS_EC21_PORT}
@@ -48,11 +53,54 @@ function detect_usb_device {
     if [ "$?" == "0" ]; then
       USB_SERIAL_PORT=${QWS_UC20_PORT}
       USB_SERIAL_AT_PORT="${QWS_UC20}.AT"
+    else
+      USB_SERIAL=`lsusb | grep "2c7c:0125"`
+      if [ "$?" == "0" ]; then
+        USB_SERIAL_PORT=${QWS_EC25_PORT}
+        USB_SERIAL_AT_PORT="${QWS_EC25}.AT"
+      fi
     fi
   fi
   USB_SERIAL=""
   if [ -n "${USB_SERIAL_PORT}" ]; then
     log "[INFO] USB Serial Ports are found => ${USB_SERIAL_PORT}, ${USB_SERIAL_AT_PORT}"
+  fi
+}
+
+function look_for_usb_device {
+  if [ "${SERIAL_PORT_TYPE}" == "uart" ]; then
+    return
+  fi
+  MAX=40
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    detect_usb_device
+    if [ "${SERIAL_PORT_TYPE}" == "auto" ] || [ -n "${USB_SERIAL_PORT}" ]; then
+      break
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${SERIAL_PORT_TYPE}" == "usb" ] && [ -z "${USB_SERIAL_PORT}" ]; then
+    log "[ERROR] USB Serial Ports are missing."
+    exit 2
+  fi
+}
+
+function retry_usb_auto_detection {
+  USB_SERIAL_DETECTED=""
+  if [ "${SERIAL_PORT_TYPE}" != "auto" ]; then
+    return
+  fi
+  if [ -z "${USB_SERIAL_PORT}" ]; then
+    detect_usb_device
+    if [ -n "${USB_SERIAL_PORT}" ]; then
+      USB_SERIAL_DETECTED=1
+      MODEM_INIT=0
+      MODEM_SERIAL_PORT=""
+      AT_SERIAL_PORT=""
+    fi
   fi
 }
 
@@ -68,7 +116,7 @@ function look_for_modem_at_port {
     AT_SERIAL_PORT=""
     return
   fi
-  log "Modem Serial port: ${MODEM_SERIAL_PORT} and AT Serial port: ${AT_SERIAL_PORT} are selected"
+  log "[INFO] Modem Serial port: ${MODEM_SERIAL_PORT} and AT Serial port: ${AT_SERIAL_PORT} are selected"
 }
 
 function init_serialport {
@@ -97,6 +145,7 @@ function init_serialport {
           break
         fi
         sleep 1
+        let COUNTER=COUNTER+1
       done
       if [ "${RET}" != "0" ]; then
         log "[ERROR] Modem returned error"
@@ -122,6 +171,7 @@ function init_serialport {
         break
       fi
       sleep 1
+      let COUNTER=COUNTER+1
     done
     if [ "${RET}" != "0" ]; then
       log "[ERROR] Modem returned error"
@@ -141,7 +191,7 @@ function candy_command {
   RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} /var/run/candy-board-service.sock`
   RET=$?
   if [ "${SHOW_CANDY_CMD_ERROR}" == "1" ] && [ "${RET}" != "0" ]; then
-    log "candy_command[category:$1][action:$2] => [${RESULT}]"
+    log "[INFO] candy_command[category:$1][action:$2] => [${RESULT}]"
   fi
 }
 
@@ -219,13 +269,80 @@ function wait_for_serial_available {
   fi
 }
 
+function wait_for_network_registration {
+  # init_modem must be performed prior to this function
+  REG_KEY="ps"
+  if [ "$1" == "True" ]; then
+    REG_KEY="cs"
+  fi
+  MAX=180
+  COUNTER=0
+  while [ ${COUNTER} -lt ${MAX} ];
+  do
+    candy_command network show
+    RET="$?"
+    if [ "${RET}" == "0" ]; then
+      STAT=`
+/usr/bin/env python -c \
+"import json;r=json.loads('${RESULT}');
+print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'])" 2>&1`
+      if [ "$?" != "0" ]; then
+        RET=1
+      elif [ "${STAT}" == "Registered" ]; then
+        log "[INFO] OK. Registered in the home ${REG_KEY} network"
+        break
+      elif [ "${STAT}" == "Roaming" ]; then
+        log "[INFO] OK. Registered in the ROAMING ${REG_KEY} network"
+        break
+      else
+        log "[INFO] Waiting for network registration => Status:${STAT}"
+        RET=1
+      fi
+    fi
+    sleep 1
+    let COUNTER=COUNTER+1
+  done
+  if [ "${RET}" != "0" ]; then
+    log "[ERROR] Network Registration Failed"
+    exit 1
+  fi
+}
+
+function test_functionality {
+  # init_modem must be performed prior to this function
+  candy_command modem show
+  if [ "$?" != 0 ]; then
+    log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
+    exit 1
+  fi
+  FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])" 2>&1`
+  log "[INFO] Phone Functionality => ${FUNC}"
+  if [ "${FUNC}" == "Anomaly" ]; then
+    log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
+    candy_command modem reset
+    log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
+    exit 1
+  fi
+}
+
+function save_apn {
+  # init_modem must be performed prior to this function
+  candy_command apn "{\"action\":\"set\",\"name\":\"$1\",\"user_id\":\"$2\",\"password\":\"$3\",\"type\":\"$4\"}"
+  log "[INFO] Saved APN => $1"
+  if [ "$5" == "True" ]; then
+    log "[INFO] Network Re-registering"
+    candy_command network deregister
+    candy_command network register
+  fi
+}
+
 function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
-  MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])"`
-  DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])"`
-  TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])"`
-  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})"`
+  MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])" 2>&1`
+  DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])" 2>&1`
+  TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])" 2>&1`
+  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})" 2>&1`
   date -s "@${EPOCHTIME}"
   log "[INFO] Module Model: ${MODEL}"
   log "[INFO] Network Timezone: ${TIMEZONE}"
@@ -234,20 +351,12 @@ function adjust_time {
 
 function init_modem {
   MODEM_INIT=0
-  detect_usb_device
   wait_for_ppp_offline
   perst
+  look_for_usb_device
   wait_for_serial_available
   if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
-  fi
-  adjust_time
-  if [ -z "${USB_SERIAL_PORT}" ]; then
-    detect_usb_device # retry
-    if [ -n "${USB_SERIAL_PORT}" ]; then
-      log "[INFO] Restarting ${PRODUCT} Service as new USB serial ports are detected"
-      exit 1
-    fi
   fi
 }
 

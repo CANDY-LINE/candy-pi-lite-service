@@ -18,14 +18,15 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=1.8.3
+VERSION=2.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
 # v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARMv6_NODEJS_VERSION="6.12.0"
+ARMv6_NODEJS_VERSION="6.12.3"
+ARMv7_NODEJS_VERSION="6.x"
 NODEJS_VERSIONS="v6"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
@@ -51,6 +52,7 @@ COFIGURE_ENOCEAN_PORT=${COFIGURE_ENOCEAN_PORT:-1}
 CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
 CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR:-false}
 DISABLE_DEFAULT_ROUTE_ADJUSTER=${DISABLE_DEFAULT_ROUTE_ADJUSTER:-0}
+SERIAL_PORT_TYPE=${SERIAL_PORT_TYPE:-auto}
 
 REBOOT=0
 
@@ -359,15 +361,22 @@ function install_candy_red {
         exit 1
       fi
       apt-get remove -y nodered nodejs nodejs-legacy npm
+      rm -f \
+        /usr/bin/node \
+        /usr/bin/npm \
+        /usr/sbin/node \
+        /usr/sbin/npm \
+        /usr/local/bin/node \
+        /usr/local/bin/npm
       echo ${MODEL_NAME} | grep -o "ARMv6"
       if [ "$?" == "0" ]; then
         cd /tmp
         wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
         tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
         cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
-        cp -R * /usr/local/
+        cp -R * /usr/
       else
-        curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+        curl -sL https://deb.nodesource.com/setup_${ARMv7_NODEJS_VERSION} | sudo bash -
         apt-get install -y nodejs
       fi
     fi
@@ -424,6 +433,7 @@ function install_service {
   cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
   for e in VERSION \
+      SERIAL_PORT_TYPE \
       DISABLE_DEFAULT_ROUTE_ADJUSTER \
       PPP_PING_INTERVAL_SEC \
       NTP_DISABLED \

@@ -46,11 +46,14 @@ handler = logging.handlers.SysLogHandler(address='/dev/log')
 logger.addHandler(handler)
 formatter = logging.Formatter('%(module)s.%(funcName)s: %(message)s')
 handler.setFormatter(formatter)
-led = 0
 led_sec = float(os.environ['BLINKY_INTERVAL_SEC']) \
     if 'BLINKY_INTERVAL_SEC' in os.environ else 1.0
 if led_sec < 0 or led_sec > 60:
     led_sec = 1.0
+BLINKY_PATTERN = {
+    True:  [1, 1, 1, 1, 0, 0],  # for USB Serial Connection
+    False: [1, 0, 1, 0, 0, 0]   # for UART Serial Connection
+}
 DISABLE_DEFAULT_ROUTE_ADJUSTER = \
     int(os.environ['DISABLE_DEFAULT_ROUTE_ADJUSTER']) \
     if 'DISABLE_DEFAULT_ROUTE_ADJUSTER' in os.environ else 0
@@ -259,45 +262,45 @@ def candy_command(category, action, serial_port, baudrate,
     delete_path(sock_path)
     atexit.register(delete_path, sock_path)
 
-    serial = candy_board_qws.SerialPort(serial_port, baudrate)
-    server = candy_board_qws.SockServer(resolve_version(),
-                                        sock_path, serial)
-    args = {}
     try:
-        args = json.loads(action)
-    except ValueError:
-        args['action'] = action
-    args['category'] = category
-    ret = server.perform(args)
-    logger.debug("candy_command() : %s:%s => %s" %
-                 (category, args['action'], ret))
-    print(ret)
-    sys.exit(json.loads(ret)['status'] != 'OK')
+        serial = candy_board_qws.SerialPort(serial_port, baudrate)
+        server = candy_board_qws.SockServer(resolve_version(),
+                                            sock_path, serial)
+        args = {}
+        try:
+            args = json.loads(action)
+        except ValueError:
+            args['action'] = action
+        args['category'] = category
+        ret = server.perform(args)
+        logger.debug("candy_command() : %s:%s => %s" %
+                     (category, args['action'], ret))
+        print(ret)
+        sys.exit(json.loads(ret)['status'] != 'OK')
+    except Exception:
+        sys.exit(1)
 
 
-def blinky():
-    global led, led_sec, online
-    if not online:
-        led = 1
-    led = 0 if led != 0 else 1
-    if led == 0:
-        subprocess.call("echo %d > /sys/class/gpio/%s/value" % (led, LED),
-                        shell=True, stdout=Monitor.FNULL,
-                        stderr=subprocess.STDOUT)
-        threading.Timer(led_sec, blinky, ()).start()
+def blinky(*args):
+    global led_sec, online
+    if len(args) == 0:
+        usbserial = False
     else:
-        subprocess.call("echo %d > /sys/class/gpio/%s/value" % (1, LED),
-                        shell=True, stdout=Monitor.FNULL,
-                        stderr=subprocess.STDOUT)
-        time.sleep(led_sec / 3)
+        usbserial = args[0]
+    if online:
+        pattern = BLINKY_PATTERN[usbserial]
+        separation = len(pattern)
+        for l in pattern:
+            subprocess.call("echo %d > /sys/class/gpio/%s/value" % (l, LED),
+                            shell=True, stdout=Monitor.FNULL,
+                            stderr=subprocess.STDOUT)
+            time.sleep(led_sec / separation)
+        threading.Timer(led_sec / separation, blinky, args).start()
+    else:
         subprocess.call("echo %d > /sys/class/gpio/%s/value" % (0, LED),
                         shell=True, stdout=Monitor.FNULL,
                         stderr=subprocess.STDOUT)
-        time.sleep(led_sec / 3)
-        subprocess.call("echo %d > /sys/class/gpio/%s/value" % (1, LED),
-                        shell=True, stdout=Monitor.FNULL,
-                        stderr=subprocess.STDOUT)
-        threading.Timer(led_sec / 3, blinky, ()).start()
+        threading.Timer(led_sec, blinky, args).start()
 
 
 def server_main(serial_port, bps, nic,
@@ -320,7 +323,11 @@ def server_main(serial_port, bps, nic,
 
     if 'BLINKY' in os.environ and os.environ['BLINKY'] == "1":
         logger.debug("server_main() : Starting blinky timer...")
-        blinky()
+        if serial_port and serial_port.startswith('/dev/ttySC'):
+            usbserial = False
+        else:
+            usbserial = True
+        blinky(usbserial)
     logger.debug("server_main() : Setting up Monitor...")
     monitor = Monitor(nic)
     logger.debug("server_main() : Setting up Pinger...")

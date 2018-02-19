@@ -22,10 +22,11 @@ DHCPCD_CNF="/etc/dhcpcd.conf"
 DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
+PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
-  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ]; then
+  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ]; then
     . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
     export LED2
   else
@@ -171,6 +172,42 @@ function boot_ip_addr_fin {
   fi
 }
 
+function load_apn {
+  FALLBACK_APN=$(cat /opt/candy-line/${PRODUCT_DIR_NAME}/fallback_apn)
+  if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
+    APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
+  fi
+  APN=${APN:-${FALLBACK_APN}}
+
+  CREDS=`
+    /usr/bin/env python -c \
+    "with open('apn-list.json') as f:
+    import json;c=json.load(f)['${APN}'];
+    print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
+    'APN_PDP=%s APN_CS=%s APN_OPS=%s' %
+    (
+      c['apn'] if 'apn' in c else '${APN}',
+      c['user'],
+      c['password'],
+      c['nw'] if 'nw' in c else 'auto',
+      c['pdp'] if 'pdp' in c else 'ipv4',
+      c['cs'] if 'cs' in c else False,
+      c['ops'] if 'ops' in c else False,
+    ))" \
+    2>&1`
+  if [ "$?" != "0" ]; then
+    log "[ERROR] Failed to load APN. Error=>${CREDS}"
+    exit 1
+  fi
+  eval ${CREDS}
+}
+
+function register_network {
+  test_functionality
+  save_apn "${APN}" "${APN_USER}" "${APN_PASSWORD}" "${APN_PDP}" "${APN_OPS}"
+  wait_for_network_registration "${APN_CS}"
+}
+
 function connect {
   ip route del default
   CONN_MAX=5
@@ -184,7 +221,13 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    kill -9 ${PPPD_PID}
+    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
+      PPPD_EXIT_CODE=`cat ${PPPD_EXIT_CODE_FILE}`
+      if [ "${PPPD_EXIT_CODE}" == "12" ]; then
+        exit ${PPPD_EXIT_CODE}
+      fi
+    fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
   if [ "${RET}" != "0" ]; then
@@ -198,6 +241,7 @@ init
 
 # Configuring APN
 boot_apn
+load_apn
 
 # Configuring boot-ip
 boot_ip_reset
@@ -210,23 +254,30 @@ init_modem
 if [ "${NTP_DISABLED}" == "1" ]; then
   stop_ntp
 fi
-connect
-if [ "${NTP_DISABLED}" == "1" ]; then
-  if [ "$(date +%Y)" == "1980" ]; then
-    log "[INFO] Trying to close the first connetion for time adjustment..."
-    if [ "${RET}" == "0" ]; then
-      poff -a > /dev/null 2>&1
-      sleep 3 # waiting for pppd exiting
-      adjust_time
-      log "[INFO] Time adjusted. Trying to establish the data connetion..."
-      connect
-    else
-      log "[INFO] Failed to connect. Restart this service in order to adjust time later."
+retry_usb_auto_detection
+if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+  log "[INFO] New USB serial ports are detected"
+  wait_for_serial_available
+fi
+while true;
+do
+  register_network
+  adjust_time
+  if [ "${NTP_DISABLED}" == "1" ]; then
+    if [ "$(date +%Y)" == "1980" ]; then
+      log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
     fi
   fi
-elif [ "${RET}" != "0" ]; then
-  log "[INFO] Failed to connect. Restart this service later."
-fi
+  retry_usb_auto_detection
+  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+    log "[INFO] Re-registering network as new USB serial ports are detected"
+    wait_for_serial_available
+    continue
+  fi
+  break
+done
+log "[INFO] Trying to establish the data connetion..."
+connect
 
 # end banner
 log "[INFO] ${PRODUCT} is initialized successfully!"

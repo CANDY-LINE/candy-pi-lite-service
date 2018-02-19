@@ -15,26 +15,26 @@
 # limitations under the License.
 
 PRODUCT_DIR_NAME="candy-pi-lite"
+PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
 
 # Run `poff` to stop
 
-FALLBACK_APN=$(cat /opt/candy-line/${PRODUCT_DIR_NAME}/fallback_apn)
-if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
-  APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
-fi
-APN=${APN:-${FALLBACK_APN}}
-
-CREDS=`/usr/bin/env python -c "with open('apn-list.json') as f:import json;c=json.load(f)['${APN}'];print('APN_USER=%s APN_PASSWORD=%s' % (c['user'],c['password']))" 2>&1`
-if [ "$?" != "0" ]; then
-  log "Failed to start ppp. Error=>${CREDS}"
-  exit 1
-fi
-eval ${CREDS}
 if [ -n "${PPPD_DEBUG}" ]; then
   PPPD_DEBUG="debug"
   CHAT_VERBOSE="-v"
 elif [ -n "${CHAT_VERBOSE}" ]; then
   CHAT_VERBOSE="-v"
+fi
+
+NW_CMD=""
+if [ "${APN_NW}" == "3g" ]; then
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",2,1"
+elif [ "${APN_NW}" == "lte" ]; then
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",3,1"
+elif [ "${APN_NW}" == "2g" ]; then
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",1,1"
+else
+  NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",0,1"
 fi
 
 CONNECT="'chat -s ${CHAT_VERBOSE} \
@@ -45,8 +45,8 @@ ABORT \"BUSY\" \
 ABORT \"NO ANSWER\" \
 \"\" AT \
 OK ATE0 \
-OK AT+CGDCONT=1,\\\"IP\\\",\\\"${APN}\\\",,0,0 \
-OK AT\\\$QCPDPP=1 \
+${NW_CMD} \
+OK AT+QCFG=\\\"nwscanmode\\\" \
 OK ATD*99# \
 CONNECT \
 '"
@@ -74,11 +74,11 @@ SAY \"\nGoodbye from CANDY Pi Lite\n\" \
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
-  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ]; then
+  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ]; then
     . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
   else
     log "[ERROR] Modem is missing"
-    exit 11
+    exit_pppd 11
   fi
 }
 
@@ -105,16 +105,20 @@ function connect {
     lock \
     modem \
     persist \
+    maxfail 3 \
     nodetach > /dev/null 2>&1
 }
 
+function exit_pppd {
+  log "[INFO] start_pppd.sh terminated: Exit Code => $1"
+  # EXIT_CODE: poff=>5, Modem hangup=>16
+  echo $1 > ${PPPD_EXIT_CODE_FILE}
+  exit $1
+}
+
 # main
-log "[INFO] Starting ppp: ${MODEM_SERIAL_PORT}"
+log "[INFO] Starting PPP: ${MODEM_SERIAL_PORT}"
 init
 assert_root
 connect
-EXIT_CODE="$?"
-log "[INFO] ppp terminated: Exit Code => ${EXIT_CODE}"
-
-# EXIT_CODE: poff=>5, Modem hangup=>16
-echo ${EXIT_CODE} > /opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code
+exit_pppd "$?"
