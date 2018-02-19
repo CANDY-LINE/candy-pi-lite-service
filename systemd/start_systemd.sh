@@ -22,6 +22,7 @@ DHCPCD_CNF="/etc/dhcpcd.conf"
 DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
+PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
@@ -220,7 +221,13 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    kill -9 ${PPPD_PID}
+    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
+      PPPD_EXIT_CODE=`cat ${PPPD_EXIT_CODE_FILE}`
+      if [ "${PPPD_EXIT_CODE}" == "12" ]; then
+        exit ${PPPD_EXIT_CODE}
+      fi
+    fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
   if [ "${RET}" != "0" ]; then

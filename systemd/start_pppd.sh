@@ -78,7 +78,7 @@ function init {
     . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
   else
     log "[ERROR] Modem is missing"
-    exit 11
+    exit_pppd 11
   fi
 }
 
@@ -109,13 +109,16 @@ function connect {
     nodetach > /dev/null 2>&1
 }
 
+function exit_pppd {
+  log "[INFO] start_pppd.sh terminated: Exit Code => $1"
+  # EXIT_CODE: poff=>5, Modem hangup=>16
+  echo $1 > ${PPPD_EXIT_CODE_FILE}
+  exit $1
+}
+
 # main
-log "[INFO] Starting ppp: ${MODEM_SERIAL_PORT}"
+log "[INFO] Starting PPP: ${MODEM_SERIAL_PORT}"
 init
 assert_root
 connect
-EXIT_CODE="$?"
-log "[INFO] ppp terminated: Exit Code => ${EXIT_CODE}"
-
-# EXIT_CODE: poff=>5, Modem hangup=>16
-echo ${EXIT_CODE} > /opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code
+exit_pppd "$?"

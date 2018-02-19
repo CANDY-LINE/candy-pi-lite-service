@@ -271,7 +271,7 @@ function test_functionality {
   candy_command modem show
   if [ "$?" != 0 ]; then
     log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
-    exit 12
+    exit 1
   fi
   FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])"`
   log "[INFO] Phone Functionality => ${FUNC}"
@@ -279,7 +279,7 @@ function test_functionality {
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
     candy_command modem reset
     log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
-    exit 12
+    exit 1
   fi
 }
 
