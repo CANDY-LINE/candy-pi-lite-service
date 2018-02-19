@@ -15,35 +15,9 @@
 # limitations under the License.
 
 PRODUCT_DIR_NAME="candy-pi-lite"
+PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
 
 # Run `poff` to stop
-
-FALLBACK_APN=$(cat /opt/candy-line/${PRODUCT_DIR_NAME}/fallback_apn)
-if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
-  APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
-fi
-APN=${APN:-${FALLBACK_APN}}
-
-CREDS=`
-  /usr/bin/env python -c \
-  "with open('apn-list.json') as f:
-  import json;c=json.load(f)['${APN}'];
-  print('APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
-  'APN_PDP=%s APN_CS=%s' %
-  (
-  c['user'],c['password'],
-  c['nw'] if 'nw' in c.keys() else 'auto',
-  c['pdp'] if 'pdp' in c.keys() else 'ipv4',
-  c['cs'] if 'cs' in c.keys() else False
-  ))" \
-  2>&1`
-if [ "$?" != "0" ]; then
-  log "[ERROR] Failed to start ppp. Error=>${CREDS}"
-  exit 1
-fi
-eval ${CREDS}
-
-wait_for_network_registration ${APN_CS}
 
 if [ -n "${PPPD_DEBUG}" ]; then
   PPPD_DEBUG="debug"
@@ -73,8 +47,6 @@ ABORT \"NO ANSWER\" \
 OK ATE0 \
 ${NW_CMD} \
 OK AT+QCFG=\\\"nwscanmode\\\" \
-OK AT+CGDCONT=1,\\\"IP\\\",\\\"${APN}\\\",,0,0 \
-OK AT\\\$QCPDPP=1 \
 OK ATD*99# \
 CONNECT \
 '"

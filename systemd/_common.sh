@@ -240,8 +240,13 @@ function wait_for_network_registration {
     candy_command network show
     RET="$?"
     if [ "${RET}" == "0" ]; then
-      STAT=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['registration']['${REG_KEY}'])"`
-      if [ "${STAT}" == "Registered" ]; then
+      STAT=`
+/usr/bin/env python -c \
+"import json;r=json.loads('${RESULT}');
+print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'])"`
+      if [ "$?" != "0" ]; then
+        RET=1
+      elif [ "${STAT}" == "Registered" ]; then
         log "[INFO] OK. Registered in the home ${REG_KEY} network"
         break
       elif [ "${STAT}" == "Roaming" ]; then
@@ -258,6 +263,34 @@ function wait_for_network_registration {
   if [ "${RET}" != "0" ]; then
     log "[ERROR] Network Registration Failed"
     exit 1
+  fi
+}
+
+function test_functionality {
+  # init_modem must be performed prior to this function
+  candy_command modem show
+  if [ "$?" != 0 ]; then
+    log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
+    exit 12
+  fi
+  FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])"`
+  log "[INFO] Phone Functionality => ${FUNC}"
+  if [ "${FUNC}" == "Anomaly" ]; then
+    log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
+    candy_command modem reset
+    log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
+    exit 12
+  fi
+}
+
+function save_apn {
+  # init_modem must be performed prior to this function
+  candy_command apn "{\"action\":\"set\",\"name\":\"$1\",\"user_id\":\"$2\",\"password\":\"$3\",\"type\":\"$4\"}"
+  log "[INFO] Saved APN => $1"
+  if [ "$5" == "True" ]; then
+    log "[INFO] Network Re-registering"
+    candy_command network deregister
+    candy_command network register
   fi
 }
 
@@ -283,7 +316,6 @@ function init_modem {
   if [ "${MODEM_INIT}" == "0" ]; then
     exit 1
   fi
-  adjust_time
   if [ -z "${USB_SERIAL_PORT}" ]; then
     detect_usb_device # retry
     if [ -n "${USB_SERIAL_PORT}" ]; then
