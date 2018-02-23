@@ -174,18 +174,18 @@ class Monitor(threading.Thread):
                     subprocess.call("ip -%s route del default via %s" %
                                     (ipv, ip),
                                     shell=True)
-        else:
-            ip_cmd = ("ip -%s route | grep %s "
-                      "| awk '{ print $9 }'"
-                      ) % (ipv, self.nic)
-            ip = subprocess.Popen(ip_cmd, shell=True,
-                                  stdout=subprocess.PIPE
-                                  ).stdout.read()
-            subprocess.call(
-                "ip -%s route add default via %s" % (ipv, ip),
-                shell=True,
-                stdout=Monitor.FNULL,
-                stderr=subprocess.STDOUT)
+
+        ip_cmd = ("ip -%s route | grep %s "
+                  "| awk '{ print $9 }'"
+                  ) % (ipv, self.nic)
+        ip = subprocess.Popen(ip_cmd, shell=True,
+                              stdout=subprocess.PIPE
+                              ).stdout.read()
+        subprocess.call(
+            "ip -%s route add default via %s" % (ipv, ip),
+            shell=True,
+            stdout=Monitor.FNULL,
+            stderr=subprocess.STDOUT)
 
     def pppd_exited_unexpectedly(self):
         if not os.path.isfile(pppd_exit_code_file):
