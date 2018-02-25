@@ -29,6 +29,9 @@
 ### tuple ### allow any any ::/0 any ::/0 in_wlan0
 -A ufw6-user-input -i wlan0 -j ACCEPT
 
+### tuple ### allow any any ::/0 any ::/0 in_usb0
+-A ufw6-user-input -i usb0 -j ACCEPT
+
 ### END RULES ###
 
 ### LOGGING ###
