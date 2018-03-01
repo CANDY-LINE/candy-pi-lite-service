@@ -172,36 +172,6 @@ function boot_ip_addr_fin {
   fi
 }
 
-function load_apn {
-  FALLBACK_APN=$(cat /opt/candy-line/${PRODUCT_DIR_NAME}/fallback_apn)
-  if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
-    APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
-  fi
-  APN=${APN:-${FALLBACK_APN}}
-
-  CREDS=`
-    /usr/bin/env python -c \
-    "with open('apn-list.json') as f:
-    import json;c=json.load(f)['${APN}'];
-    print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
-    'APN_PDP=%s APN_CS=%s APN_OPS=%s' %
-    (
-      c['apn'] if 'apn' in c else '${APN}',
-      c['user'],
-      c['password'],
-      c['nw'] if 'nw' in c else 'auto',
-      c['pdp'] if 'pdp' in c else 'ipv4',
-      c['cs'] if 'cs' in c else False,
-      c['ops'] if 'ops' in c else False,
-    ))" \
-    2>&1`
-  if [ "$?" != "0" ]; then
-    log "[ERROR] Failed to load APN. Error=>${CREDS}"
-    exit 1
-  fi
-  eval ${CREDS}
-}
-
 function register_network {
   test_functionality
   save_apn "${APN}" "${APN_USER}" "${APN_PASSWORD}" "${APN_PDP}" "${APN_OPS}"
