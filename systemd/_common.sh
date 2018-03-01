@@ -25,6 +25,7 @@ QWS_EC25_PORT="${QWS_EC25}.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
+PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then

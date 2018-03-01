@@ -8,6 +8,7 @@ conf=""
 
 [ -x /sbin/resolvconf ] || exit 0
 . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+[ -f ${PPPD_RUNNING_FILE} ] || exit 0
 load_apn
 
 if [ -n "$APN_IPV6DNS1" -o -n "$APN_IPV6DNS2" ]; then
