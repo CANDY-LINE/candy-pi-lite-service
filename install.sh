@@ -309,6 +309,12 @@ function install_ppp {
   sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/_common.sh
 
   _ufw_setup
+
+  FILES=`ls ${SRC_DIR}/etc/ppp/ipv6-up.d/0*`
+  for f in ${FILES}
+  do
+    install -o root -g root -D -m 755 ${f} /etc/ppp/ipv6-up.d/
+  done
 }
 
 function install_avahi_daemon {

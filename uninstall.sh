@@ -56,6 +56,7 @@ function uninstall_ppp {
       rm -f ${f}
     done
   fi
+  rm -f /etc/ppp/ipv6-up.d/000resolveconf_candy-pi-lite
 }
 
 function uninstall_candy_board {
