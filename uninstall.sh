@@ -88,8 +88,8 @@ function uninstall_service {
 }
 
 function uninstall_udev_rules {
-  rm -f /etc/udev/rules.d/70-enocean-stick.rules
-  rm -f /etc/udev/rules.d/76-rpi-ether-netnames.rules
+  rm -f /etc/udev/rules.d/70-enocean-stick.rules > /dev/null 2>&1
+  rm -f /etc/udev/rules.d/76-rpi-ether-netnames.rules > /dev/null 2>&1
 }
 
 function teardown {
