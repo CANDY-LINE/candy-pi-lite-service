@@ -205,7 +205,7 @@ function perst {
 }
 
 function wait_for_ppp_offline {
-  RET=`ifconfig ${IF_NAME}`
+  RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
   if [ "$?" != "0" ]; then
     return
   fi
@@ -214,7 +214,7 @@ function wait_for_ppp_offline {
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
-    RET=`ifconfig ${IF_NAME}`
+    RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
     RET="$?"
     if [ "${RET}" != "0" ]; then
       break

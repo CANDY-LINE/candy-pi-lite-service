@@ -92,7 +92,7 @@ function boot_ip_addr {
     log "[INFO] Skip to configure IP address as fixed NIC name is missing"
     return
   fi
-  LIST=`ls -1 /boot/boot-ip*.json`
+  LIST=`ls -1 /boot/boot-ip*.json > /dev/null 2>&1`
   if [ "$?" == "0" ]; then
     NUM=`ls -1 /boot/boot-ip*.json | wc -l`
     if [ "${NUM}" != "1" ]; then
