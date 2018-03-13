@@ -3,4 +3,12 @@
   ,"lte-d.ocn.ne.jp":{"user":"mobileid@ocn","password":"mobile","nw":"lte"}
   ,"3g-d-2.ocn.ne.jp":{"user":"mobileid@ocn","password":"mobile","nw":"3g"}
   ,"iijmio.jp":{"user":"mio@iij","password":"iij"}
+  ,"iijmio.jp-ipv4v6":{"user":"mio@iij","password":"iij","pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmio.jp-ipv6":{"user":"mio@iij","password":"iij","pdp":"ipv6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmobile.jp":{"user":"mobile@iij","password":"iij"}
+  ,"iijmobile.jp-ipv4v6":{"user":"mobile@iij","password":"iij","pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmobile.jp-ipv6":{"user":"mobile@iij","password":"iij","pdp":"ipv6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmobile.biz":{"user":"biz@iij","password":"iij","ops":true,"pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmobile.biz-ipv4v6":{"user":"biz@iij","password":"iij","ops":true,"apn":"iijmobile.biz","pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmobile.biz-ipv6":{"user":"biz@iij","password":"iij","ops":true,"apn":"iijmobile.biz","pdp":"ipv6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
 }
