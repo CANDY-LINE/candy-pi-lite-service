@@ -1,0 +1,7 @@
+SUBSYSTEMS=="usb", ENV{.LOCAL_ifNum}="$attr{bInterfaceNumber}"
+
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6011", ENV{.LOCAL_ifNum}=="02", ATTRS{manufacturer}=="LTC", ATTRS{product}=="DC2274 WITH MEMORY", MODE="0666", SYMLINK+="DC2274A-A.CLI"
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6011", ENV{.LOCAL_ifNum}=="03", ATTRS{manufacturer}=="LTC", ATTRS{product}=="DC2274 WITH MEMORY", MODE="0666", SYMLINK+="DC2274A-A.API"
+
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6011", ENV{.LOCAL_ifNum}=="02", ATTRS{manufacturer}=="LTC", ATTRS{product}=="DC2274 WITHOUT MEMORY 5912A8", MODE="0666", SYMLINK+="DC2274A-B.CLI"
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6011", ENV{.LOCAL_ifNum}=="03", ATTRS{manufacturer}=="LTC", ATTRS{product}=="DC2274 WITHOUT MEMORY 5912A8", MODE="0666", SYMLINK+="DC2274A-B.API"
