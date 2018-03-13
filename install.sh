@@ -147,7 +147,9 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   cp -f ${SRC_DIR}/etc/ufw/*.rules /etc/ufw/
-  if [ "${FORCE_INSTALL}" != "1" ]; then
+  if [ "${FORCE_INSTALL}" == "1" ]; then
+    sed -i -e "s/ENABLED=no/ENABLED=yes/g" /etc/ufw/ufw.conf
+  else
     ufw --force disable
     if [ "${BOARD}" == "RPi" ]; then
       if [ ! -e "/sys/class/net/eth0" ]; then
