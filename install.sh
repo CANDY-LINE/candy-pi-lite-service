@@ -330,6 +330,17 @@ function install_avahi_daemon {
   fi
 }
 
+function install_logrotate {
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    dpkg -l | grep logrotate > /dev/null 2>&1
+    if [ "$?" != "0" ]; then
+      info "Installing logrotate..."
+      apt_get_update
+      apt-get install -y logrotate
+    fi
+  fi
+}
+
 function install_candy_board {
   RET=`which pip`
   RET=$?
@@ -513,6 +524,7 @@ install_candy_red
 install_service
 install_ppp
 install_avahi_daemon
+install_logrotate
 configure_sc16is7xx
 configure_watchdog
 teardown
