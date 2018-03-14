@@ -1,4 +1,13 @@
 # 履歴
+* 3.0.0
+    - IPv6対応ネットワークへの設定をAPNで指定できるように変更
+      - IPv6またはIPv4/IPv6デュアルスタックを指定可能
+      - IPv6のみDNSを指定可能（プライマリーDNS、セカンダリーDNS）
+    - IIJmio タイプD（IPv4/v6・IPv6）、IIJモバイル/タイプI、タイプD（IPv4、IPv4/v6・IPv6）向けAPNを追加
+    - アンインストール時に`ufw`のバックアップを削除できていない問題を修正
+    - サービス起動時に`ufw`サービスが設定されている(`systemctl is-enabled ufw`が`enabled`である)にもかかわらず`ufw`が無効(`inactive`)である場合に、自動的に有効(`active`)にするように修正
+    - SmartMesh® IP Manager/Mote USBデバイス接続時に固定のパス`/dev/DC2274A-A.CLI`(Manager)、`/dev/DC2274A-A.API`(Manager)、`/dev/DC2274A-B.CLI`(Mote)、`/dev/DC2274A-B.API`(Mote)を使用できるudevルールファイルを追加
+    - `logrotate`パッケージがインストールされていない場合にインストールするように変更（Tinker OS v2.0.4では標準でインストールされないため、ログファイルでディスクスペースを圧迫される問題への対処として実施。Raspbianでは標準でインストール済みであるため影響なし）
 * 2.0.2
     - USBテザリング時やUSB OTGイーサネット接続使用時のネットワークインタフェース`usb0`に対して初期状態でinputを受け付けるように`ufw`の設定を変更
 * 2.0.1
