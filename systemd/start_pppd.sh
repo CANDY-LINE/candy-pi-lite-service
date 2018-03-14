@@ -37,6 +37,13 @@ else
   NW_CMD="OK AT+QCFG=\\\"nwscanmode\\\",0,1"
 fi
 
+PPPD_IPV6=""
+if [ "${APN_PDP}" == "ipv6" ]; then
+  PPPD_IPV6="+ipv6 ipv6cp-accept-local ipv6cp-accept-remote"
+elif [ "${APN_PDP}" == "ipv4v6" ]; then
+  PPPD_IPV6="+ipv6 ipv6cp-accept-local ipv6cp-accept-remote"
+fi
+
 CONNECT="'chat -s ${CHAT_VERBOSE} \
 ABORT \"NO CARRIER\" \
 ABORT \"ERROR\" \
@@ -83,8 +90,9 @@ function init {
 }
 
 function connect {
-  rm -f /opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code
-  pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${PPPD_DEBUG} \
+  rm -f ${PPPD_EXIT_CODE_FILE}
+  touch ${PPPD_RUNNING_FILE}
+  pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${PPPD_DEBUG} ${PPPD_IPV6} \
     user "${APN_USER}" \
     password "${APN_PASSWORD}" \
     connect "'${CONNECT}'" \
@@ -113,6 +121,7 @@ function exit_pppd {
   log "[INFO] start_pppd.sh terminated: Exit Code => $1"
   # EXIT_CODE: poff=>5, Modem hangup=>16
   echo $1 > ${PPPD_EXIT_CODE_FILE}
+  rm -f ${PPPD_RUNNING_FILE}
   exit $1
 }
 

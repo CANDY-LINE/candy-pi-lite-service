@@ -45,29 +45,18 @@ function setup {
 }
 
 function uninstall_ppp {
-  PPP_MODE_DETECTED=0
-  for f in "/etc/chatscripts/candy-pi-lite" "/etc/ppp/peers/candy-pi-lite"
-  do
-    if [ -f "${f}" ]; then
-      rm -f "${f}"
-      PPP_MODE_DETECTED=1
-    fi
-  done
-  if [ "${PPP_MODE_DETECTED}" == "0" ]; then
-    return
-  fi
-
   RET=`which ufw`
   RET=$?
   if [ "${RET}" == "0" ]; then
     ufw --force disable
     ufw delete allow in on eth-rpi
     OUTPUT=`ufw --force reset`
-    for f in `${echo $OUTPUT | grep -oP "/etc/ufw/[0-9a-zA-Z_\.]*"}`
+    for f in `echo $OUTPUT | grep -oP "/etc/ufw/[0-9a-zA-Z_\.]*"`
     do
       rm -f ${f}
     done
   fi
+  rm -f /etc/ppp/ipv6-up.d/000resolveconf_candy-pi-lite
 }
 
 function uninstall_candy_board {
@@ -99,8 +88,8 @@ function uninstall_service {
 }
 
 function uninstall_udev_rules {
-  rm -f /etc/udev/rules.d/70-enocean-stick.rules
-  rm -f /etc/udev/rules.d/76-rpi-ether-netnames.rules
+  rm -f /etc/udev/rules.d/70-enocean-stick.rules > /dev/null 2>&1
+  rm -f /etc/udev/rules.d/76-rpi-ether-netnames.rules > /dev/null 2>&1
 }
 
 function teardown {

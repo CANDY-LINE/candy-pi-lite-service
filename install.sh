@@ -18,14 +18,14 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=2.0.2
+VERSION=3.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
 # v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARMv6_NODEJS_VERSION="6.12.3"
+ARMv6_NODEJS_VERSION="6.13.1"
 ARMv7_NODEJS_VERSION="6.x"
 NODEJS_VERSIONS="v6"
 
@@ -147,7 +147,9 @@ function download {
 function _ufw_setup {
   info "Configuring ufw..."
   cp -f ${SRC_DIR}/etc/ufw/*.rules /etc/ufw/
-  if [ "${FORCE_INSTALL}" != "1" ]; then
+  if [ "${FORCE_INSTALL}" == "1" ]; then
+    sed -i -e "s/ENABLED=no/ENABLED=yes/g" /etc/ufw/ufw.conf
+  else
     ufw --force disable
     if [ "${BOARD}" == "RPi" ]; then
       if [ ! -e "/sys/class/net/eth0" ]; then
@@ -309,6 +311,12 @@ function install_ppp {
   sed -i -e "s/%MODEM_BAUDRATE%/${MODEM_BAUDRATE//\//\\/}/g" ${SERVICE_HOME}/_common.sh
 
   _ufw_setup
+
+  FILES=`ls ${SRC_DIR}/etc/ppp/ipv6-up.d/0*`
+  for f in ${FILES}
+  do
+    install -o root -g root -D -m 755 ${f} /etc/ppp/ipv6-up.d/
+  done
 }
 
 function install_avahi_daemon {
@@ -318,6 +326,17 @@ function install_avahi_daemon {
       info "Installing avahi daemon..."
       apt_get_update
       apt-get install -y avahi-daemon
+    fi
+  fi
+}
+
+function install_logrotate {
+  if [ "${FORCE_INSTALL}" != "1" ]; then
+    dpkg -l | grep logrotate > /dev/null 2>&1
+    if [ "$?" != "0" ]; then
+      info "Installing logrotate..."
+      apt_get_update
+      apt-get install -y logrotate
     fi
   fi
 }
@@ -505,6 +524,7 @@ install_candy_red
 install_service
 install_ppp
 install_avahi_daemon
+install_logrotate
 configure_sc16is7xx
 configure_watchdog
 teardown

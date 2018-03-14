@@ -25,6 +25,7 @@ QWS_EC25_PORT="${QWS_EC25}.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
+PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -204,7 +205,7 @@ function perst {
 }
 
 function wait_for_ppp_offline {
-  RET=`ifconfig ${IF_NAME}`
+  RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
   if [ "$?" != "0" ]; then
     return
   fi
@@ -213,7 +214,7 @@ function wait_for_ppp_offline {
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
-    RET=`ifconfig ${IF_NAME}`
+    RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
     RET="$?"
     if [ "${RET}" != "0" ]; then
       break
@@ -378,4 +379,36 @@ function start_ntp {
   if [ -n "$(which timedatectl)" ]; then
     timedatectl set-ntp true
   fi
+}
+
+function load_apn {
+  FALLBACK_APN=$(cat /opt/candy-line/${PRODUCT_DIR_NAME}/fallback_apn)
+  if [ -f "/opt/candy-line/${PRODUCT_DIR_NAME}/apn" ]; then
+    APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
+  fi
+  APN=${APN:-${FALLBACK_APN}}
+
+  CREDS=`
+    /usr/bin/env python -c \
+    "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
+    import json;c=json.load(f)['${APN}'];
+    print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
+    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s' %
+    (
+      c['apn'] if 'apn' in c else '${APN}',
+      c['user'],
+      c['password'],
+      c['nw'] if 'nw' in c else 'auto',
+      c['pdp'] if 'pdp' in c else 'ipv4',
+      c['cs'] if 'cs' in c else False,
+      c['ops'] if 'ops' in c else False,
+      c['ipv6dns1'] if 'ipv6dns1' in c else '',
+      c['ipv6dns2'] if 'ipv6dns2' in c else '',
+    ))" \
+    2>&1`
+  if [ "$?" != "0" ]; then
+    log "[ERROR] Failed to load APN. Error=>${CREDS}"
+    exit 1
+  fi
+  eval ${CREDS}
 }

@@ -167,13 +167,16 @@ class Monitor(threading.Thread):
             for nic in ls_nic.split("\n"):
                 if nic:
                     ip_cmd = ("ip -%s route | grep %s "
-                              "| awk '/default/ { print $3 }'") % (ipv, nic)
-                    ip = subprocess.Popen(ip_cmd, shell=True,
-                                          stdout=subprocess.PIPE
-                                          ).stdout.read()
-                    subprocess.call("ip -%s route del default via %s" %
-                                    (ipv, ip),
-                                    shell=True)
+                              "| awk '/default/ { print $2,$3 }'") % (ipv, nic)
+                    ip_cmd_out = subprocess.Popen(ip_cmd, shell=True,
+                                                  stdout=subprocess.PIPE
+                                                  ).stdout.read().split(' ')
+                    prop = ip_cmd_out[0]
+                    if prop == 'via':
+                        ip = ip_cmd_out[1]
+                        subprocess.call("ip -%s route del default via %s" %
+                                        (ipv, ip),
+                                        shell=True)
 
         ip_cmd = ("ip -%s route | grep %s "
                   "| awk '{ print $9 }'"
