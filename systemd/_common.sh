@@ -68,6 +68,40 @@ function detect_usb_device {
   fi
 }
 
+function detect_board {
+  if [ -z "${BOARD}" ]; then
+    if [ -f "/proc/board_info" ]; then
+      DT_MODEL=`cat /proc/board_info 2>&1`
+      if [ -z "${DT_MODEL}" ]; then
+        RESOLVE_MAX=30
+        RESOLVE_COUNTER=0
+        while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
+        do
+          DT_MODEL=`cat /proc/board_info 2>&1`
+          if [ -n "${DT_MODEL}" ]; then
+            break
+          fi
+          sleep 2
+          let RESOLVE_COUNTER=RESOLVE_COUNTER+1
+        done
+      fi
+      case ${DT_MODEL} in
+        "Tinker Board" | "Tinker Board S")
+          BOARD="ATB"
+          ;;
+        *)
+          BOARD=""
+          ;;
+      esac
+    else
+      python -c "import RPi.GPIO" > /dev/null 2>&1
+      if [ "$?" == "0" ]; then
+        BOARD="RPi"
+      fi
+    fi
+  fi
+}
+
 function look_for_usb_device {
   if [ "${SERIAL_PORT_TYPE}" == "uart" ]; then
     return
@@ -276,7 +310,7 @@ function wait_for_network_registration {
   if [ "$1" == "True" ]; then
     REG_KEY="cs"
   fi
-  MAX=180
+  MAX=420
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
