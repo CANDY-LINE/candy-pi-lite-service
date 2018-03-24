@@ -310,7 +310,7 @@ function wait_for_network_registration {
   if [ "$1" == "True" ]; then
     REG_KEY="cs"
   fi
-  MAX=420
+  MAX=600
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
