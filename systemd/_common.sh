@@ -365,9 +365,14 @@ function save_apn {
   candy_command apn "{\"action\":\"set\",\"name\":\"$1\",\"user_id\":\"$2\",\"password\":\"$3\",\"type\":\"$4\"}"
   log "[INFO] Saved APN => $1"
   if [ "$5" == "True" ]; then
-    log "[INFO] Network Re-registering"
     candy_command network deregister
-    candy_command network register
+    if [ -n "$6" ]; then
+      log "[INFO] Manual Operator Selection => [$6]"
+      candy_command network "{\"action\":\"register\",\"operator\":\"$6\"}"
+    else
+      log "[INFO] Network Re-registering"
+      candy_command network register
+    fi
   fi
 }
 
@@ -427,7 +432,7 @@ function load_apn {
     "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
     import json;c=json.load(f)['${APN}'];
     print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
-    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s' %
+    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s' %
     (
       c['apn'] if 'apn' in c else '${APN}',
       c['user'],
@@ -436,6 +441,8 @@ function load_apn {
       c['pdp'] if 'pdp' in c else 'ipv4',
       c['cs'] if 'cs' in c else False,
       c['ops'] if 'ops' in c else False,
+      c['mcc'] if 'mcc' in c else '',
+      c['mnc'] if 'mnc' in c else '',
       c['ipv6dns1'] if 'ipv6dns1' in c else '',
       c['ipv6dns2'] if 'ipv6dns2' in c else '',
     ))" \

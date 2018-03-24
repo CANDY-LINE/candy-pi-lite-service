@@ -174,7 +174,7 @@ function boot_ip_addr_fin {
 
 function register_network {
   test_functionality
-  save_apn "${APN}" "${APN_USER}" "${APN_PASSWORD}" "${APN_PDP}" "${APN_OPS}"
+  save_apn "${APN}" "${APN_USER}" "${APN_PASSWORD}" "${APN_PDP}" "${APN_OPS}" "${APN_MCC}${APN_MNC}"
   wait_for_network_registration "${APN_CS}"
 }
 
