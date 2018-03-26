@@ -16,43 +16,29 @@
 
 echo -e "\033[93m[WARN] *** INTERNAL USE, DO NOT RUN DIRECTLY *** \033[0m"
 
-# Detect board type and assign the appropriate pinmappings
-python -c "import RPi.GPIO" > /dev/null 2>&1
-if [ "$?" == "0" ]; then
-  LED2=4
-  PERST=20
-  W_DISABLE=12
-else
-  if [ ! -e "/proc/device-tree/model" ]; then
-    echo -e "\033[93m[FATAL] *** UNSUPPORTED OS *** \033[0m"
-    exit 3
-  fi
-  DT_MODEL=`cat /proc/board_info 2>&1`
-  if [ -z "${DT_MODEL}" ]; then
-    RESOLVE_MAX=30
-    RESOLVE_COUNTER=0
-    while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
-    do
-      DT_MODEL=`cat /proc/board_info 2>&1`
-      if [ -n "${DT_MODEL}" ]; then
-        break
-      fi
-      sleep 2
-      let RESOLVE_COUNTER=RESOLVE_COUNTER+1
-    done
-  fi
-  case ${DT_MODEL} in
-    "Tinker Board" | "Tinker Board S")
-      LED2=17
-      PERST=187
-      W_DISABLE=239
-      ;;
-    *)
-      log "[FATAL] UNSUPPORTED BOARD => [${DT_MODEL}]"
-      exit 3
-      ;;
-  esac
+if [ ! -e "/proc/device-tree/model" ]; then
+  log "[FATAL] *** UNSUPPORTED OS ***"
+  exit 3
 fi
+
+detect_board
+case ${BOARD} in
+  "RPi")
+    LED2=4
+    PERST=20
+    W_DISABLE=12
+    ;;
+  "ATB")
+    LED2=17
+    PERST=187
+    W_DISABLE=239
+    ;;
+  *)
+    DT_MODEL=`cat /proc/board_info 2>&1`
+    log "[FATAL] UNSUPPORTED BOARD => [${DT_MODEL}]"
+    exit 3
+    ;;
+esac
 
 # Orange LED (Online Status Indicator)
 LED2_PIN="/sys/class/gpio/gpio${LED2}"

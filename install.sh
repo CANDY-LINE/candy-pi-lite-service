@@ -71,10 +71,7 @@ function alert {
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
   if [ -z "${BOARD}" ]; then
-    python -c "import RPi.GPIO" > /dev/null 2>&1
-    if [ "$?" == "0" ]; then
-      BOARD="RPi"
-    else
+    if [ -f "/proc/board_info" ]; then
       DT_MODEL=`cat /proc/board_info 2>&1`
       case ${DT_MODEL} in
         "Tinker Board" | "Tinker Board S")
@@ -84,6 +81,11 @@ function setup {
           BOARD=""
           ;;
       esac
+    else
+      python -c "import RPi.GPIO" > /dev/null 2>&1
+      if [ "$?" == "0" ]; then
+        BOARD="RPi"
+      fi
     fi
   fi
   case ${BOARD} in
