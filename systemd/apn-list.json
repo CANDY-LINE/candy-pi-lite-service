@@ -1,5 +1,6 @@
 {
    "soracom.io":{"user":"sora","password":"sora"}
+  ,"soracom.io-docomo":{"user":"sora","password":"sora","apn":"soracom.io","ops":true,"mcc":"440","mnc":"10"}
   ,"lte-d.ocn.ne.jp":{"user":"mobileid@ocn","password":"mobile","nw":"lte"}
   ,"3g-d-2.ocn.ne.jp":{"user":"mobileid@ocn","password":"mobile","nw":"3g"}
   ,"iijmio.jp":{"user":"mio@iij","password":"iij"}
