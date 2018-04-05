@@ -53,6 +53,7 @@ CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
 CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR:-false}
 DISABLE_DEFAULT_ROUTE_ADJUSTER=${DISABLE_DEFAULT_ROUTE_ADJUSTER:-0}
 SERIAL_PORT_TYPE=${SERIAL_PORT_TYPE:-auto}
+COFIGURE_SMARTMESH_PORT=${COFIGURE_SMARTMESH_PORT:-1}
 
 REBOOT=0
 
@@ -492,6 +493,9 @@ function install_service {
   fi
   if [ "${COFIGURE_ENOCEAN_PORT}" == "1" ]; then
     cp -f ${SRC_DIR}/etc/udev/rules.d/70-enocean-stick.rules /etc/udev/rules.d/
+  fi
+  if [ "${COFIGURE_SMARTMESH_PORT}" == "1" ]; then
+    cp -f ${SRC_DIR}/etc/udev/rules.d/70-smartmesh.rules /etc/udev/rules.d/
   fi
 
   info "${SERVICE_NAME} service has been installed"
