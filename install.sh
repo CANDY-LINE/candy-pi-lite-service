@@ -249,20 +249,49 @@ function configure_watchdog {
   case ${BOARD} in
     RPi)
       if [ "${FORCE_INSTALL}" != "1" ]; then
-        RET=`modprobe bcm2835_wdt`
-        if [ "$?" != "0" ]; then
-          info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+        test_wdt_driver bcm2835_wdt
+        if [ "$RET" != "0" ]; then
           return
         fi
       fi
       do_configure_bcm2835_wdt
       ;;
     ATB)
-      info "Hardware Watchdog isn't yet supported on ASUS Tinker Board."
-      return
+      if [ "${FORCE_INSTALL}" != "1" ]; then
+        test_wdt_driver dw_wdt
+        if [ "$RET" != "0" ]; then
+          return
+        fi
+      fi
+      do_configure_dw_wdt
       ;;
   esac
   info "Hardware Watchdog configuration done"
+}
+
+function test_wdt_driver {
+  RET=`modprobe $1`
+  if [ "$?" != "0" ]; then
+    info "$1 is missing. Skip to configue Hardware Watchdog."
+    RET=1
+    return
+  fi
+  RET=0
+}
+
+function do_configure_watchdog {
+  if [ -f "/etc/systemd/system.conf" ]; then
+    RET=`grep "^RuntimeWatchdogSec=" /etc/systemd/system.conf`
+    if [ "$?" != "0" ]; then
+      RET=`grep "^#RuntimeWatchdogSec=" /etc/systemd/system.conf`
+      if [ "$?" != "0" ]; then
+        echo "RuntimeWatchdogSec=14" >> /etc/systemd/system.conf
+      else
+        sed -i -e "s/#RuntimeWatchdogSec=.*/RuntimeWatchdogSec=14/g" /etc/systemd/system.conf
+        rm -f /etc/systemd/system.conf-e
+      fi
+    fi
+  fi
 }
 
 function do_configure_bcm2835_wdt {
@@ -279,18 +308,14 @@ function do_configure_bcm2835_wdt {
   if [ ! -f "/etc/modprobe.d/bcm2835-wdt.conf" ]; then
     echo "options bcm2835_wdt heartbeat=14 nowayout=0" >> /etc/modprobe.d/bcm2835-wdt.conf
   fi
-  if [ -f "/etc/systemd/system.conf" ]; then
-    RET=`grep "^RuntimeWatchdogSec=" /etc/systemd/system.conf`
-    if [ "$?" != "0" ]; then
-      RET=`grep "^#RuntimeWatchdogSec=" /etc/systemd/system.conf`
-      if [ "$?" != "0" ]; then
-        echo "RuntimeWatchdogSec=14" >> /etc/systemd/system.conf
-      else
-        sed -i -e "s/#RuntimeWatchdogSec=.*/RuntimeWatchdogSec=14/g" /etc/systemd/system.conf
-        rm -f /etc/systemd/system.conf-e
-      fi
-    fi
+  do_configure_watchdog
+}
+
+function do_configure_dw_wdt {
+  if [ ! -f "/etc/modprobe.d/dw-wdt.conf" ]; then
+    echo "options dw_wdt nowayout=0" >> /etc/modprobe.d/dw-wdt.conf
   fi
+  do_configure_watchdog
 }
 
 function apt_get_update {
