@@ -18,14 +18,14 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=3.1.0
+VERSION=4.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
 # v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARMv6_NODEJS_VERSION="6.13.1"
+ARMv6_NODEJS_VERSION="6.14.1"
 ARMv7_NODEJS_VERSION="6.x"
 NODEJS_VERSIONS="v6"
 
@@ -53,6 +53,7 @@ CANDY_PI_LITE_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED:-0}
 CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR:-false}
 DISABLE_DEFAULT_ROUTE_ADJUSTER=${DISABLE_DEFAULT_ROUTE_ADJUSTER:-0}
 SERIAL_PORT_TYPE=${SERIAL_PORT_TYPE:-auto}
+COFIGURE_SMARTMESH_PORT=${COFIGURE_SMARTMESH_PORT:-1}
 
 REBOOT=0
 
@@ -248,20 +249,49 @@ function configure_watchdog {
   case ${BOARD} in
     RPi)
       if [ "${FORCE_INSTALL}" != "1" ]; then
-        RET=`modprobe bcm2835_wdt`
-        if [ "$?" != "0" ]; then
-          info "bcm2835_wdt is missing. Skip to configue Hardware Watchdog."
+        test_wdt_driver bcm2835_wdt
+        if [ "$RET" != "0" ]; then
           return
         fi
       fi
       do_configure_bcm2835_wdt
       ;;
     ATB)
-      info "Hardware Watchdog isn't yet supported on ASUS Tinker Board."
-      return
+      if [ "${FORCE_INSTALL}" != "1" ]; then
+        test_wdt_driver dw_wdt
+        if [ "$RET" != "0" ]; then
+          return
+        fi
+      fi
+      do_configure_dw_wdt
       ;;
   esac
   info "Hardware Watchdog configuration done"
+}
+
+function test_wdt_driver {
+  RET=`modprobe $1`
+  if [ "$?" != "0" ]; then
+    info "$1 is missing. Skip to configue Hardware Watchdog."
+    RET=1
+    return
+  fi
+  RET=0
+}
+
+function do_configure_watchdog {
+  if [ -f "/etc/systemd/system.conf" ]; then
+    RET=`grep "^RuntimeWatchdogSec=" /etc/systemd/system.conf`
+    if [ "$?" != "0" ]; then
+      RET=`grep "^#RuntimeWatchdogSec=" /etc/systemd/system.conf`
+      if [ "$?" != "0" ]; then
+        echo "RuntimeWatchdogSec=14" >> /etc/systemd/system.conf
+      else
+        sed -i -e "s/#RuntimeWatchdogSec=.*/RuntimeWatchdogSec=14/g" /etc/systemd/system.conf
+        rm -f /etc/systemd/system.conf-e
+      fi
+    fi
+  fi
 }
 
 function do_configure_bcm2835_wdt {
@@ -278,18 +308,14 @@ function do_configure_bcm2835_wdt {
   if [ ! -f "/etc/modprobe.d/bcm2835-wdt.conf" ]; then
     echo "options bcm2835_wdt heartbeat=14 nowayout=0" >> /etc/modprobe.d/bcm2835-wdt.conf
   fi
-  if [ -f "/etc/systemd/system.conf" ]; then
-    RET=`grep "^RuntimeWatchdogSec=" /etc/systemd/system.conf`
-    if [ "$?" != "0" ]; then
-      RET=`grep "^#RuntimeWatchdogSec=" /etc/systemd/system.conf`
-      if [ "$?" != "0" ]; then
-        echo "RuntimeWatchdogSec=14" >> /etc/systemd/system.conf
-      else
-        sed -i -e "s/#RuntimeWatchdogSec=.*/RuntimeWatchdogSec=14/g" /etc/systemd/system.conf
-        rm -f /etc/systemd/system.conf-e
-      fi
-    fi
+  do_configure_watchdog
+}
+
+function do_configure_dw_wdt {
+  if [ ! -f "/etc/modprobe.d/dw-wdt.conf" ]; then
+    echo "options dw_wdt nowayout=0" >> /etc/modprobe.d/dw-wdt.conf
   fi
+  do_configure_watchdog
 }
 
 function apt_get_update {
@@ -492,6 +518,9 @@ function install_service {
   fi
   if [ "${COFIGURE_ENOCEAN_PORT}" == "1" ]; then
     cp -f ${SRC_DIR}/etc/udev/rules.d/70-enocean-stick.rules /etc/udev/rules.d/
+  fi
+  if [ "${COFIGURE_SMARTMESH_PORT}" == "1" ]; then
+    cp -f ${SRC_DIR}/etc/udev/rules.d/70-smartmesh.rules /etc/udev/rules.d/
   fi
 
   info "${SERVICE_NAME} service has been installed"

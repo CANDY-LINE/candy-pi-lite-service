@@ -83,11 +83,13 @@ function boot_ip_reset {
 }
 
 function boot_ip_addr {
-  interface=""
-  if [ -e "/sys/class/net/eth0" ]; then
-    interface="eth0"
-  elif [ -e "/sys/class/net/eth-rpi" ]; then
-    interface="eth-rpi"
+  resolved_interface=""
+  if [ -e "/sys/class/net/eth-rpi" ]; then
+    resolved_interface="eth-rpi"
+  elif [ -e "/sys/class/net/eth0" ]; then
+    resolved_interface="eth0"
+  elif [ -e "/sys/class/net/usb0" ]; then
+    resolved_interface="usb0"
   else
     log "[INFO] Skip to configure IP address as fixed NIC name is missing"
     return
@@ -116,9 +118,9 @@ function boot_ip_addr {
   fi
 
   log "[INFO] Checking /etc/dhcpcd.conf..."
-  for p in ip_address routers domain_name_servers
+  for p in ip_address routers domain_name_servers interface
   do
-    VAL=`/usr/bin/env python -c "with open('${LIST}') as f:import json;print(('${p}=%s') % json.load(f)['${p}'])"`
+    VAL=`/usr/bin/env python -c "with open('${LIST}') as f:import json;c=json.load(f);print(('${p}=%s') % (c['${p}'] if '${p}' in c else ''))"`
     if [ "$?" != "0" ]; then
       log "[ERROR] Unexpected format => ${LIST}. Configruation aborted."
       unset LIST # not remove boot-ip*.json files
@@ -127,7 +129,11 @@ function boot_ip_addr {
     eval ${VAL}
   done
 
-  interface=${interface:-"eth-rpi"}
+  interface=${interface:-${resolved_interface}}
+  if [ -z ${interface} ]; then
+    log "[ERROR] No network interface has been resolved."
+    return
+  fi
   NUM=`grep -wc "^[^#;]*interface\s*${interface}" "${DHCPCD_CNF}"`
   if [ "${NUM}" == "0" ]; then # update org_candy unless I/F is configured
     cp -f "${DHCPCD_CNF}" "${DHCPCD_ORG}"
