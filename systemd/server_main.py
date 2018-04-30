@@ -131,7 +131,7 @@ class Monitor(threading.Thread):
         # exit from non-main thread
         if restart:
             logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE")
-            os.kill(os.getpid(), signal.SIGQUIT)
+            os.kill(os.getpid(), signal.SIGHUP)
         else:
             logger.error("[NOTICE] <candy-pi-lite> SHUTTING DOWN")
             os.kill(os.getpid(), signal.SIGTERM)
