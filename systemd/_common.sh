@@ -26,6 +26,7 @@ IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
 PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
+PIDFILE="/var/run/candy-pi-lite-service.pid"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -34,10 +35,22 @@ function assert_root {
   fi
 }
 
+function assert_service_is_running {
+  if [ ! -f "${PIDFILE}" ]; then
+    log "${PRODUCT} Service is missing"
+    exit 1
+  fi
+  PID=`cat ${PIDFILE}`
+  if ! kill -0 ${PID} > /dev/null 2>&1; then
+    log "${PRODUCT} Service isn't running"
+    exit 2
+  fi
+}
+
 function log {
   logger -t ${PRODUCT_DIR_NAME} $1
   if [ "${DEBUG}" ]; then
-    echo ${PRODUCT_DIR_NAME} $1
+    echo [${PRODUCT_DIR_NAME}] $1
   fi
 }
 

@@ -16,7 +16,6 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-PIDFILE="/var/run/candy-pi-lite-service.pid"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
 
 function init {

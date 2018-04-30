@@ -252,16 +252,30 @@ do
   fi
   break
 done
-log "[INFO] Trying to establish the data connetion..."
-connect
 
-# end banner
-log "[INFO] ${PRODUCT} is initialized successfully!"
-/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
-EXIT_CODE="$?"
-if [ "${EXIT_CODE}" == "143" ] && [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
-  # SIGTERM(15) is signaled by a thread in server_main module
-  exit 0
-else
-  exit ${EXIT_CODE}
-fi
+while true;
+do
+  log "[INFO] Trying to establish the data connetion..."
+  connect
+
+  # end banner
+  log "[INFO] ${PRODUCT} is initialized successfully!"
+  /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+  EXIT_CODE="$?"
+  if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
+    if [ "${EXIT_CODE}" == "143" ]; then
+      # SIGTERM(15) is signaled by a thread in server_main module
+      exit 0
+    elif [ "${EXIT_CODE}" == "140" ]; then
+      # SIGUSR2(12) is signaled by an external program to re-establish the connection
+      rm -f ${PIDFILE}
+      continue
+    else
+      log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
+      exit ${EXIT_CODE}
+    fi
+  else
+    log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
+    exit ${EXIT_CODE}
+  fi
+done
