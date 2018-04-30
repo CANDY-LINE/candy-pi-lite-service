@@ -43,5 +43,5 @@ function disestablish {
 init
 assert_root
 assert_service_is_running
-assert_disconnected
+assert_suspended
 disestablish
