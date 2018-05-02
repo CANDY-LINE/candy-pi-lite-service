@@ -1,5 +1,6 @@
 # 履歴
 * ?.?.?
+    - GPS/GLONASSで取得したNMEA-0183形式の位置データを出力するシリアルポートのエイリアスを追加
     - `server_main.py`のPythonプロセスへのSIGUSR2(12)シグナルにて、`poff`で切断したPPP接続を再接続する機能を追加
     - server_main.pyでプロセス再起動を促すシグナルをSIGHUP(1)に変更
     - ppp接続の一時切断と再接続を行うスクリプト(`connection_suspend.sh`、`connection_resume.sh`)を追加
