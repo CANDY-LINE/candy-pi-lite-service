@@ -27,11 +27,15 @@ function assert_connected {
     log "The connection is already established"
     exit 3
   fi
+  if [ ! -f "${PIDFILE}" ]; then
+    log "PID file is missing"
+    exit 4
+  fi
 }
 
 function send_signal_user2 {
   # SIGUSR2(12)
-  ps -ef | grep server_main | grep -v grep | awk '{ print $2 }' | xargs kill -12
+  kill -12 $(cat ${PIDFILE})
   while true;
   do
     RET=`candy service version`
