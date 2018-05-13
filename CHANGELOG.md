@@ -4,6 +4,9 @@
     - `server_main.py`のPythonプロセスへのSIGUSR2(12)シグナルにて、`poff`で切断したPPP接続を再接続する機能を追加
     - server_main.pyでプロセス再起動を促すシグナルをSIGHUP(1)に変更
     - ppp接続の一時切断と再接続を行うスクリプト(`connection_suspend.sh`、`connection_resume.sh`)を追加
+* 4.0.1
+    - `RESTART_SCHEDULE_CRON`パラメーターがローカルタイムゾーンを無視していた問題を修正
+    - `RESTART_SCHEDULE_CRON`で次に再起動する予定時間を秒ではなく日時表示に変更
 * 4.0.0
     - 固定IPを設定するネットワークインタフェースを指定できるように変更
     - 固定IPを適用するデフォルトのネットワークインタフェースに`usb0`を追加(`eth0`が存在しない時にのみ適用)

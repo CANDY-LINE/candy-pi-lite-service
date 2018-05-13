@@ -24,6 +24,7 @@ import struct
 import sys
 import termios
 import threading
+from datetime import datetime
 import time
 import subprocess
 import atexit
@@ -111,15 +112,17 @@ class Monitor(threading.Thread):
         self.nic = nic
         try:
             self.restart_at = None
-            cron = croniter(os.environ['RESTART_SCHEDULE_CRON']) \
+            base = datetime.now()
+            cron = croniter(os.environ['RESTART_SCHEDULE_CRON'], base) \
                 if 'RESTART_SCHEDULE_CRON' in os.environ else None
             if cron:
-                self.restart_at = cron.get_next()
-                if self.restart_at - time.time() < 60:
-                    self.restart_at = cron.get_next()
+                self.restart_at = cron.get_next(datetime)
+                if (self.restart_at - datetime.now()).total_seconds() < 60:
+                    self.restart_at = cron.get_next(datetime)
                 logger.info(
-                    "[NOTICE] <candy-pi-lite> Will restart within %d seconds" %
-                    (self.restart_at - time.time()))
+                    "[NOTICE] <candy-pi-lite> Will restart around %s %s" %
+                    (self.restart_at.strftime('%Y-%m-%dT%H:%M:%S'),
+                     time.strftime('%Z')))
         except Exception:
             logger.warn("[NOTICE] <candy-pi-lite> " +
                         "RESTART_SCHEDULE_CRON=>[%s] is ignored" %
@@ -140,7 +143,7 @@ class Monitor(threading.Thread):
     def time_to_restart(self):
         if self.restart_at is None:
             return False
-        return self.restart_at <= time.time()
+        return self.restart_at <= datetime.now()
 
     def ls_nic(self, ipv, position):
         ls_nic_cmd = ("ip -%s route | grep default | grep -v %s "
