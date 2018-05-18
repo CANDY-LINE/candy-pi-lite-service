@@ -27,6 +27,7 @@ DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
 PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
 PIDFILE="/var/run/candy-pi-lite-service.pid"
+SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -236,7 +237,7 @@ function init_serialport {
 
 function candy_command {
   CURRENT_BAUDRATE=${CURRENT_BAUDRATE:-${MODEM_BAUDRATE:-115200}}
-  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} /var/run/candy-board-service.sock`
+  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} ${SOCK_PATH}`
   RET=$?
   if [ "${SHOW_CANDY_CMD_ERROR}" == "1" ] && [ "${RET}" != "0" ]; then
     log "[INFO] candy_command[category:$1][action:$2] => [${RESULT}]"
