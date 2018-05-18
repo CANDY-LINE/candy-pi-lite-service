@@ -3,7 +3,8 @@
     - GPS/GLONASSで取得したNMEA-0183形式の位置データを出力するシリアルポートのエイリアスを追加
     - `server_main.py`のPythonプロセスへのSIGUSR2(12)シグナルにて、`poff`で切断したPPP接続を再接続する機能を追加
     - server_main.pyでプロセス再起動を促すシグナルをSIGHUP(1)に変更
-    - ppp接続の一時切断と再接続を行うスクリプト(`connection_suspend.sh`、`connection_resume.sh`)を追加
+    - ppp接続の一時切断、再接続、状態確認を行うスクリプト(`connection_suspend.sh`、`connection_resume.sh`、`connection_status.sh`)を追加
+    - NTP時刻調整を有効にしている場合は通信モジュールによる時刻調整をしないように変更
 * 4.0.1
     - `RESTART_SCHEDULE_CRON`パラメーターがローカルタイムゾーンを無視していた問題を修正
     - `RESTART_SCHEDULE_CRON`で次に再起動する予定時間を秒ではなく日時表示に変更
