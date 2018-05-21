@@ -238,8 +238,8 @@ fi
 while true;
 do
   register_network
-  adjust_time
   if [ "${NTP_DISABLED}" == "1" ]; then
+    adjust_time
     if [ "$(date +%Y)" == "1980" ]; then
       log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
     fi

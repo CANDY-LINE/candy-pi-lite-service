@@ -13,7 +13,8 @@ BLINKY_INTERVAL_SEC=0.8
 # Network retaining request interval in PPP Modem-mode (<5: disabled)
 PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%
 
-# Set 1 for disabling NTP service
+# Set 1 for disabling NTP service, 0 for enabling it
+# Either NTP service or 3G/4G LTE time adjustment works at the same time
 NTP_DISABLED=%NTP_DISABLED%
 
 # Adjusting time in seconds for calculating current epoch time
