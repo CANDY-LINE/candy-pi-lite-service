@@ -393,14 +393,33 @@ function save_apn {
 function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
-  MODEL=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['model'])" 2>&1`
-  DATETIME=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['datetime'])" 2>&1`
-  TIMEZONE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['timezone'])" 2>&1`
-  EPOCHTIME=`/usr/bin/env python -c "import time,datetime;print(int(datetime.datetime.strptime('${DATETIME}', '%y/%m/%d,%H:%M:%S').strftime('%s'))-time.timezone+${DELAY_SEC})" 2>&1`
-  date -s "@${EPOCHTIME}"
+  ADJUSTMENT=`/usr/bin/env python -c "
+import json, time, datetime
+r = json.loads('${RESULT}')
+epochtime = int(datetime.datetime.strptime(r['result']['datetime'],
+    '%y/%m/%d,%H:%M:%S').strftime('%s')) - time.timezone + ${DELAY_SEC}
+if abs(epochtime - time.time()) < 1:
+  epochtime = 0
+print('MODEL=%s DATETIME=%s TIMEZONE=%s EPOCHTIME=%d' % (
+    r['result']['model'],
+    r['result']['datetime'],
+    r['result']['timezone'],
+    epochtime
+))
+"`
+  if [ "${ADJUSTMENT}" == "ERROR" ]; then
+    log "[ERROR] Failed to adjust time"
+    return
+  fi
+  eval ${ADJUSTMENT}
   log "[INFO] Module Model: ${MODEL}"
   log "[INFO] Network Timezone: ${TIMEZONE}"
-  log "[INFO] Adjusted the current time => ${DATETIME} UTC"
+  if [ "${EPOCHTIME}" == "0" ]; then
+    log "[INFO] Skipped to adjust time"
+  else
+    date -s "@${EPOCHTIME}"
+    log "[INFO] Adjusted the current time => ${DATETIME} UTC"
+  fi
 }
 
 function init_modem {
