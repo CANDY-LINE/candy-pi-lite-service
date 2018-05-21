@@ -4,7 +4,6 @@
     - `server_main.py`のPythonプロセスへのSIGUSR2(12)シグナルにて、`poff`で切断したPPP接続を再接続する機能を追加
     - server_main.pyでプロセス再起動を促すシグナルをSIGHUP(1)に変更
     - ppp接続の一時切断、再接続、状態確認を行うスクリプト(`connection_suspend.sh`、`connection_resume.sh`、`connection_status.sh`)を追加
-    - NTP時刻調整を有効にしている場合は通信モジュールによる時刻調整をしないように変更
 * 4.0.2
     - NTP時刻調整を有効にしている場合は通信モジュールによる時刻調整をしないように変更
     - 網側の時刻調整は、時間差が1秒以上ある場合にのみ実施するように変更
