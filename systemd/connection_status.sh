@@ -16,7 +16,11 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-DEBUG="1"
+if [ "$1" == "-q" ]; then
+  DEBUG=""
+else
+  DEBUG="1"
+fi
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
