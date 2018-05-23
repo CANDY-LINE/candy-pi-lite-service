@@ -314,6 +314,9 @@ do
     elif [ "${EXIT_CODE}" == "140" ]; then
       # SIGUSR2(12) is signaled by an external program to re-establish the connection
       rm -f ${PIDFILE}
+      if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
+        resolve_sim_state  # Ensure if the sim card is present
+      fi
       if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
         echo "1" > ${CONNECT_ON_STARTUP_FILE}  # Always connect on startup this time
         exit 3  # Restart if SIM is absent
