@@ -40,7 +40,7 @@ function assert_connected {
 function send_signal_user2 {
   # SIGUSR2(12)
   kill -12 $(cat ${PIDFILE})
-  CONN_MAX=10
+  CONN_MAX=60
   CONN_COUNTER=0
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
