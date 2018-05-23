@@ -40,13 +40,23 @@ function assert_connected {
 function send_signal_user2 {
   # SIGUSR2(12)
   kill -12 $(cat ${PIDFILE})
-  while true;
+  CONN_MAX=10
+  CONN_COUNTER=0
+  RET=""
+  while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    RET=`candy service version`
-    if [ "$?" == 2 ]; then
+    TEST=`candy service version 2>&1`
+    RET="$?"
+    if [ "${RET}" == 2 ]; then
       break
     fi
+    sleep 1
+    let CONN_COUNTER=CONN_COUNTER+1
   done
+  if [ "${RET}" != "2" ]; then
+    log "Timeout"
+    exit 1
+  fi
 }
 
 init
