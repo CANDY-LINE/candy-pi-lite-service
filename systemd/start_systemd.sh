@@ -200,6 +200,10 @@ function register_network {
   wait_for_network_registration "${APN_CS}"
 }
 
+function set_normal_ppp_exit_code {
+  echo "5" > ${PPPD_EXIT_CODE_FILE}
+}
+
 function connect {
   ip route del default
   CONN_MAX=3
@@ -223,6 +227,7 @@ function connect {
     fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
+  set_normal_ppp_exit_code
 }
 
 # main
@@ -270,10 +275,12 @@ CONNECT=${CONNECT_ON_STARTUP:-1}
 while true;
 do
   if [ "${CONNECT}" == "1" ]; then
-    log "[INFO] Trying to establish the data connetion..."
+    log "[INFO] Trying to establish a connetion...  (CONNECT=1)"
     connect
   else
+    log "[INFO] Not establishing a connection on start-up (CONNECT=0)"
     CONNECT="1"
+    set_normal_ppp_exit_code
   fi
 
   # end banner
