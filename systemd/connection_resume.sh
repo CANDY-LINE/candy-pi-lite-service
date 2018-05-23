@@ -45,15 +45,13 @@ function send_signal_user2 {
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    TEST=`candy service version 2>&1`
-    RET="$?"
-    if [ "${RET}" == 2 ]; then
+    if [ -f "${PPPD_RUNNING_FILE}" ]; then
       break
     fi
     sleep 1
     let CONN_COUNTER=CONN_COUNTER+1
   done
-  if [ "${RET}" != "2" ]; then
+  if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
     log "Timeout"
     exit 1
   fi

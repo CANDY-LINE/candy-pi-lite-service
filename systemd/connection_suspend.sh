@@ -24,6 +24,7 @@ fi
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+  _DEBUG=${DEBUG}
 }
 
 function assert_suspended {
@@ -37,11 +38,11 @@ function disestablish {
   poff -a
   while true;
   do
-    RET=`candy service version`
-    if [ "$?" == 0 ]; then
+    if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
       break
     fi
   done
+  systemctl --no-block restart dhcpcd
 }
 
 init
