@@ -179,6 +179,10 @@ function boot_ip_addr_fin {
 }
 
 function register_network {
+  if [ "${SIM_STATE}" != "SIM_STATE_READY" ]; then
+    log "[INFO] Skip network registration as SIM card is absent"
+    return
+  fi
   test_functionality
   save_apn "${APN}" "${APN_USER}" "${APN_PASSWORD}" "${APN_PDP}" "${APN_OPS}" "${APN_MCC}${APN_MNC}"
   wait_for_network_registration "${APN_CS}"

@@ -28,6 +28,7 @@ SHOW_CANDY_CMD_ERROR=0
 PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
 PIDFILE="/var/run/candy-pi-lite-service.pid"
 SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
+SIM_STATE="N/A"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -191,13 +192,14 @@ function init_serialport {
       do
         candy_command modem init
         if [ "${RET}" == "0" ]; then
+          SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['sim_state'])" 2>&1`
           break
         fi
         sleep 1
         let COUNTER=COUNTER+1
       done
       if [ "${RET}" != "0" ]; then
-        log "[ERROR] Modem returned error"
+        log "[ERROR] Modem returned error (USB)"
         return
       fi
     else
@@ -211,19 +213,21 @@ function init_serialport {
     log "[ERROR] Modem is missing"
     return
   elif [ -n "${MODEM_BAUDRATE}" ]; then
+    log "[INFO] Initializing modem with baudrate:${MODEM_BAUDRATE}"
     MAX=40
     COUNTER=0
     while [ ${COUNTER} -lt ${MAX} ];
     do
       candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
       if [ "${RET}" == "0" ]; then
+        SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['sim_state'])" 2>&1`
         break
       fi
       sleep 1
       let COUNTER=COUNTER+1
     done
     if [ "${RET}" != "0" ]; then
-      log "[ERROR] Modem returned error"
+      log "[ERROR] Modem returned error (UART)"
       return
     fi
     log "[INFO] Modem baudrate changed: ${CURRENT_BAUDRATE} => ${MODEM_BAUDRATE}"
