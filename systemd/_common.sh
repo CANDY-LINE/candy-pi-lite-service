@@ -192,7 +192,6 @@ function init_serialport {
       do
         candy_command modem init
         if [ "${RET}" == "0" ]; then
-          SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['sim_state'])" 2>&1`
           break
         fi
         sleep 1
@@ -220,7 +219,6 @@ function init_serialport {
     do
       candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
       if [ "${RET}" == "0" ]; then
-        SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['sim_state'])" 2>&1`
         break
       fi
       sleep 1

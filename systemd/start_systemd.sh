@@ -179,6 +179,18 @@ function boot_ip_addr_fin {
 }
 
 function register_network {
+  SIM_MAX=5
+  SIM_COUNTER=0
+  while [ ${SIM_COUNTER} -lt ${SIM_MAX} ];
+  do
+    candy_command sim show
+    SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['state'])" 2>&1`
+    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+      break
+    fi
+    let SIM_COUNTER=SIM_COUNTER+1
+    sleep 1
+  done
   if [ "${SIM_STATE}" != "SIM_STATE_READY" ]; then
     log "[INFO] Skip network registration as SIM card is absent"
     return
@@ -274,6 +286,9 @@ do
     elif [ "${EXIT_CODE}" == "140" ]; then
       # SIGUSR2(12) is signaled by an external program to re-establish the connection
       rm -f ${PIDFILE}
+      if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
+        exit 3  # Restart if SIM is absent
+      fi
       continue
     else
       log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
