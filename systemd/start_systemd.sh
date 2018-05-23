@@ -246,6 +246,11 @@ function resolve_connect_on_startup {
   CONNECT=${CONNECT_ON_STARTUP_FROM_FILE:-${CONNECT_ON_STARTUP:-1}}
 }
 
+function restart_with_connection {
+  echo "1" > ${CONNECT_ON_STARTUP_FILE}  # Always connect on startup this time
+  exit 3
+}
+
 # main
 init
 
@@ -318,8 +323,12 @@ do
         resolve_sim_state  # Ensure if the sim card is present
       fi
       if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
-        echo "1" > ${CONNECT_ON_STARTUP_FILE}  # Always connect on startup this time
-        exit 3  # Restart if SIM is absent
+        restart_with_connection  # Restart if SIM is absent
+      fi
+      _CREDS=${CREDS}
+      load_apn
+      if [ "${_CREDS}" != "${CREDS}" ]; then
+        restart_with_connection  # Restart if APN is modified
       fi
       continue
     else
