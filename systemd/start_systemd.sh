@@ -23,6 +23,7 @@ DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
 PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
+CONNECT_ON_STARTUP_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__connect_on_startup"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
@@ -178,7 +179,7 @@ function boot_ip_addr_fin {
   fi
 }
 
-function register_network {
+function resolve_sim_state {
   SIM_MAX=5
   SIM_COUNTER=0
   while [ ${SIM_COUNTER} -lt ${SIM_MAX} ];
@@ -191,6 +192,10 @@ function register_network {
     let SIM_COUNTER=SIM_COUNTER+1
     sleep 1
   done
+}
+
+function register_network {
+  resolve_sim_state
   if [ "${SIM_STATE}" != "SIM_STATE_READY" ]; then
     log "[INFO] Skip network registration as SIM card is absent"
     return
@@ -208,6 +213,7 @@ function connect {
   ip route del default
   CONN_MAX=3
   CONN_COUNTER=0
+  RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
     log "[INFO] Trying to connect...(Trial:${CONN_COUNTER+1}/${CONN_MAX})"
@@ -227,7 +233,17 @@ function connect {
     fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
-  set_normal_ppp_exit_code
+  if [ "${RET}" != "0" ]; then
+    set_normal_ppp_exit_code
+  fi
+}
+
+function resolve_connect_on_startup {
+  if [ -f "${CONNECT_ON_STARTUP_FILE}" ]; then
+    CONNECT_ON_STARTUP_FROM_FILE=`cat ${CONNECT_ON_STARTUP_FILE}`
+    rm -f ${CONNECT_ON_STARTUP_FILE}
+  fi
+  CONNECT=${CONNECT_ON_STARTUP_FROM_FILE:-${CONNECT_ON_STARTUP:-1}}
 }
 
 # main
@@ -271,12 +287,16 @@ do
   break
 done
 
-CONNECT=${CONNECT_ON_STARTUP:-1}
+resolve_connect_on_startup
 while true;
 do
   if [ "${CONNECT}" == "1" ]; then
-    log "[INFO] Trying to establish a connetion...  (CONNECT=1)"
-    connect
+    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+      log "[INFO] Trying to establish a connetion...  (CONNECT=1)"
+      connect
+    else
+      set_normal_ppp_exit_code
+    fi
   else
     log "[INFO] Not establishing a connection on start-up (CONNECT=0)"
     CONNECT="1"
@@ -295,6 +315,7 @@ do
       # SIGUSR2(12) is signaled by an external program to re-establish the connection
       rm -f ${PIDFILE}
       if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
+        echo "1" > ${CONNECT_ON_STARTUP_FILE}  # Always connect on startup this time
         exit 3  # Restart if SIM is absent
       fi
       continue
