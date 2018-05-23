@@ -253,10 +253,15 @@ do
   break
 done
 
+CONNECT=${CONNECT_ON_STARTUP:-1}
 while true;
 do
-  log "[INFO] Trying to establish the data connetion..."
-  connect
+  if [ "${CONNECT}" == "1" ]; then
+    log "[INFO] Trying to establish the data connetion..."
+    connect
+  else
+    CONNECT="1"
+  fi
 
   # end banner
   log "[INFO] ${PRODUCT} is initialized successfully!"

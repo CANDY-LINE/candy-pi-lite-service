@@ -36,3 +36,6 @@ OFFLINE_PERIOD_SEC=%OFFLINE_PERIOD_SEC%
 
 # Set 1 for disabling default route adjuster
 DISABLE_DEFAULT_ROUTE_ADJUSTER=%DISABLE_DEFAULT_ROUTE_ADJUSTER%
+
+# Whether or not to establish a connection on start-up
+CONNECT_ON_STARTUP=1
