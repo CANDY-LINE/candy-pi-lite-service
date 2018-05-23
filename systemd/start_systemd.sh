@@ -297,7 +297,7 @@ while true;
 do
   if [ "${CONNECT}" == "1" ]; then
     if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-      log "[INFO] Trying to establish a connetion...  (CONNECT=1)"
+      log "[INFO] Trying to establish a connetion..."
       connect
     else
       set_normal_ppp_exit_code
