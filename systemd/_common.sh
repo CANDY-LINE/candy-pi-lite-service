@@ -257,6 +257,7 @@ function perst {
 function wait_for_ppp_offline {
   RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
   if [ "$?" != "0" ]; then
+    rm -f ${PPPD_RUNNING_FILE}
     return
   fi
   poff -a > /dev/null 2>&1
@@ -276,6 +277,7 @@ function wait_for_ppp_offline {
     log "[ERROR] PPP cannot be offline"
     exit 1
   fi
+  rm -f ${PPPD_RUNNING_FILE}
 }
 
 function wait_for_ppp_online {
