@@ -15,4 +15,5 @@
   ,"internet4gd.gdsp":{"user":"web","password":"web","cs":true}
   ,"m2m4biz.softbank":{"user":"m2mbiz","password":"m2mbiz","cs":true}
   ,"isp.docomoiot.net":{"user":"web","password":"web"}
+  ,"4gn.jp":{"user":"sim","password":"sim@with"}
 }
