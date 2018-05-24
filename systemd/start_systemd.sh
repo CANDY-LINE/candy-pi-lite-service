@@ -295,6 +295,14 @@ done
 resolve_connect_on_startup
 while true;
 do
+  if [ "${GNSS_ON_STARTUP}" == "1" ]; then
+    candy_command gnss start
+    if [ "${RET}" == "0" ]; then
+      log "[INFO] GNSS started"
+    else
+      log "[WARN] Failed to start GNSS"
+    fi
+  fi
   if [ "${CONNECT}" == "1" ]; then
     if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
       log "[INFO] Trying to establish a connetion..."
