@@ -225,10 +225,12 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    while true; do
+    PPPD_RUNNING_TIMEOUT=0
+    while [ ${PPPD_RUNNING_TIMEOUT} -lt 30 ]; do
       if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
         break;
       fi
+      let PPPD_RUNNING_TIMEOUT=PPPD_RUNNING_TIMEOUT+1
       sleep 1
     done
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
