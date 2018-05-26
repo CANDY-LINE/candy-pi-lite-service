@@ -306,13 +306,13 @@ do
   fi
   if [ "${CONNECT}" == "1" ]; then
     if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-      log "[INFO] Trying to establish a connetion..."
+      log "[INFO] Trying to establish a connection..."
       connect
     else
       set_normal_ppp_exit_code
     fi
   else
-    log "[INFO] Not establishing a connection on start-up (CONNECT=0)"
+    log "[INFO] Not establishing a connection on start-up"
     CONNECT="1"
     set_normal_ppp_exit_code
   fi
