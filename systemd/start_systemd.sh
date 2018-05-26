@@ -225,7 +225,12 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    sleep 5
+    while true; do
+      if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
+        break;
+      fi
+      sleep 1
+    done
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
       PPPD_EXIT_CODE=`cat ${PPPD_EXIT_CODE_FILE}`
     else
