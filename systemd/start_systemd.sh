@@ -217,7 +217,7 @@ function connect {
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    log "[INFO] Trying to connect...(Trial:${CONN_COUNTER+1}/${CONN_MAX})"
+    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX})"
     . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
     PPPD_PID="$!"
     wait_for_ppp_online
