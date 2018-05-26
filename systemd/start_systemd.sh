@@ -237,6 +237,7 @@ function connect {
       PPPD_EXIT_CODE=""
     fi
     kill -9 ${PPPD_PID} > /dev/null 2>&1
+    clean_up_ppp_state
     if [ "${PPPD_EXIT_CODE}" == "12" ]; then
       exit ${PPPD_EXIT_CODE}
     fi
