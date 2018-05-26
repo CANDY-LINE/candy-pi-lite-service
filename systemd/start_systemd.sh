@@ -225,12 +225,15 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    sleep 5
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
       PPPD_EXIT_CODE=`cat ${PPPD_EXIT_CODE_FILE}`
-      if [ "${PPPD_EXIT_CODE}" == "12" ]; then
-        exit ${PPPD_EXIT_CODE}
-      fi
+    else
+      PPPD_EXIT_CODE=""
+    fi
+    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    if [ "${PPPD_EXIT_CODE}" == "12" ]; then
+      exit ${PPPD_EXIT_CODE}
     fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
