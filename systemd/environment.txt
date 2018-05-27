@@ -36,3 +36,9 @@ OFFLINE_PERIOD_SEC=%OFFLINE_PERIOD_SEC%
 
 # Set 1 for disabling default route adjuster
 DISABLE_DEFAULT_ROUTE_ADJUSTER=%DISABLE_DEFAULT_ROUTE_ADJUSTER%
+
+# Set 1 for establishing a connection on start-up
+CONNECT_ON_STARTUP=%CONNECT_ON_STARTUP%
+
+# Set 1 for starting GNSS session on start-up
+GNSS_ON_STARTUP=%GNSS_ON_STARTUP%

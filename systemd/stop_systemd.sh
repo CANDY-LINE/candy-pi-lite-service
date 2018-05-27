@@ -16,7 +16,6 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-PIDFILE="/var/run/candy-pi-lite-service.pid"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
 
 function init {
@@ -43,13 +42,14 @@ function stop_server_main {
   do
     RET=`ps ${PID}`
     if [ "$?" != "0" ]; then
+      rm -f "${SOCK_PATH}"
       return
     fi
     sleep 1
     let COUNTER=COUNTER+1
   done
   kill -9 ${PID}
-  rm -f "${PIDFILE}"
+  rm -f "${SOCK_PATH}"
   log "[WARN] Forcedly stopped server_main module"
 }
 

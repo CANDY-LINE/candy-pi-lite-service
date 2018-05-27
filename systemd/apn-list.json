@@ -9,10 +9,11 @@
   ,"iijmobile.jp":{"user":"mobile@iij","password":"iij"}
   ,"iijmobile.jp-ipv4v6":{"user":"mobile@iij","password":"iij","apn":"iijmobile.jp","pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
   ,"iijmobile.jp-ipv6":{"user":"mobile@iij","password":"iij","apn":"iijmobile.jp","pdp":"ipv6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
-  ,"iijmobile.biz":{"user":"biz@iij","password":"iij","ops":true,"pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
+  ,"iijmobile.biz":{"user":"biz@iij","password":"iij","ops":true}
   ,"iijmobile.biz-ipv4v6":{"user":"biz@iij","password":"iij","ops":true,"apn":"iijmobile.biz","pdp":"ipv4v6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
   ,"iijmobile.biz-ipv6":{"user":"biz@iij","password":"iij","ops":true,"apn":"iijmobile.biz","pdp":"ipv6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
   ,"internet4gd.gdsp":{"user":"web","password":"web","cs":true}
   ,"m2m4biz.softbank":{"user":"m2mbiz","password":"m2mbiz","cs":true}
   ,"isp.docomoiot.net":{"user":"web","password":"web"}
+  ,"4gn.jp":{"user":"sim@with","password":"sim"}
 }

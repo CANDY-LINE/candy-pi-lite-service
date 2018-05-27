@@ -23,6 +23,8 @@ DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
 PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
+CONNECT_ON_STARTUP_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__connect_on_startup"
+MODEM_SERIAL_PORT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_serial_port"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
@@ -178,18 +180,44 @@ function boot_ip_addr_fin {
   fi
 }
 
+function resolve_sim_state {
+  SIM_MAX=5
+  SIM_COUNTER=0
+  while [ ${SIM_COUNTER} -lt ${SIM_MAX} ];
+  do
+    candy_command sim show
+    SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['state'])" 2>&1`
+    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+      break
+    fi
+    let SIM_COUNTER=SIM_COUNTER+1
+    sleep 1
+  done
+}
+
 function register_network {
+  resolve_sim_state
+  if [ "${SIM_STATE}" != "SIM_STATE_READY" ]; then
+    log "[INFO] Skip network registration as SIM card is absent"
+    return
+  fi
   test_functionality
   save_apn "${APN}" "${APN_USER}" "${APN_PASSWORD}" "${APN_PDP}" "${APN_OPS}" "${APN_MCC}${APN_MNC}"
   wait_for_network_registration "${APN_CS}"
 }
 
+function set_normal_ppp_exit_code {
+  echo "5" > ${PPPD_EXIT_CODE_FILE}
+}
+
 function connect {
   ip route del default
-  CONN_MAX=5
+  CONN_MAX=3
   CONN_COUNTER=0
+  RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
+    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX})"
     . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
     PPPD_PID="$!"
     wait_for_ppp_online
@@ -197,19 +225,42 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    PPPD_RUNNING_TIMEOUT=0
+    while [ ${PPPD_RUNNING_TIMEOUT} -lt 30 ]; do
+      if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
+        break;
+      fi
+      let PPPD_RUNNING_TIMEOUT=PPPD_RUNNING_TIMEOUT+1
+      sleep 1
+    done
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
       PPPD_EXIT_CODE=`cat ${PPPD_EXIT_CODE_FILE}`
-      if [ "${PPPD_EXIT_CODE}" == "12" ]; then
-        exit ${PPPD_EXIT_CODE}
-      fi
+    else
+      PPPD_EXIT_CODE=""
+    fi
+    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    clean_up_ppp_state
+    if [ "${PPPD_EXIT_CODE}" == "12" ]; then
+      exit ${PPPD_EXIT_CODE}
     fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
   if [ "${RET}" != "0" ]; then
-    log "[ERROR] RESTARTING ${PRODUCT}..."
-    exit 3
+    set_normal_ppp_exit_code
   fi
+}
+
+function resolve_connect_on_startup {
+  if [ -f "${CONNECT_ON_STARTUP_FILE}" ]; then
+    CONNECT_ON_STARTUP_FROM_FILE=`cat ${CONNECT_ON_STARTUP_FILE}`
+    rm -f ${CONNECT_ON_STARTUP_FILE}
+  fi
+  CONNECT=${CONNECT_ON_STARTUP_FROM_FILE:-${CONNECT_ON_STARTUP:-1}}
+}
+
+function restart_with_connection {
+  echo "1" > ${CONNECT_ON_STARTUP_FILE}  # Always connect on startup this time
+  exit 3
 }
 
 # main
@@ -252,16 +303,60 @@ do
   fi
   break
 done
-log "[INFO] Trying to establish the data connetion..."
-connect
 
-# end banner
-log "[INFO] ${PRODUCT} is initialized successfully!"
-/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
-EXIT_CODE="$?"
-if [ "${EXIT_CODE}" == "143" ] && [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
-  # SIGTERM(15) is signaled by a thread in server_main module
-  exit 0
-else
-  exit ${EXIT_CODE}
-fi
+resolve_connect_on_startup
+while true;
+do
+  if [ "${GNSS_ON_STARTUP}" == "1" ]; then
+    candy_command gnss start
+    if [ "${RET}" == "0" ]; then
+      log "[INFO] GNSS started"
+    else
+      log "[WARN] Failed to start GNSS"
+    fi
+  fi
+  if [ "${CONNECT}" == "1" ]; then
+    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+      log "[INFO] Trying to establish a connection..."
+      connect
+    else
+      set_normal_ppp_exit_code
+    fi
+  else
+    log "[INFO] Not establishing a connection on start-up"
+    CONNECT="1"
+    set_normal_ppp_exit_code
+  fi
+
+  # end banner
+  log "[INFO] ${PRODUCT} is initialized successfully!"
+  /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+  EXIT_CODE="$?"
+  if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
+    if [ "${EXIT_CODE}" == "143" ]; then
+      # SIGTERM(15) is signaled by a thread in server_main module
+      exit 0
+    elif [ "${EXIT_CODE}" == "140" ]; then
+      # SIGUSR2(12) is signaled by an external program to re-establish the connection
+      rm -f ${PIDFILE}
+      if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
+        resolve_sim_state  # Ensure if the sim card is present
+      fi
+      if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
+        restart_with_connection  # Restart if SIM is absent
+      fi
+      _CREDS=${CREDS}
+      load_apn
+      if [ "${_CREDS}" != "${CREDS}" ]; then
+        restart_with_connection  # Restart if APN is modified
+      fi
+      continue
+    else
+      log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
+      exit ${EXIT_CODE}
+    fi
+  else
+    log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
+    exit ${EXIT_CODE}
+  fi
+done

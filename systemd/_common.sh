@@ -26,6 +26,9 @@ IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
 PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
+PIDFILE="/var/run/candy-pi-lite-service.pid"
+SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
+SIM_STATE="N/A"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -34,10 +37,22 @@ function assert_root {
   fi
 }
 
+function assert_service_is_running {
+  if [ ! -f "${PIDFILE}" ]; then
+    log "${PRODUCT} Service is missing"
+    exit 1
+  fi
+  PID=`cat ${PIDFILE}`
+  if ! kill -0 ${PID} > /dev/null 2>&1; then
+    log "${PRODUCT} Service isn't running"
+    exit 2
+  fi
+}
+
 function log {
   logger -t ${PRODUCT_DIR_NAME} $1
   if [ "${DEBUG}" ]; then
-    echo ${PRODUCT_DIR_NAME} $1
+    echo [${PRODUCT_DIR_NAME}] $1
   fi
 }
 
@@ -183,7 +198,7 @@ function init_serialport {
         let COUNTER=COUNTER+1
       done
       if [ "${RET}" != "0" ]; then
-        log "[ERROR] Modem returned error"
+        log "[ERROR] Modem returned error (USB)"
         return
       fi
     else
@@ -197,6 +212,7 @@ function init_serialport {
     log "[ERROR] Modem is missing"
     return
   elif [ -n "${MODEM_BAUDRATE}" ]; then
+    log "[INFO] Initializing modem with baudrate:${MODEM_BAUDRATE}"
     MAX=40
     COUNTER=0
     while [ ${COUNTER} -lt ${MAX} ];
@@ -209,7 +225,7 @@ function init_serialport {
       let COUNTER=COUNTER+1
     done
     if [ "${RET}" != "0" ]; then
-      log "[ERROR] Modem returned error"
+      log "[ERROR] Modem returned error (UART)"
       return
     fi
     log "[INFO] Modem baudrate changed: ${CURRENT_BAUDRATE} => ${MODEM_BAUDRATE}"
@@ -223,7 +239,7 @@ function init_serialport {
 
 function candy_command {
   CURRENT_BAUDRATE=${CURRENT_BAUDRATE:-${MODEM_BAUDRATE:-115200}}
-  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} /var/run/candy-board-service.sock`
+  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} ${SOCK_PATH}`
   RET=$?
   if [ "${SHOW_CANDY_CMD_ERROR}" == "1" ] && [ "${RET}" != "0" ]; then
     log "[INFO] candy_command[category:$1][action:$2] => [${RESULT}]"
@@ -238,9 +254,15 @@ function perst {
   echo 1 > ${PERST_PIN}/value
 }
 
+function clean_up_ppp_state {
+  rm -f ${MODEM_SERIAL_PORT_FILE}
+  rm -f ${PPPD_RUNNING_FILE}
+}
+
 function wait_for_ppp_offline {
   RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
   if [ "$?" != "0" ]; then
+    clean_up_ppp_state
     return
   fi
   poff -a > /dev/null 2>&1
@@ -260,6 +282,7 @@ function wait_for_ppp_offline {
     log "[ERROR] PPP cannot be offline"
     exit 1
   fi
+  clean_up_ppp_state
 }
 
 function wait_for_ppp_online {
