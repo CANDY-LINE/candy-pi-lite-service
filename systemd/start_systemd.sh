@@ -24,6 +24,7 @@ DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
 PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
 CONNECT_ON_STARTUP_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__connect_on_startup"
+MODEM_SERIAL_PORT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_serial_port"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
@@ -216,7 +217,7 @@ function connect {
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    log "[INFO] Trying to connect...(Trial:${CONN_COUNTER+1}/${CONN_MAX})"
+    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX})"
     . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
     PPPD_PID="$!"
     wait_for_ppp_online
@@ -224,12 +225,23 @@ function connect {
       break
     fi
     poff -a > /dev/null 2>&1
-    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    PPPD_RUNNING_TIMEOUT=0
+    while [ ${PPPD_RUNNING_TIMEOUT} -lt 30 ]; do
+      if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
+        break;
+      fi
+      let PPPD_RUNNING_TIMEOUT=PPPD_RUNNING_TIMEOUT+1
+      sleep 1
+    done
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
       PPPD_EXIT_CODE=`cat ${PPPD_EXIT_CODE_FILE}`
-      if [ "${PPPD_EXIT_CODE}" == "12" ]; then
-        exit ${PPPD_EXIT_CODE}
-      fi
+    else
+      PPPD_EXIT_CODE=""
+    fi
+    kill -9 ${PPPD_PID} > /dev/null 2>&1
+    clean_up_ppp_state
+    if [ "${PPPD_EXIT_CODE}" == "12" ]; then
+      exit ${PPPD_EXIT_CODE}
     fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
@@ -305,13 +317,13 @@ do
   fi
   if [ "${CONNECT}" == "1" ]; then
     if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-      log "[INFO] Trying to establish a connetion..."
+      log "[INFO] Trying to establish a connection..."
       connect
     else
       set_normal_ppp_exit_code
     fi
   else
-    log "[INFO] Not establishing a connection on start-up (CONNECT=0)"
+    log "[INFO] Not establishing a connection on start-up"
     CONNECT="1"
     set_normal_ppp_exit_code
   fi

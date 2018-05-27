@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PRODUCT_DIR_NAME="candy-pi-lite"
-PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
-
 # Run `poff` to stop
 
 if [ -n "${PPPD_DEBUG}" ]; then
@@ -90,6 +87,7 @@ function init {
 }
 
 function connect {
+  echo "${MODEM_SERIAL_PORT}" > ${MODEM_SERIAL_PORT_FILE}
   rm -f ${PPPD_EXIT_CODE_FILE}
   touch ${PPPD_RUNNING_FILE}
   pppd ${MODEM_SERIAL_PORT} ${MODEM_BAUDRATE} ${PPPD_DEBUG} ${PPPD_IPV6} \
@@ -122,6 +120,7 @@ function exit_pppd {
   # EXIT_CODE: poff=>5, Modem hangup=>16
   echo $1 > ${PPPD_EXIT_CODE_FILE}
   rm -f ${PPPD_RUNNING_FILE}
+  rm -f ${MODEM_SERIAL_PORT_FILE}
   exit $1
 }
 

@@ -254,10 +254,15 @@ function perst {
   echo 1 > ${PERST_PIN}/value
 }
 
+function clean_up_ppp_state {
+  rm -f ${MODEM_SERIAL_PORT_FILE}
+  rm -f ${PPPD_RUNNING_FILE}
+}
+
 function wait_for_ppp_offline {
   RET=`ifconfig ${IF_NAME} > /dev/null 2>&1`
   if [ "$?" != "0" ]; then
-    rm -f ${PPPD_RUNNING_FILE}
+    clean_up_ppp_state
     return
   fi
   poff -a > /dev/null 2>&1
@@ -277,7 +282,7 @@ function wait_for_ppp_offline {
     log "[ERROR] PPP cannot be offline"
     exit 1
   fi
-  rm -f ${PPPD_RUNNING_FILE}
+  clean_up_ppp_state
 }
 
 function wait_for_ppp_online {
