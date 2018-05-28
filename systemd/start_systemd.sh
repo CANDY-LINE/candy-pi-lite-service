@@ -278,8 +278,12 @@ boot_ip_addr_fin
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
 init_modem
-if [ "${NTP_DISABLED}" == "1" ]; then
-  stop_ntp
+if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+  if [ "${NTP_DISABLED}" == "1" ]; then
+    stop_ntp
+  fi
+else
+  start_ntp
 fi
 retry_usb_auto_detection
 if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
