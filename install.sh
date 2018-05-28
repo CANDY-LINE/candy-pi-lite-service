@@ -445,7 +445,7 @@ function install_candy_red {
     NODES_CSV_PATH=${NODES_CSV_PATH} \
     CANDY_RED_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED} \
     CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR} \
-    npm install -g --unsafe-perm candy-red
+    npm install -g --unsafe-perm --production candy-red
   REBOOT=1
   CANDY_PI_LITE_APT_GET_UPDATED=1
 }
