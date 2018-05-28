@@ -286,23 +286,25 @@ if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
   log "[INFO] New USB serial ports are detected"
   wait_for_serial_available
 fi
-while true;
-do
-  register_network
-  if [ "${NTP_DISABLED}" == "1" ]; then
-    adjust_time
-    if [ "$(date +%Y)" == "1980" ]; then
-      log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+  while true;
+  do
+    register_network
+    if [ "${NTP_DISABLED}" == "1" ]; then
+      adjust_time
+      if [ "$(date +%Y)" == "1980" ]; then
+        log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+      fi
     fi
-  fi
-  retry_usb_auto_detection
-  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-    log "[INFO] Re-registering network as new USB serial ports are detected"
-    wait_for_serial_available
-    continue
-  fi
-  break
-done
+    retry_usb_auto_detection
+    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+      log "[INFO] Re-registering network as new USB serial ports are detected"
+      wait_for_serial_available
+      continue
+    fi
+    break
+  done
+fi
 
 resolve_connect_on_startup
 while true;
