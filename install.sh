@@ -446,6 +446,14 @@ function install_candy_red {
     CANDY_RED_APT_GET_UPDATED=${CANDY_PI_LITE_APT_GET_UPDATED} \
     CANDY_RED_BIND_IPV4_ADDR=${CANDY_RED_BIND_IPV4_ADDR} \
     npm install -g --unsafe-perm --production candy-red
+  RET="$?"
+  if [ "${RET}" != "0" ]; then
+    err "Failed to install CANDY RED"
+    if [ "${BOARD}" == "RPi" ]; then
+      err "Consider to use the presinstalled OS image at https://forums.candy-line.io/tags/os, instead."
+    fi
+    exit ${RET}
+  fi
   REBOOT=1
   CANDY_PI_LITE_APT_GET_UPDATED=1
 }
