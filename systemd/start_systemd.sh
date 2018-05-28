@@ -193,6 +193,7 @@ function resolve_sim_state {
     let SIM_COUNTER=SIM_COUNTER+1
     sleep 1
   done
+  log "[INFO] SIM card state => ${SIM_STATE}"
 }
 
 function register_network {
