@@ -197,7 +197,6 @@ function resolve_sim_state {
 }
 
 function register_network {
-  resolve_sim_state
   if [ "${SIM_STATE}" != "SIM_STATE_READY" ]; then
     log "[INFO] Skip network registration as SIM card is absent"
     return
@@ -279,6 +278,7 @@ boot_ip_addr_fin
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
 init_modem
+resolve_sim_state
 if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
   if [ "${NTP_DISABLED}" == "1" ]; then
     stop_ntp
