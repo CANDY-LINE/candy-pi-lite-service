@@ -193,10 +193,10 @@ function resolve_sim_state {
     let SIM_COUNTER=SIM_COUNTER+1
     sleep 1
   done
+  log "[INFO] SIM card state => ${SIM_STATE}"
 }
 
 function register_network {
-  resolve_sim_state
   if [ "${SIM_STATE}" != "SIM_STATE_READY" ]; then
     log "[INFO] Skip network registration as SIM card is absent"
     return
@@ -278,31 +278,38 @@ boot_ip_addr_fin
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
 init_modem
-if [ "${NTP_DISABLED}" == "1" ]; then
-  stop_ntp
+resolve_sim_state
+if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+  if [ "${NTP_DISABLED}" == "1" ]; then
+    stop_ntp
+  fi
+else
+  start_ntp
 fi
 retry_usb_auto_detection
 if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
   log "[INFO] New USB serial ports are detected"
   wait_for_serial_available
 fi
-while true;
-do
-  register_network
-  if [ "${NTP_DISABLED}" == "1" ]; then
-    adjust_time
-    if [ "$(date +%Y)" == "1980" ]; then
-      log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+  while true;
+  do
+    register_network
+    if [ "${NTP_DISABLED}" == "1" ]; then
+      adjust_time
+      if [ "$(date +%Y)" == "1980" ]; then
+        log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+      fi
     fi
-  fi
-  retry_usb_auto_detection
-  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-    log "[INFO] Re-registering network as new USB serial ports are detected"
-    wait_for_serial_available
-    continue
-  fi
-  break
-done
+    retry_usb_auto_detection
+    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+      log "[INFO] Re-registering network as new USB serial ports are detected"
+      wait_for_serial_available
+      continue
+    fi
+    break
+  done
+fi
 
 resolve_connect_on_startup
 while true;
