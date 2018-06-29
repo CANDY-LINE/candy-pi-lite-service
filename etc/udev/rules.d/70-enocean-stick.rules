@@ -1,1 +1,1 @@
-SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{product}=="EnOcean USB [34]00J* ??", MODE="0666", SYMLINK+="enocean"
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{product}=="EnOcean USB [34]00* ??", MODE="0666", SYMLINK+="enocean"
