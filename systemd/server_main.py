@@ -75,9 +75,9 @@ class Pinger(threading.Thread):
     DEST_ADDR = '<broadcast>'
     DEST_PORT = 60100
 
-    def __init__(self, interval_sec, nic):
+    def __init__(self, ping_interval_sec, nic):
         super(Pinger, self).__init__()
-        self.interval_sec = interval_sec
+        self.ping_interval_sec = ping_interval_sec
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', 0))
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -85,9 +85,9 @@ class Pinger(threading.Thread):
         self.cat_tx_stat = 'cat /sys/class/net/%s/statistics/tx_bytes' % nic
 
     def run(self):
-        while self.interval_sec >= 5:
+        while self.ping_interval_sec >= 5:
             if not os.path.isfile(self.cat_tx_stat):
-                time.sleep(self.interval_sec)
+                time.sleep(self.ping_interval_sec)
                 continue
             try:
                 self.tx_bytes = subprocess.Popen(self.cat_tx_stat,
@@ -97,10 +97,10 @@ class Pinger(threading.Thread):
                 if int(self.tx_bytes) != self.last_tx_bytes:
                     self.socket.sendto('',
                                        (Pinger.DEST_ADDR, Pinger.DEST_PORT))
-                    time.sleep(self.interval_sec)
+                    time.sleep(self.ping_interval_sec)
                     self.last_tx_bytes = int(self.tx_bytes)
             except Exception:
-                time.sleep(self.interval_sec)
+                time.sleep(self.ping_interval_sec)
                 pass
 
 
