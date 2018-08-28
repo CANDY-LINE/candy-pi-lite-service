@@ -23,11 +23,9 @@ VERSION=5.1.0
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
-# v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARMv6_NODEJS_VERSION="6.14.2"
-ARMv7_NODEJS_VERSION="6.x"
-NODEJS_VERSIONS="v6"
+ARM_NODEJS_VERSION="8.11.4"
+NODEJS_VERSIONS="v8"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
@@ -417,17 +415,19 @@ function install_candy_red {
         /usr/sbin/npm \
         /usr/local/bin/node \
         /usr/local/bin/npm
-      echo ${MODEL_NAME} | grep -o "ARMv6"
-      if [ "$?" == "0" ]; then
-        cd /tmp
-        wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-        tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-        cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
-        cp -R * /usr/
+      if [[ ${MODEL_NAME} = *"ARMv6 "* ]]; then
+        ARM_ARCH_VERSION=armv6l
+      elif [[ ${MODEL_NAME} = *"ARMv7 "* ]] || [[ ${MODEL_NAME} = *"ARMv8 "* ]]; then
+        ARM_ARCH_VERSION=armv7l
       else
-        curl -sL https://deb.nodesource.com/setup_${ARMv7_NODEJS_VERSION} | sudo bash -
-        apt-get install -y nodejs
+        alert "Unsupported architecture"
+        exit 1
       fi
+      cd /tmp
+      wget https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
+      cp -R * /usr/
     fi
     info "Installing dependencies..."
     apt-get install -y python-dev bluez libudev-dev
