@@ -18,16 +18,14 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=5.1.0
+VERSION=5.2.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
-# v6 Maintenance LTS : April 2018 - April 2019
 # v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARMv6_NODEJS_VERSION="6.14.2"
-ARMv7_NODEJS_VERSION="6.x"
-NODEJS_VERSIONS="v6"
+ARM_NODEJS_VERSION="8.11.4"
+NODEJS_VERSIONS="v8"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
@@ -216,10 +214,14 @@ function do_configure_sc16is7xx_atb {
   RET=`grep "sc16is7xx.ko" /lib/modules/$(uname -r)/modules.dep`
   if [ "$?" != "0" ]; then
     info "Installing SC16IS7xx Kernel Module..."
-    mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
-    cp -f ${SRC_DIR}/lib/modules/4.4.71+/kernel/drivers/tty/serial/sc16is7xx.ko \
-      /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
-    depmod -a
+    KO_FILE_PATH="${SRC_DIR}/lib/modules/$(uname -r)/kernel/drivers/tty/serial/sc16is7xx.ko"
+    if [ -f "${KO_FILE_PATH}" ]; then
+      mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+      cp -f ${KO_FILE_PATH} /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+      depmod -a
+    else
+      err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
+    fi
   fi
 
   SC16IS7xx_DT_NAME="sc16is752-spi2-ce1-atb"
@@ -417,17 +419,19 @@ function install_candy_red {
         /usr/sbin/npm \
         /usr/local/bin/node \
         /usr/local/bin/npm
-      echo ${MODEL_NAME} | grep -o "ARMv6"
-      if [ "$?" == "0" ]; then
-        cd /tmp
-        wget https://nodejs.org/dist/v${ARMv6_NODEJS_VERSION}/node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-        tar zxf node-v${ARMv6_NODEJS_VERSION}-linux-armv6l.tar.gz
-        cd node-v${ARMv6_NODEJS_VERSION}-linux-armv6l/
-        cp -R * /usr/
+      if [[ ${MODEL_NAME} = *"ARMv6 "* ]]; then
+        ARM_ARCH_VERSION=armv6l
+      elif [[ ${MODEL_NAME} = *"ARMv7 "* ]] || [[ ${MODEL_NAME} = *"ARMv8 "* ]]; then
+        ARM_ARCH_VERSION=armv7l
       else
-        curl -sL https://deb.nodesource.com/setup_${ARMv7_NODEJS_VERSION} | sudo bash -
-        apt-get install -y nodejs
+        alert "Unsupported architecture"
+        exit 1
       fi
+      cd /tmp
+      wget https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
+      cp -R * /usr/
     fi
     info "Installing dependencies..."
     apt-get install -y python-dev bluez libudev-dev
