@@ -214,10 +214,14 @@ function do_configure_sc16is7xx_atb {
   RET=`grep "sc16is7xx.ko" /lib/modules/$(uname -r)/modules.dep`
   if [ "$?" != "0" ]; then
     info "Installing SC16IS7xx Kernel Module..."
-    mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
-    cp -f ${SRC_DIR}/lib/modules/4.4.71+/kernel/drivers/tty/serial/sc16is7xx.ko \
-      /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
-    depmod -a
+    KO_FILE_PATH="${SRC_DIR}/lib/modules/$(uname -r)/kernel/drivers/tty/serial/sc16is7xx.ko"
+    if [ -f "${KO_FILE_PATH}" ]; then
+      mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+      cp -f ${KO_FILE_PATH} /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+      depmod -a
+    else
+      err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
+    fi
   fi
 
   SC16IS7xx_DT_NAME="sc16is752-spi2-ce1-atb"
