@@ -76,6 +76,8 @@ shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__shutdown')
 pppd_exit_code_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__pppd_exit_code')
+ip_reachable_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   '__ip_reachable')
 PID = str(os.getpid())
 
 
@@ -121,6 +123,7 @@ class Pinger(threading.Thread):
                 pass
 
     def _run_test(self):
+        atexit.register(delete_path, ip_reachable_file)
         while self.ping_interval_sec >= 5:
             err = subprocess.call("ping -%s -c 1 -I %s -W 5 -s 1 %s" %
                                   (self.ping_ip_version, self.nic,
@@ -132,6 +135,8 @@ class Pinger(threading.Thread):
                 if self.offline_since > 0:
                     logger.info("[NOTICE] <candy-pi-lite> back to onlne")
                 self.offline_since = 0
+                if not os.path.isfile(ip_reachable_file):
+                    open(ip_reachable_file, 'a').close()
             else:
                 logger.warn("[NOTICE] <candy-pi-lite> IP unreachable")
                 if self.offline_since == 0:
@@ -139,6 +144,7 @@ class Pinger(threading.Thread):
                 else:
                     diff = (datetime.now() - self.offline_since)
                     if diff.total_seconds() > self.ping_offline_threshold:
+                        delete_path(ip_reachable_file)
                         self.restart()
                         return
             time.sleep(self.ping_interval_sec)
@@ -157,6 +163,7 @@ class Pinger(threading.Thread):
         # exit from non-main thread
         logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE (IP Unreachable)")
         os.kill(os.getpid(), signal.SIGHUP)
+        return True
 
 class Monitor(threading.Thread):
     FNULL = open(os.devnull, 'w')
