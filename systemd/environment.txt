@@ -10,8 +10,14 @@ BLINKY=1
 # Blinking interval in seconds, > 0 and <= 60
 BLINKY_INTERVAL_SEC=0.8
 
-# Network retaining request interval in PPP Modem-mode (<5: disabled)
+# Network testing request interval in PPP Modem-mode (<5: disabled)
 PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%
+
+# Network reachability test destination ip address and ip version
+PPP_PING_TYPE=%PPP_PING_TYPE%
+PPP_PING_DESTINATION=%PPP_PING_DESTINATION%
+PPP_PING_IP_VERSION=%PPP_PING_IP_VERSION%
+PPP_PING_OFFLINE_THRESHOLD=%PPP_PING_OFFLINE_THRESHOLD%
 
 # Set 1 for disabling NTP service, 0 for enabling it
 # Either NTP service or 3G/4G LTE time adjustment works at the same time

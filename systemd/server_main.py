@@ -60,6 +60,14 @@ DISABLE_DEFAULT_ROUTE_ADJUSTER = \
     if 'DISABLE_DEFAULT_ROUTE_ADJUSTER' in os.environ else 0
 PPP_PING_INTERVAL_SEC = float(os.environ['PPP_PING_INTERVAL_SEC']) \
     if 'PPP_PING_INTERVAL_SEC' in os.environ else 0.0
+PPP_PING_OFFLINE_THRESHOLD = float(os.environ['PPP_PING_OFFLINE_THRESHOLD']) \
+    if 'PPP_PING_OFFLINE_THRESHOLD' in os.environ else 0.0
+PPP_PING_TYPE = os.environ['PPP_PING_TYPE'] \
+    if 'PPP_PING_TYPE' in os.environ else ''
+PPP_PING_DESTINATION = os.environ['PPP_PING_DESTINATION'] \
+    if 'PPP_PING_DESTINATION' in os.environ else ''
+PPP_PING_IP_VERSION = int(os.environ['PPP_PING_IP_VERSION']) \
+    if 'PPP_PING_IP_VERSION' in os.environ else 4
 online = False
 offline_since = time.time()
 OFFLINE_PERIOD_SEC = float(os.environ['OFFLINE_PERIOD_SEC']) \
@@ -75,16 +83,25 @@ class Pinger(threading.Thread):
     DEST_ADDR = '<broadcast>'
     DEST_PORT = 60100
 
-    def __init__(self, ping_interval_sec, nic):
+    def __init__(self, ping_interval_sec, ping_type, nic,
+        ping_destination, ping_ip_version, ping_offline_threshold):
         super(Pinger, self).__init__()
+        self.nic = nic
         self.ping_interval_sec = ping_interval_sec
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind(('', 0))
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.last_tx_bytes = 0
-        self.cat_tx_stat = 'cat /sys/class/net/%s/statistics/tx_bytes' % nic
+        self.ping_type = ping_type
+        if self.ping_type == 'RETAIN':
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.socket.bind(('', 0))
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self.last_tx_bytes = 0
+            self.cat_tx_stat = 'cat /sys/class/net/%s/statistics/tx_bytes' % self.nic
+        elif self.ping_type == 'TEST':
+            self.ping_destination = ping_destination
+            self.ping_ip_version = ping_ip_version
+            self.ping_offline_threshold = ping_offline_threshold
+            self.offline_since = 0
 
-    def run(self):
+    def _run_retain(self):
         while self.ping_interval_sec >= 5:
             if not os.path.isfile(self.cat_tx_stat):
                 time.sleep(self.ping_interval_sec)
@@ -103,6 +120,43 @@ class Pinger(threading.Thread):
                 time.sleep(self.ping_interval_sec)
                 pass
 
+    def _run_test(self):
+        while self.ping_interval_sec >= 5:
+            err = subprocess.call("ping -%s -c 1 -I %s -W 5 -s 1 %s" %
+                                  (self.ping_ip_version, self.nic,
+                                   self.ping_destination),
+                                  shell=True,
+                                  stdout=Monitor.FNULL,
+                                  stderr=subprocess.STDOUT)
+            if err == 0:
+                if self.offline_since > 0:
+                    logger.info("[NOTICE] <candy-pi-lite> back to onlne")
+                self.offline_since = 0
+            else:
+                logger.warn("[NOTICE] <candy-pi-lite> IP unreachable")
+                if self.offline_since == 0:
+                    self.offline_since = datetime.now()
+                else:
+                    diff = (datetime.now() - self.offline_since)
+                    if diff.total_seconds() > self.ping_offline_threshold:
+                        self.restart()
+                        return
+            time.sleep(self.ping_interval_sec)
+
+    def run(self):
+        if self.ping_type == 'RETAIN':
+            self._run_retain()
+        elif self.ping_type == 'TEST':
+            self._run_test()
+        else:
+            pass
+
+    def restart(self):
+        if os.path.isfile(shutdown_state_file):
+            return False
+        # exit from non-main thread
+        logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE (IP Unreachable)")
+        os.kill(os.getpid(), signal.SIGHUP)
 
 class Monitor(threading.Thread):
     FNULL = open(os.devnull, 'w')
@@ -337,7 +391,9 @@ def server_main(serial_port, bps, nic,
     logger.debug("server_main() : Setting up Monitor...")
     monitor = Monitor(nic)
     logger.debug("server_main() : Setting up Pinger...")
-    pinger = Pinger(PPP_PING_INTERVAL_SEC, nic)
+    pinger = Pinger(PPP_PING_INTERVAL_SEC, PPP_PING_TYPE, nic,
+                    PPP_PING_DESTINATION, PPP_PING_IP_VERSION,
+                    PPP_PING_OFFLINE_THRESHOLD)
 
     logger.debug("server_main() : Starting SockServer...")
     server.start()
