@@ -55,6 +55,7 @@ $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=iijmobile.biz-ipv4v6 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io SERIAL_PORT_TYPE=usb ./install.sh
+$ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=lte-d.ocn.ne.jp PPP_PING_TYPE=TEST PPP_PING_DESTINATION=1.2.3.4 PPP_PING_IP_VERSION=4 PPP_PING_INTERVAL_SEC=10 ./install.sh
 
 $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 ```
