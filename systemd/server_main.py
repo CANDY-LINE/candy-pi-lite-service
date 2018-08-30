@@ -68,6 +68,8 @@ PPP_PING_DESTINATION = os.environ['PPP_PING_DESTINATION'] \
     if 'PPP_PING_DESTINATION' in os.environ else ''
 PPP_PING_IP_VERSION = int(os.environ['PPP_PING_IP_VERSION']) \
     if 'PPP_PING_IP_VERSION' in os.environ else 4
+PPP_PING_RESTART_IF_OFFLINE = int(os.environ['PPP_PING_RESTART_IF_OFFLINE']) \
+    if 'PPP_PING_RESTART_IF_OFFLINE' in os.environ else 0
 online = False
 offline_since = time.time()
 OFFLINE_PERIOD_SEC = float(os.environ['OFFLINE_PERIOD_SEC']) \
@@ -145,7 +147,8 @@ class Pinger(threading.Thread):
                     diff = (datetime.now() - self.offline_since)
                     if diff.total_seconds() > self.ping_offline_threshold:
                         delete_path(ip_reachable_file)
-                        self.restart()
+                        if PPP_PING_RESTART_IF_OFFLINE:
+                            self.restart()
                         return
             time.sleep(self.ping_interval_sec)
 
