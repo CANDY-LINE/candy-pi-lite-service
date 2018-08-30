@@ -506,6 +506,7 @@ function install_service {
       PPP_PING_DESTINATION \
       PPP_PING_IP_VERSION \
       PPP_PING_OFFLINE_THRESHOLD \
+      PPP_PING_RESTART_IF_OFFLINE \
       NTP_DISABLED \
       PPPD_DEBUG \
       CHAT_VERBOSE \
