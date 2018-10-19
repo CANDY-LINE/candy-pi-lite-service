@@ -30,6 +30,7 @@ IP_REACHABLE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__ip_reachable"
 PIDFILE="/var/run/candy-pi-lite-service.pid"
 SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
 SIM_STATE="N/A"
+PPP_MAX_FAIL=${PPP_MAX_FAIL:-3}
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -298,6 +299,9 @@ function wait_for_ppp_online {
       break
     fi
     sleep 1
+    if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
+      break;
+    fi
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" != "0" ]; then
@@ -342,6 +346,8 @@ function wait_for_network_registration {
     candy_command network show
     RET="$?"
     if [ "${RET}" == "0" ]; then
+      OPERATOR=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['operator'])" 2>&1`
+      log "[INFO] Operator => ${OPERATOR}"
       STAT=`
 /usr/bin/env python -c \
 "import json;r=json.loads('${RESULT}');

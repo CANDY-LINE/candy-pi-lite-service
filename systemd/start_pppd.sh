@@ -111,7 +111,7 @@ function connect {
     lock \
     modem \
     persist \
-    maxfail 3 \
+    maxfail ${PPP_MAX_FAIL} \
     nodetach > /dev/null 2>&1
 }
 
