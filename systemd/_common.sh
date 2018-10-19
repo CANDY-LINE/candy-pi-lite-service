@@ -298,6 +298,9 @@ function wait_for_ppp_online {
       break
     fi
     sleep 1
+    if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
+      break;
+    fi
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" != "0" ]; then
