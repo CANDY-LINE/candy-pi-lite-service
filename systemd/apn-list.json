@@ -19,4 +19,5 @@
   ,"4gn.jp":{"user":"sim@with","password":"sim"}
   ,"ipsim.net":{"user":"sim@with","password":"sim","apn":"4gn.jp"}
   ,"rokemoba":{"user":"roke@moba","password":"roke@moba","apn":"4gn.jp"}
+  ,"au.au-net.ne.jp":{"user":"user@au.au-net.ne.jp","password":"au"}
 }
