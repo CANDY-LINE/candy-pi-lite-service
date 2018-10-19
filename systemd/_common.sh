@@ -30,6 +30,7 @@ IP_REACHABLE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__ip_reachable"
 PIDFILE="/var/run/candy-pi-lite-service.pid"
 SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
 SIM_STATE="N/A"
+PPP_MAX_FAIL=${PPP_MAX_FAIL:-3}
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
