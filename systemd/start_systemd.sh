@@ -214,6 +214,10 @@ function connect {
   ip route del default
   CONN_MAX=3
   CONN_COUNTER=0
+  if [[ "${OPERATOR}" == *"KDDI"* ]]; then
+    PPP_MAX_FAIL=1
+    log "[INFO] PPP_MAX_FAIL => ${PPP_MAX_FAIL}"
+  fi
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
@@ -242,6 +246,12 @@ function connect {
     clean_up_ppp_state
     if [ "${PPPD_EXIT_CODE}" == "12" ]; then
       exit ${PPPD_EXIT_CODE}
+    fi
+    if [[ "${OPERATOR}" == *"KDDI"* ]]; then
+      log "[ERROR] The module isn't ready for KDDI network. Setup in progress..."
+      candy_command modem reset
+      log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
+      exit 1
     fi
     let CONN_COUNTER=CONN_COUNTER+1
   done
