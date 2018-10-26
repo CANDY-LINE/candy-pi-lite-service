@@ -218,7 +218,7 @@ function do_configure_sc16is7xx_rpi {
 function do_configure_sc16is7xx_atb {
   RET=`grep "sc16is7xx.ko" /lib/modules/$(uname -r)/modules.dep`
   if [ "$?" != "0" ]; then
-    info "Installing SC16IS7xx Kernel Module..."
+    info "Installing SC16IS7xx Kernel Module...(Kernel Version:$(uname -r))"
     KO_FILE_PATH="${SRC_DIR}/lib/modules/$(uname -r)/kernel/drivers/tty/serial/sc16is7xx.ko"
     if [ -f "${KO_FILE_PATH}" ]; then
       mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
