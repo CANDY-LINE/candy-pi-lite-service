@@ -71,7 +71,7 @@ if 'apn' in apn:
 print(str(apn).strip() in apn_list)
 "`
     if [ "${BOOT_APN}" != "True" ]; then
-      log "[ERROR] Invalid ${APN_FILE} content => $(cat ${APN_FILE}), ${APN_FILE} file is ignored"
+      log "[WARN] Invalid ${APN_FILE} content => $(cat ${APN_FILE}), ${APN_FILE} file is IGNORED"
     else
       log "[INFO] APN[$(cat /boot/apn)] is set"
       mv -f /boot/apn /opt/candy-line/${PRODUCT_DIR_NAME}/apn
