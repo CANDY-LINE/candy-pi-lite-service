@@ -66,16 +66,15 @@ if 'apn' in apn:
     with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json', 'w') as f:
         json.dump(apn_list, f)
     apn = apn['apn']
-    with open('/boot/apn', 'w') as f:
+    with open('${APN_FILE}', 'w') as f:
         f.write(apn)
 print(str(apn).strip() in apn_list)
 "`
     if [ "${BOOT_APN}" != "True" ]; then
       log "[WARN] Invalid ${APN_FILE} content => $(cat ${APN_FILE}), ${APN_FILE} file is IGNORED"
     else
-      log "[INFO] APN[$(cat /boot/apn)] is set"
-      mv -f /boot/apn /opt/candy-line/${PRODUCT_DIR_NAME}/apn
-      rm -f /boot/apn.txt
+      log "[INFO] APN[$(cat ${APN_FILE})] is set"
+      mv -f ${APN_FILE} /opt/candy-line/${PRODUCT_DIR_NAME}/apn
     fi
   fi
 }
