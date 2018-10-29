@@ -38,7 +38,13 @@ function init {
 }
 
 function boot_apn {
+  APN_FILE=""
   if [ -f "/boot/apn" ]; then
+    APN_FILE="/boot/apn"
+  elif [ -f "/boot/apn.txt" ]; then
+    APN_FILE="/boot/apn.txt"
+  fi
+  if [ -n "${APN_FILE}" ]; then
     log "[INFO] Provisioning APN..."
     BOOT_APN=`/usr/bin/env python -c "
 import json
@@ -46,7 +52,7 @@ apn = ''
 apn_list = {}
 with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
     apn_list = json.load(f)
-with open('/boot/apn') as f:
+with open('${APN_FILE}') as f:
     try:
         apn = f.read()
         apn = json.loads(apn)
@@ -60,15 +66,15 @@ if 'apn' in apn:
     with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json', 'w') as f:
         json.dump(apn_list, f)
     apn = apn['apn']
-    with open('/boot/apn', 'w') as f:
+    with open('${APN_FILE}', 'w') as f:
         f.write(apn)
 print(str(apn).strip() in apn_list)
 "`
     if [ "${BOOT_APN}" != "True" ]; then
-      log "[ERROR] Invalid /boot/apn content => $(cat /boot/apn), /boot/apn file is ignored"
+      log "[WARN] Invalid ${APN_FILE} content => $(cat ${APN_FILE}), ${APN_FILE} file is IGNORED"
     else
-      log "[INFO] APN[$(cat /boot/apn)] is set"
-      mv -f /boot/apn /opt/candy-line/${PRODUCT_DIR_NAME}/apn
+      log "[INFO] APN[$(cat ${APN_FILE})] is set"
+      mv -f ${APN_FILE} /opt/candy-line/${PRODUCT_DIR_NAME}/apn
     fi
   fi
 }
