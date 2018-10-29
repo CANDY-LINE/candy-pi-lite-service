@@ -1,4 +1,10 @@
 # 履歴
+* 6.2.0
+    - ASUS Tinker Board向けTinker OS v2.0.7へ対応
+    - Node.jsのインストールバージョンをv8.12.0へ変更
+    - microSDカードを使用したAPN設定のためのファイル名として`/boot/apn`に加えて、`/boot/apn.txt`も許容するように変更
+    - イプシムSIMカードのAPN名を`ipsim.net`へ変更（以前のAPNは`4gn.jp`削除されました）
+
 * 6.1.0
     - イプシムSIMカードのAPN名を`ipsim.net`へ変更（以前のAPNは`4gn.jp`次のバージョンで削除されます）
     - ロケモバSIMカードのAPN`rokemoba`を追加
