@@ -1,12 +1,17 @@
 # 履歴
+* 6.3.0
+    - `candy sim`コマンド、`candy network`コマンド、`candy modem`コマンドにて、`--suspend`および`--resume`オプションが利用可能になりました。これによりGPIO接続時に明示的に接続を停止する必要なく1つのコマンドで接続の一時停止と再接続を行うことが可能です
+    - `candy network show`コマンドの結果に登録先の無線ネットワークの種類と周波数バンドを含めるようにしました
+    - Node.jsのインストールバージョンをv8.15.0へ変更
+
 * 6.2.0
     - ASUS Tinker Board向けTinker OS v2.0.7へ対応
     - Node.jsのインストールバージョンをv8.12.0へ変更
     - microSDカードを使用したAPN設定のためのファイル名として`/boot/apn`に加えて、`/boot/apn.txt`も許容するように変更
-    - イプシムSIMカードのAPN名を`ipsim.net`へ変更（以前のAPNは`4gn.jp`削除されました）
+    - イプシムSIMカードのAPN名を`ipsim.net`へ変更（以前のAPN`4gn.jp`は削除されました）
 
 * 6.1.0
-    - イプシムSIMカードのAPN名を`ipsim.net`へ変更（以前のAPNは`4gn.jp`次のバージョンで削除されます）
+    - イプシムSIMカードのAPN名を`ipsim.net`へ変更（以前のAPN`4gn.jp`は次のバージョンで削除されます）
     - ロケモバSIMカードのAPN`rokemoba`を追加
 
 * 6.0.0
