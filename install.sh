@@ -445,7 +445,7 @@ function install_candy_red {
     fi
   fi
   cd ~
-  npm cache clean
+  npm cache clean --force
   info "Installing CANDY RED..."
   if [ "${BOARD}" == "ATB" ]; then
     CANDY_RED_BIND_IPV4_ADDR=true
