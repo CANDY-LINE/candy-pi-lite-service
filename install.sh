@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=6.4.0
+VERSION=6.5.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -445,7 +445,7 @@ function install_candy_red {
     fi
   fi
   cd ~
-  npm cache clean
+  npm cache clean --force
   info "Installing CANDY RED..."
   if [ "${BOARD}" == "ATB" ]; then
     CANDY_RED_BIND_IPV4_ADDR=true
