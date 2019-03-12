@@ -88,7 +88,7 @@ class Pinger(threading.Thread):
     DEST_PORT = 60100
 
     def __init__(self, ping_interval_sec, ping_type, nic,
-        ping_destination, ping_ip_version, ping_offline_threshold):
+                 ping_destination, ping_ip_version, ping_offline_threshold):
         super(Pinger, self).__init__()
         self.nic = nic
         self.ping_interval_sec = ping_interval_sec
@@ -98,7 +98,8 @@ class Pinger(threading.Thread):
             self.socket.bind(('', 0))
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             self.last_tx_bytes = 0
-            self.cat_tx_stat = 'cat /sys/class/net/%s/statistics/tx_bytes' % self.nic
+            self.cat_tx_stat = ('cat /sys/class/net/%s/statistics/tx_bytes' %
+                                self.nic)
         elif self.ping_type == 'TEST':
             self.ping_destination = ping_destination
             self.ping_ip_version = ping_ip_version
@@ -164,9 +165,11 @@ class Pinger(threading.Thread):
         if os.path.isfile(shutdown_state_file):
             return False
         # exit from non-main thread
-        logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE (IP Unreachable)")
+        logger.error(
+            "[NOTICE] <candy-pi-lite> RESTARTING SERVICE (IP Unreachable)")
         os.kill(os.getpid(), signal.SIGHUP)
         return True
+
 
 class Monitor(threading.Thread):
     FNULL = open(os.devnull, 'w')
