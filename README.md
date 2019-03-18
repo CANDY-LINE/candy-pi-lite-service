@@ -62,6 +62,6 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 
 # ライセンス
 
-Copyright (c) 2018 [CANDY LINE INC.](https://www.candy-line.io)
+Copyright (c) 2019 [CANDY LINE INC.](https://www.candy-line.io)
 
 [Apache Software License 2.0](LICENSE)
