@@ -49,7 +49,7 @@ $ make PI_USER=linaro PI_HOST=tinkerboard.local
 ### 動作確認 (RPi/ATB)
 
 ```bash
-$ VERSION=6.5.0 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=6.6.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ./install.sh
@@ -62,6 +62,6 @@ $ time sudo /opt/candy-line/candy-pi-lite/uninstall.sh
 
 # ライセンス
 
-Copyright (c) 2018 [CANDY LINE INC.](https://www.candy-line.io)
+Copyright (c) 2019 [CANDY LINE INC.](https://www.candy-line.io)
 
 [Apache Software License 2.0](LICENSE)
