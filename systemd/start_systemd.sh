@@ -293,93 +293,107 @@ boot_ip_addr_fin
 
 # start banner
 log "[INFO] Initializing ${PRODUCT}..."
-init_modem
-resolve_sim_state
-if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-  if [ "${NTP_DISABLED}" == "1" ]; then
-    stop_ntp
-  fi
-else
-  start_ntp
-fi
-retry_usb_auto_detection
-if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-  log "[INFO] New USB serial ports are detected"
-  wait_for_serial_available
-fi
-if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-  while true;
-  do
-    register_network
-    if [ "${NTP_DISABLED}" == "1" ]; then
-      adjust_time
-      if [ "$(date +%Y)" == "1980" ]; then
-        log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
-      fi
-    fi
-    retry_usb_auto_detection
-    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-      log "[INFO] Re-registering network as new USB serial ports are detected"
-      wait_for_serial_available
-      continue
-    fi
-    break
-  done
-fi
-
-resolve_connect_on_startup
 while true;
 do
-  if [ "${GNSS_ON_STARTUP}" == "1" ]; then
-    candy_command gnss start
-    if [ "${RET}" == "0" ]; then
-      log "[INFO] GNSS started"
-    else
-      log "[WARN] Failed to start GNSS"
-    fi
-  fi
-  if [ "${CONNECT}" == "1" ]; then
-    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-      log "[INFO] Trying to establish a connection..."
-      connect
-    else
-      set_normal_ppp_exit_code
+  RECONNECT="0"
+  init_modem
+  resolve_sim_state
+  if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+    if [ "${NTP_DISABLED}" == "1" ]; then
+      stop_ntp
     fi
   else
-    log "[INFO] Not establishing a connection on start-up"
-    CONNECT="1"
-    set_normal_ppp_exit_code
+    start_ntp
+  fi
+  retry_usb_auto_detection
+  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+    log "[INFO] New USB serial ports are detected"
+    wait_for_serial_available
+  fi
+  if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+    while true;
+    do
+      register_network
+      if [ "${NTP_DISABLED}" == "1" ]; then
+        adjust_time
+        if [ "$(date +%Y)" == "1980" ]; then
+          log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+        fi
+      fi
+      retry_usb_auto_detection
+      if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+        log "[INFO] Re-registering network as new USB serial ports are detected"
+        wait_for_serial_available
+        continue
+      fi
+      break
+    done
   fi
 
-  # end banner
-  log "[INFO] ${PRODUCT} is initialized successfully!"
-  /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
-  EXIT_CODE="$?"
-  if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
-    if [ "${EXIT_CODE}" == "143" ]; then
-      # SIGTERM(15) is signaled by a thread in server_main module
-      exit 0
-    elif [ "${EXIT_CODE}" == "140" ]; then
-      # SIGUSR2(12) is signaled by an external program to re-establish the connection
-      rm -f ${PIDFILE}
-      if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
-        resolve_sim_state  # Ensure if the sim card is present
+  resolve_connect_on_startup
+  while true;
+  do
+    if [ "${GNSS_ON_STARTUP}" == "1" ]; then
+      candy_command gnss start
+      if [ "${RET}" == "0" ]; then
+        log "[INFO] GNSS started"
+      else
+        log "[WARN] Failed to start GNSS"
       fi
-      if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
-        restart_with_connection  # Restart if SIM is absent
+    fi
+    if [ "${CONNECT}" == "1" ]; then
+      if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+        log "[INFO] Trying to establish a connection..."
+        connect
+        if [ "${RET}" != "0" ]; then
+          RECONNECT="1"
+          break
+        fi
+      else
+        set_normal_ppp_exit_code
       fi
-      _CREDS=${CREDS}
-      load_apn
-      if [ "${_CREDS}" != "${CREDS}" ]; then
-        restart_with_connection  # Restart if APN is modified
+    else
+      log "[INFO] Not establishing a connection on start-up"
+      CONNECT="1"
+      set_normal_ppp_exit_code
+    fi
+
+    # end banner
+    log "[INFO] ${PRODUCT} is initialized successfully!"
+    /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+    EXIT_CODE="$?"
+    if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
+      if [ "${EXIT_CODE}" == "143" ]; then
+        # SIGTERM(15) is signaled by a thread in server_main module
+        exit 0
+      elif [ "${EXIT_CODE}" == "140" ]; then
+        # SIGUSR2(12) is signaled by an external program to re-establish the connection
+        rm -f ${PIDFILE}
+        if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
+          resolve_sim_state  # Ensure if the sim card is present
+        fi
+        if [ ${SIM_STATE} != "SIM_STATE_READY" ]; then
+          restart_with_connection  # Restart if SIM is absent
+        fi
+        _CREDS=${CREDS}
+        load_apn
+        if [ "${_CREDS}" != "${CREDS}" ]; then
+          restart_with_connection  # Restart if APN is modified
+        fi
+        continue
+      else
+        log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
+        exit ${EXIT_CODE}
       fi
-      continue
     else
       log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
       exit ${EXIT_CODE}
     fi
+  done
+  if [ "${RECONNECT}" == "0" ]; then
+    break
   else
-    log "[INFO] ${PRODUCT} is shutting down by code:${EXIT_CODE}"
-    exit ${EXIT_CODE}
+    log "[WARN] Failed to establishing a connection. Retry after ${SLEEP_SEC_BEFORE_RETRY} seconds..."
+    sleep ${SLEEP_SEC_BEFORE_RETRY}
   fi
 done

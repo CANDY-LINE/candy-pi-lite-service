@@ -49,3 +49,6 @@ CONNECT_ON_STARTUP=%CONNECT_ON_STARTUP%
 
 # Set 1 for starting GNSS session on start-up
 GNSS_ON_STARTUP=%GNSS_ON_STARTUP%
+
+# Sleep time in seconds before retrying to establishing a connection
+SLEEP_SEC_BEFORE_RETRY=%SLEEP_SEC_BEFORE_RETRY%
