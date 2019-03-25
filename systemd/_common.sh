@@ -27,6 +27,7 @@ DELAY_SEC=${DELAY_SEC:-1}
 SHOW_CANDY_CMD_ERROR=0
 PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
 IP_REACHABLE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__ip_reachable"
+MODEM_INFO_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_info"
 PIDFILE="/var/run/candy-pi-lite-service.pid"
 SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
 SIM_STATE="N/A"
@@ -257,6 +258,7 @@ function perst {
 }
 
 function clean_up_ppp_state {
+  rm -f ${MODEM_INFO_FILE}
   rm -f ${MODEM_SERIAL_PORT_FILE}
   rm -f ${PPPD_RUNNING_FILE}
   rm -f ${IP_REACHABLE_FILE}
