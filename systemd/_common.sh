@@ -376,7 +376,7 @@ print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'
 function test_functionality {
   # init_modem must be performed prior to this function
   candy_command modem show
-  if [ "$?" != 0 ]; then
+  if [ "${RET}" != 0 ]; then
     log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
     exit 1
   fi
