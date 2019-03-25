@@ -344,7 +344,6 @@ function wait_for_network_registration {
   while [ ${COUNTER} -lt ${MAX} ];
   do
     candy_command network show
-    RET="$?"
     if [ "${RET}" == "0" ]; then
       OPERATOR=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['operator'])" 2>&1`
       log "[INFO] Operator => ${OPERATOR}"
