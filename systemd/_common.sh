@@ -346,7 +346,9 @@ function wait_for_serial_available {
 function wait_for_network_registration {
   # init_modem must be performed prior to this function
   REG_KEY="ps"
-  if [ "$1" == "True" ]; then
+  if [ "${MODEL}" == "EC21" ] || [ "${MODEL}" == "BG96" ]; then
+    REG_KEY="eps"
+  elif [ "$1" == "True" ]; then
     REG_KEY="cs"
   fi
   MAX=600
