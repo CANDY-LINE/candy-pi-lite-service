@@ -35,6 +35,13 @@ PIDFILE="/var/run/candy-pi-lite-service.pid"
 SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
 SIM_STATE="N/A"
 PPP_MAX_FAIL=${PPP_MAX_FAIL:-3}
+SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
+PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
+CONNECT_ON_STARTUP_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__connect_on_startup"
+MODEM_SERIAL_PORT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_serial_port"
+DHCPCD_CNF="/etc/dhcpcd.conf"
+DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
+DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
