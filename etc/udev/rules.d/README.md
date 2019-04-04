@@ -1,7 +1,7 @@
 udev rules
 ===
 
-## Quectel UC20 and EC21
+## Quectel UC20, EC21, EC25, and BG96
 
 `99-qws-usb-serial.rules` creates the following aliases when you connect UC20 and/or EC21 to Raspberry Pi via USB.
 
@@ -9,6 +9,10 @@ udev rules
 - `/dev/QWS.UC20.MODEM` ... MODEM interface for UC20
 - `/dev/QWS.EC21.AT` ... AT command interface for EC21
 - `/dev/QWS.EC21.MODEM` ... MODEM command interface for EC21
+- `/dev/QWS.EC25.AT` ... AT command interface for EC25
+- `/dev/QWS.EC25.MODEM` ... MODEM command interface for EC25
+- `/dev/QWS.BG96.AT` ... AT command interface for BG96
+- `/dev/QWS.BG96.MODEM` ... MODEM command interface for BG96
 
 ## EnOcean USB Dongle
 
