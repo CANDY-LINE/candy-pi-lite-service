@@ -390,8 +390,16 @@ function test_functionality {
     log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
     exit 1
   fi
-  FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])" 2>&1`
-  log "[INFO] Phone Functionality => ${FUNC}"
+  MODEM_SHOW=`/usr/bin/env python -c "
+import json, time, datetime
+r = json.loads('${RESULT}')
+print('MODEL=%s FUNC=%s' % (
+    r['result']['model'],
+    r['result']['functionality']
+))
+"`
+  eval ${MODEM_SHOW}
+  log "[INFO] ${MODEL} Phone Functionality => ${FUNC}"
   if [ "${FUNC}" == "Anomaly" ]; then
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
     candy_command modem reset
