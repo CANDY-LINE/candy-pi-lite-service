@@ -425,7 +425,7 @@ function install_candy_red {
         /usr/sbin/npm \
         /usr/local/bin/node \
         /usr/local/bin/npm
-      if [[ ${MODEL_NAME} = *"ARMv6 "* ]]; then
+      if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
       elif [[ ${MODEL_NAME} = *"ARMv7 "* ]] || [[ ${MODEL_NAME} = *"ARMv8 "* ]]; then
         ARM_ARCH_VERSION=armv7l
