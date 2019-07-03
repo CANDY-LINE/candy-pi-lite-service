@@ -427,7 +427,7 @@ function install_candy_red {
         /usr/local/bin/npm
       if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
-      elif [[ ${MODEL_NAME} = *"ARMv7 "* ]] || [[ ${MODEL_NAME} = *"ARMv8 "* ]]; then
+      elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
         ARM_ARCH_VERSION=armv7l
       else
         alert "Unsupported architecture"
