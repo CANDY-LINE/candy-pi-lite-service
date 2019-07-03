@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=6.6.1
+VERSION=6.6.2
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -425,12 +425,12 @@ function install_candy_red {
         /usr/sbin/npm \
         /usr/local/bin/node \
         /usr/local/bin/npm
-      if [[ ${MODEL_NAME} = *"ARMv6 "* ]]; then
+      if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
-      elif [[ ${MODEL_NAME} = *"ARMv7 "* ]] || [[ ${MODEL_NAME} = *"ARMv8 "* ]]; then
+      elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
         ARM_ARCH_VERSION=armv7l
       else
-        alert "Unsupported architecture"
+        alert "Unsupported architecture. Model name:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp

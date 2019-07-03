@@ -1,4 +1,7 @@
 # 履歴
+* 6.6.2
+    - Raspberry Pi Zeroにてインストール時に`Unsupported architecture`と出る問題を修正
+
 * 6.6.1
     - 3G版でGNSSが使用できない問題を修正
 
