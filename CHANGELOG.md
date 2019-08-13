@@ -1,4 +1,7 @@
 # 履歴
+* 6.7.0
+    - EC25新ファームウェアへの対応を追加
+
 * 6.6.2
     - Raspberry Pi Zeroにてインストール時に`Unsupported architecture`と出る問題を修正
 
