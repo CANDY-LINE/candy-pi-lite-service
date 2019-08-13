@@ -14,7 +14,7 @@
   ,"iijmobile.biz-ipv6":{"user":"biz@iij","password":"iij","ops":true,"apn":"iijmobile.biz","pdp":"ipv6","ipv6dns1":"2001:240::13","ipv6dns2":"2001:240::14"}
   ,"internet4gd.gdsp":{"user":"web","password":"web","cs":true}
   ,"sd.iijmobile.jp":{"user":"mobile@iij","password":"iij"}
-  ,"m2m4biz.softbank":{"user":"m2mbiz","password":"m2mbiz","cs":true}
+  ,"m2m4biz.softbank":{"user":"m2mbiz","password":"m2mbiz","cs":true,"pu":true}
   ,"isp.docomoiot.net":{"user":"web","password":"web"}
   ,"ipsim.net":{"user":"sim@with","password":"sim","apn":"4gn.jp"}
   ,"rokemoba":{"user":"roke@moba","password":"roke@moba","apn":"4gn.jp"}
