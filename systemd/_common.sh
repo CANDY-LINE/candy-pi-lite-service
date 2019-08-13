@@ -209,7 +209,7 @@ function init_serialport {
       COUNTER=0
       while [ ${COUNTER} -lt ${MAX} ];
       do
-        candy_command modem init
+        candy_command modem "{\"action\":\"init\",\"pu\":${CLCK_PU}}"
         if [ "${RET}" == "0" ]; then
           break
         fi
@@ -236,7 +236,7 @@ function init_serialport {
     COUNTER=0
     while [ ${COUNTER} -lt ${MAX} ];
     do
-      candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
+      candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\",\"pu\":${CLCK_PU}}"
       if [ "${RET}" == "0" ]; then
         break
       fi
@@ -250,7 +250,7 @@ function init_serialport {
     log "[INFO] Modem baudrate changed: ${CURRENT_BAUDRATE} => ${MODEM_BAUDRATE}"
     CURRENT_BAUDRATE=${MODEM_BAUDRATE}
   else
-    candy_command modem init
+    candy_command modem "{\"action\":\"init\",\"pu\":${CLCK_PU}}"
   fi
   MODEM_INIT=1
   log "[INFO] Initialization Done. Modem Serial Port => ${MODEM_SERIAL_PORT} Modem baudrate => ${CURRENT_BAUDRATE}"
@@ -414,7 +414,7 @@ print('MODEL=%s FUNC=%s' % (
   log "[INFO] ${MODEL} Phone Functionality => ${FUNC}"
   if [ "${FUNC}" == "Anomaly" ]; then
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
-    candy_command modem reset
+    candy_command modem "{\"action\":\"reset\",\"pu\":${CLCK_PU}}"
     log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
     exit 1
   fi
@@ -511,7 +511,7 @@ function load_apn {
     "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
     import json;c=json.load(f)['${APN}'];
     print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
-    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s' %
+    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s CLCK_PU=%s' %
     (
       c['apn'] if 'apn' in c else '${APN}',
       c['user'],
@@ -524,6 +524,7 @@ function load_apn {
       c['mnc'] if 'mnc' in c else '',
       c['ipv6dns1'] if 'ipv6dns1' in c else '',
       c['ipv6dns2'] if 'ipv6dns2' in c else '',
+      'true' if 'pu' in c and c['pu'] is True else 'false',
     ))" \
     2>&1`
   if [ "$?" != "0" ]; then
