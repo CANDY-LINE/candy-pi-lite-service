@@ -23,8 +23,10 @@ VERSION=6.6.2
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
-# v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARM_NODEJS_VERSION="8.15.1"
+# v8  Active LTS Start on 2017-10-31, Maintenance LTS : January 2019 - December 2019
+# v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
+# v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
+ARM_NODEJS_VERSION="8.16.0"
 NODEJS_VERSIONS="v8"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
