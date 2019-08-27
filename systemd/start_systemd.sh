@@ -50,13 +50,13 @@ with open('${APN_FILE}') as f:
     except:
         pass
 if 'apn' in apn:
-    apn_list[apn['apn']] = {
-        'user': apn['user'] if 'user' in apn else '',
-        'password': apn['password'] if 'password' in apn else ''
-    }
+    alias = apn['alias'] if 'alias' in apn else apn['apn'] if 'apn' in apn else ''
+    apn['user'] = apn['user'] if 'user' in apn else ''
+    apn['password'] = apn['password'] if 'password' in apn else ''
+    apn_list[alias] = apn
     with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json', 'w') as f:
         json.dump(apn_list, f)
-    apn = apn['apn']
+    apn = alias
     with open('${APN_FILE}', 'w') as f:
         f.write(apn)
 print(str(apn).strip() in apn_list)
