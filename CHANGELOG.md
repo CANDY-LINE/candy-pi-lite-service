@@ -1,7 +1,7 @@
 # 履歴
 * 6.7.0
     - EC25新ファームウェアへの対応を追加
-    - sakrua.io SIMカードのAPN（DOCOMO/KDDI/Softbank）を追加
+    - さくらセキュアモバイルコネクトのAPN（DOCOMO/KDDI/Softbank）を追加
     - `/boot/apn.txt`へ設定可能なAPN属性が`user`、`password`、`apn`のみとなっていた問題を修正
 
 * 6.6.2
