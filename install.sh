@@ -63,6 +63,8 @@ CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
 
+ALERT_MESSAGE=""
+
 REBOOT=0
 
 function err {
@@ -228,7 +230,10 @@ function do_configure_sc16is7xx_atb {
       cp -f ${KO_FILE_PATH} /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
       depmod -a
     else
+      ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:$(uname -r) is unsupported. Use USB, instead."
       err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
+      err "Skip to install Device Tree Blob."
+      return
     fi
   fi
 
@@ -561,6 +566,9 @@ function teardown {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
   if [ "${CONTAINER_MODE}" == "0" ] && [ "${REBOOT}" == "1" ]; then
     alert "*** Please reboot the system (enter 'sudo reboot') ***"
+  fi
+  if [ -n "${ALERT_MESSAGE}" ]; then
+    alert "${ALERT_MESSAGE}"
   fi
 }
 
