@@ -221,16 +221,16 @@ function do_configure_sc16is7xx_rpi {
 }
 
 function do_configure_sc16is7xx_atb {
-  RET=`grep "sc16is7xx.ko" /lib/modules/$(uname -r)/modules.dep`
+  RET=`grep "sc16is7xx.ko" /lib/modules/${KERNEL}/modules.dep`
   if [ "$?" != "0" ]; then
-    info "Installing SC16IS7xx Kernel Module...(Kernel Version:$(uname -r))"
-    KO_FILE_PATH="${SRC_DIR}/lib/modules/$(uname -r)/kernel/drivers/tty/serial/sc16is7xx.ko"
+    info "Installing SC16IS7xx Kernel Module...(Kernel Version:${KERNEL})"
+    KO_FILE_PATH="${SRC_DIR}/lib/modules/${KERNEL}/kernel/drivers/tty/serial/sc16is7xx.ko"
     if [ -f "${KO_FILE_PATH}" ]; then
-      mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
-      cp -f ${KO_FILE_PATH} /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+      mkdir -p /lib/modules/${KERNEL}/kernel/drivers/tty/serial/
+      cp -f ${KO_FILE_PATH} /lib/modules/${KERNEL}/kernel/drivers/tty/serial/
       depmod -a
     else
-      ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:$(uname -r) is unsupported. Use USB, instead."
+      ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:${KERNEL} is unsupported. Use USB, instead."
       err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
       err "Skip to install Device Tree Blob."
       return
