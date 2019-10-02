@@ -16,19 +16,10 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-DEBUG=""
-
-DHCPCD_CNF="/etc/dhcpcd.conf"
-DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
-DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
-SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
-PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
-CONNECT_ON_STARTUP_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__connect_on_startup"
-MODEM_SERIAL_PORT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_serial_port"
 
 function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
-  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ]; then
+  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ] || [ -e "${QWS_BG96_PORT}" ]; then
     . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
     export LED2
   else
@@ -59,13 +50,13 @@ with open('${APN_FILE}') as f:
     except:
         pass
 if 'apn' in apn:
-    apn_list[apn['apn']] = {
-        'user': apn['user'] if 'user' in apn else '',
-        'password': apn['password'] if 'password' in apn else ''
-    }
+    alias = apn['alias'] if 'alias' in apn else apn['apn'] if 'apn' in apn else ''
+    apn['user'] = apn['user'] if 'user' in apn else ''
+    apn['password'] = apn['password'] if 'password' in apn else ''
+    apn_list[alias] = apn
     with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json', 'w') as f:
         json.dump(apn_list, f)
-    apn = apn['apn']
+    apn = alias
     with open('${APN_FILE}', 'w') as f:
         f.write(apn)
 print(str(apn).strip() in apn_list)
@@ -340,6 +331,22 @@ do
       else
         log "[WARN] Failed to start GNSS"
       fi
+    fi
+    if [ ! -f "${MODEM_INFO_FILE}" ]; then
+      candy_command modem show
+      if [ "${RET}" != 0 ]; then
+        log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly (1)"
+        restart_with_connection
+      fi
+      echo ${RESULT} > ${MODEM_INFO_FILE}
+    fi
+    if [ ! -f "${NW_INFO_FILE}" ]; then
+      candy_command network show
+      if [ "${RET}" != 0 ]; then
+        log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly (2)"
+        restart_with_connection
+      fi
+      echo ${RESULT} > ${NW_INFO_FILE}
     fi
     if [ "${CONNECT}" == "1" ]; then
       if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then

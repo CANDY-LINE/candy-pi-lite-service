@@ -1,4 +1,10 @@
 # 履歴
+* 6.7.0
+    - EC25新ファームウェアへの対応を追加
+    - さくらセキュアモバイルコネクトのAPN（DOCOMO/KDDI/Softbank）を追加
+    - `/boot/apn.txt`へ設定可能なAPN属性が`user`、`password`、`apn`のみとなっていた問題を修正
+    - 既知の問題：ASUS TinkerOS v2.0.8以降ではUSB接続のみ利用可能です。GPIO接続は、シリアル送信に問題があるため利用できません。カーネルモジュールではなくカーネル自体の問題と思われるため、問題解消の目処は立っておりません。
+
 * 6.6.2
     - Raspberry Pi Zeroにてインストール時に`Unsupported architecture`と出る問題を修正
 

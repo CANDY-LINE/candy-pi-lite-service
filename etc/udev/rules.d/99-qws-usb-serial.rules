@@ -10,3 +10,7 @@ SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProd
 SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{.LOCAL_ifNum}=="01", SYMLINK+="QWS.EC25.NMEA", MODE="0660"
 SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{.LOCAL_ifNum}=="02", SYMLINK+="QWS.EC25.AT", MODE="0660"
 SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{.LOCAL_ifNum}=="03", SYMLINK+="QWS.EC25.MODEM", MODE="0660"
+
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0296", ENV{.LOCAL_ifNum}=="01", SYMLINK+="QWS.BG96.NMEA", MODE="0660"
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0296", ENV{.LOCAL_ifNum}=="02", SYMLINK+="QWS.BG96.AT", MODE="0660"
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0296", ENV{.LOCAL_ifNum}=="03", SYMLINK+="QWS.BG96.MODEM", MODE="0660"

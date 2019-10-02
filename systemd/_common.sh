@@ -19,18 +19,29 @@ UART_PORT="/dev/ttySC1"
 QWS_UC20="/dev/QWS.UC20"
 QWS_EC21="/dev/QWS.EC21"
 QWS_EC25="/dev/QWS.EC25"
+QWS_BG96="/dev/QWS.BG96"
 QWS_UC20_PORT="${QWS_UC20}.MODEM"
 QWS_EC21_PORT="${QWS_EC21}.MODEM"
 QWS_EC25_PORT="${QWS_EC25}.MODEM"
+QWS_BG96_PORT="${QWS_BG96}.MODEM"
 IF_NAME="${IF_NAME:-ppp0}"
 DELAY_SEC=${DELAY_SEC:-1}
-SHOW_CANDY_CMD_ERROR=0
+SHOW_CANDY_CMD_ERROR=${SHOW_CANDY_CMD_ERROR:-0}
 PPPD_RUNNING_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_running"
 IP_REACHABLE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__ip_reachable"
+MODEM_INFO_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_info"
+NW_INFO_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__nw_info"
 PIDFILE="/var/run/candy-pi-lite-service.pid"
 SOCK_PATH=${SOCK_PATH:-"/var/run/candy-board-service.sock"}
 SIM_STATE="N/A"
 PPP_MAX_FAIL=${PPP_MAX_FAIL:-3}
+SHUDOWN_STATE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__shutdown"
+PPPD_EXIT_CODE_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__pppd_exit_code"
+CONNECT_ON_STARTUP_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__connect_on_startup"
+MODEM_SERIAL_PORT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_serial_port"
+DHCPCD_CNF="/etc/dhcpcd.conf"
+DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
+DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -76,6 +87,12 @@ function detect_usb_device {
       if [ "$?" == "0" ]; then
         USB_SERIAL_PORT=${QWS_EC25_PORT}
         USB_SERIAL_AT_PORT="${QWS_EC25}.AT"
+      else
+        USB_SERIAL=`lsusb | grep "2c7c:0296"`
+        if [ "$?" == "0" ]; then
+          USB_SERIAL_PORT=${QWS_BG96_PORT}
+          USB_SERIAL_AT_PORT="${QWS_BG96}.AT"
+        fi
       fi
     fi
   fi
@@ -192,7 +209,7 @@ function init_serialport {
       COUNTER=0
       while [ ${COUNTER} -lt ${MAX} ];
       do
-        candy_command modem init
+        candy_command modem "{\"action\":\"init\",\"pu\":${CLCK_PU}}"
         if [ "${RET}" == "0" ]; then
           break
         fi
@@ -219,7 +236,7 @@ function init_serialport {
     COUNTER=0
     while [ ${COUNTER} -lt ${MAX} ];
     do
-      candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\"}"
+      candy_command modem "{\"action\":\"init\",\"baudrate\":\"${MODEM_BAUDRATE}\",\"pu\":${CLCK_PU}}"
       if [ "${RET}" == "0" ]; then
         break
       fi
@@ -233,7 +250,7 @@ function init_serialport {
     log "[INFO] Modem baudrate changed: ${CURRENT_BAUDRATE} => ${MODEM_BAUDRATE}"
     CURRENT_BAUDRATE=${MODEM_BAUDRATE}
   else
-    candy_command modem init
+    candy_command modem "{\"action\":\"init\",\"pu\":${CLCK_PU}}"
   fi
   MODEM_INIT=1
   log "[INFO] Initialization Done. Modem Serial Port => ${MODEM_SERIAL_PORT} Modem baudrate => ${CURRENT_BAUDRATE}"
@@ -257,6 +274,8 @@ function perst {
 }
 
 function clean_up_ppp_state {
+  rm -f ${NW_INFO_FILE}
+  rm -f ${MODEM_INFO_FILE}
   rm -f ${MODEM_SERIAL_PORT_FILE}
   rm -f ${PPPD_RUNNING_FILE}
   rm -f ${IP_REACHABLE_FILE}
@@ -336,7 +355,9 @@ function wait_for_serial_available {
 function wait_for_network_registration {
   # init_modem must be performed prior to this function
   REG_KEY="ps"
-  if [ "$1" == "True" ]; then
+  if [ "${MODEL}" == "EC21" ] || [ "${MODEL}" == "BG96" ]; then
+    REG_KEY="eps"
+  elif [ "$1" == "True" ]; then
     REG_KEY="cs"
   fi
   MAX=600
@@ -344,7 +365,6 @@ function wait_for_network_registration {
   while [ ${COUNTER} -lt ${MAX} ];
   do
     candy_command network show
-    RET="$?"
     if [ "${RET}" == "0" ]; then
       OPERATOR=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['operator'])" 2>&1`
       log "[INFO] Operator => ${OPERATOR}"
@@ -372,20 +392,29 @@ print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'
     log "[ERROR] Network Registration Failed"
     exit 1
   fi
+  echo ${RESULT} > ${NW_INFO_FILE}
 }
 
 function test_functionality {
   # init_modem must be performed prior to this function
   candy_command modem show
-  if [ "$?" != 0 ]; then
+  if [ "${RET}" != 0 ]; then
     log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
     exit 1
   fi
-  FUNC=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['functionality'])" 2>&1`
-  log "[INFO] Phone Functionality => ${FUNC}"
+  MODEM_SHOW=`/usr/bin/env python -c "
+import json, time, datetime
+r = json.loads('${RESULT}')
+print('MODEL=%s FUNC=%s' % (
+    r['result']['model'],
+    r['result']['functionality']
+))
+"`
+  eval ${MODEM_SHOW}
+  log "[INFO] ${MODEL} Phone Functionality => ${FUNC}"
   if [ "${FUNC}" == "Anomaly" ]; then
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
-    candy_command modem reset
+    candy_command modem "{\"action\":\"reset\",\"pu\":${CLCK_PU}}"
     log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
     exit 1
   fi
@@ -482,7 +511,7 @@ function load_apn {
     "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
     import json;c=json.load(f)['${APN}'];
     print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
-    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s' %
+    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s CLCK_PU=%s' %
     (
       c['apn'] if 'apn' in c else '${APN}',
       c['user'],
@@ -495,6 +524,7 @@ function load_apn {
       c['mnc'] if 'mnc' in c else '',
       c['ipv6dns1'] if 'ipv6dns1' in c else '',
       c['ipv6dns2'] if 'ipv6dns2' in c else '',
+      'true' if 'pu' in c and c['pu'] is True else 'false',
     ))" \
     2>&1`
   if [ "$?" != "0" ]; then

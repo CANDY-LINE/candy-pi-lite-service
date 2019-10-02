@@ -79,7 +79,7 @@ shutdown_state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 pppd_exit_code_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    '__pppd_exit_code')
 ip_reachable_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   '__ip_reachable')
+                                 '__ip_reachable')
 PID = str(os.getpid())
 
 
