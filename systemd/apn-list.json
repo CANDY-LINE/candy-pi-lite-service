@@ -20,4 +20,7 @@
   ,"rokemoba":{"user":"roke@moba","password":"roke@moba","apn":"4gn.jp"}
   ,"au.au-net.ne.jp":{"user":"user@au.au-net.ne.jp","password":"au"}
   ,"uqmobile.jp":{"user":"uq@uqmobile.jp","password":"uq"}
+  ,"sakura-kddi":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"51"}
+  ,"sakura-docomo":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"10"}
+  ,"sakura-softbank":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"20"}
 }

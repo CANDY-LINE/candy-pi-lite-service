@@ -18,13 +18,15 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=6.6.2
+VERSION=6.7.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
-# v8 Active LTS Start on 2017-10-31, Maintenance LTS : April 2019 - December 2019
-ARM_NODEJS_VERSION="8.15.1"
+# v8  Active LTS Start on 2017-10-31, Maintenance LTS : January 2019 - December 2019
+# v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
+# v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
+ARM_NODEJS_VERSION="8.16.0"
 NODEJS_VERSIONS="v8"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
@@ -60,6 +62,8 @@ COFIGURE_SMARTMESH_PORT=${COFIGURE_SMARTMESH_PORT:-1}
 CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
+
+ALERT_MESSAGE=""
 
 REBOOT=0
 
@@ -217,16 +221,19 @@ function do_configure_sc16is7xx_rpi {
 }
 
 function do_configure_sc16is7xx_atb {
-  RET=`grep "sc16is7xx.ko" /lib/modules/$(uname -r)/modules.dep`
+  RET=`grep "sc16is7xx.ko" /lib/modules/${KERNEL}/modules.dep`
   if [ "$?" != "0" ]; then
-    info "Installing SC16IS7xx Kernel Module...(Kernel Version:$(uname -r))"
-    KO_FILE_PATH="${SRC_DIR}/lib/modules/$(uname -r)/kernel/drivers/tty/serial/sc16is7xx.ko"
+    info "Installing SC16IS7xx Kernel Module...(Kernel Version:${KERNEL})"
+    KO_FILE_PATH="${SRC_DIR}/lib/modules/${KERNEL}/kernel/drivers/tty/serial/sc16is7xx.ko"
     if [ -f "${KO_FILE_PATH}" ]; then
-      mkdir -p /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
-      cp -f ${KO_FILE_PATH} /lib/modules/$(uname -r)/kernel/drivers/tty/serial/
+      mkdir -p /lib/modules/${KERNEL}/kernel/drivers/tty/serial/
+      cp -f ${KO_FILE_PATH} /lib/modules/${KERNEL}/kernel/drivers/tty/serial/
       depmod -a
     else
+      ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:${KERNEL} is unsupported. Use USB, instead."
       err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
+      err "Skip to install Device Tree Blob."
+      return
     fi
   fi
 
@@ -559,6 +566,9 @@ function teardown {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
   if [ "${CONTAINER_MODE}" == "0" ] && [ "${REBOOT}" == "1" ]; then
     alert "*** Please reboot the system (enter 'sudo reboot') ***"
+  fi
+  if [ -n "${ALERT_MESSAGE}" ]; then
+    alert "${ALERT_MESSAGE}"
   fi
 }
 
