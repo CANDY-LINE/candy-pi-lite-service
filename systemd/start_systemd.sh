@@ -211,10 +211,6 @@ function connect {
   ip route del default
   CONN_MAX=3
   CONN_COUNTER=0
-  if [[ "${OPERATOR}" == *"KDDI"* ]]; then
-    PPP_MAX_FAIL=1
-    log "[INFO] PPP_MAX_FAIL => ${PPP_MAX_FAIL}"
-  fi
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
