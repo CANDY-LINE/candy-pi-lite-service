@@ -211,10 +211,7 @@ function connect {
   ip route del default
   CONN_MAX=3
   CONN_COUNTER=0
-  if [[ "${OPERATOR}" == *"KDDI"* ]]; then
-    PPP_MAX_FAIL=1
-    log "[INFO] PPP_MAX_FAIL => ${PPP_MAX_FAIL}"
-  fi
+  PPPD_PID=""
   RET=""
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
@@ -357,11 +354,13 @@ do
           break
         fi
       else
+        PPPD_PID=""
         set_normal_ppp_exit_code
       fi
     else
       log "[INFO] Not establishing a connection on start-up"
       CONNECT="1"
+      PPPD_PID=""
       set_normal_ppp_exit_code
     fi
 
@@ -369,13 +368,21 @@ do
     log "[INFO] ${PRODUCT} is initialized successfully!"
     /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
     EXIT_CODE="$?"
+    rm -f ${PIDFILE}
+    log "[INFO] SCRIPT exited with code: ${EXIT_CODE}"
+    if [ -n "${PPPD_PID}" ]; then
+      poff -a > /dev/null 2>&1
+    fi
     if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
       if [ "${EXIT_CODE}" == "143" ]; then
         # SIGTERM(15) is signaled by a thread in server_main module
         exit 0
+      elif [ "${EXIT_CODE}" == "138" ]; then
+        # SIGUSR1(10) is signaled by an external program to re-initiate the connection
+        register_network
+        continue
       elif [ "${EXIT_CODE}" == "140" ]; then
         # SIGUSR2(12) is signaled by an external program to re-establish the connection
-        rm -f ${PIDFILE}
         if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
           resolve_sim_state  # Ensure if the sim card is present
         fi
