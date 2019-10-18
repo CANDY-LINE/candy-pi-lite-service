@@ -370,6 +370,10 @@ do
       if [ "${EXIT_CODE}" == "143" ]; then
         # SIGTERM(15) is signaled by a thread in server_main module
         exit 0
+      elif [ "${EXIT_CODE}" == "138" ]; then
+        # SIGUSR1(10) is signaled by an external program to re-initiate the connection
+        register_network
+        continue
       elif [ "${EXIT_CODE}" == "140" ]; then
         # SIGUSR2(12) is signaled by an external program to re-establish the connection
         if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
