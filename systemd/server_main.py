@@ -195,16 +195,28 @@ class Monitor(threading.Thread):
                         "RESTART_SCHEDULE_CRON=>[%s] is ignored" %
                         os.environ['RESTART_SCHEDULE_CRON'])
 
-    def terminate(self, restart=False):
+    def terminate_with_service_restart(self):
         if os.path.isfile(shutdown_state_file):
             return False
         # exit from non-main thread
-        if restart:
-            logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE")
-            os.kill(os.getpid(), signal.SIGHUP)
-        else:
-            logger.error("[NOTICE] <candy-pi-lite> SHUTTING DOWN")
-            os.kill(os.getpid(), signal.SIGTERM)
+        logger.error("[NOTICE] <candy-pi-lite> RESTARTING SERVICE")
+        os.kill(os.getpid(), signal.SIGHUP)
+        return True
+
+    def terminate_with_script_restart(self):
+        if os.path.isfile(shutdown_state_file):
+            return False
+        # exit from non-main thread
+        logger.error("[NOTICE] <candy-pi-lite> RESTARTING SCRIPT")
+        os.kill(os.getpid(), signal.SIGUSR1)
+        return True
+
+    def terminate(self):
+        if os.path.isfile(shutdown_state_file):
+            return False
+        # exit from non-main thread
+        logger.error("[NOTICE] <candy-pi-lite> SHUTTING DOWN")
+        os.kill(os.getpid(), signal.SIGTERM)
         return True
 
     def time_to_restart(self):
@@ -269,7 +281,20 @@ class Monitor(threading.Thread):
             except ValueError:
                 pid = -1
         if pid != 5 and pid != 16:
-            # 5,16=>Exit by poff
+            # 5=>Exit by poff, 16=>Exit by Modem hangup
+            return True
+        return False
+
+    def pppd_exited_by_modem_hangup(self):
+        if not os.path.isfile(pppd_exit_code_file):
+            return False
+        with open(pppd_exit_code_file, 'r') as f:
+            try:
+                pid = int(f.read())
+            except ValueError:
+                pid = -1
+        if pid == 16:
+            # 16=>Exit by Modem hangup
             return True
         return False
 
@@ -278,9 +303,9 @@ class Monitor(threading.Thread):
         global offline_since
         while True:
             try:
-                if self.time_to_restart():
-                    if self.terminate(True):
-                        return
+                if self.time_to_restart() \
+                  and self.terminate_with_service_restart():
+                    return
                 if not os.path.isfile(PIDFILE):
                     if self.terminate():
                         return
@@ -296,8 +321,11 @@ class Monitor(threading.Thread):
                         offline_since = time.time()
                     elif time.time() - offline_since > OFFLINE_PERIOD_SEC:
                         if self.pppd_exited_unexpectedly() \
-                           and self.terminate(True):
+                          and self.terminate_with_service_restart():
                             return
+                        elif self.pppd_exited_by_modem_hangup():
+                            if self.terminate_with_script_restart():
+                                return
                     time.sleep(5)
                     continue
 
