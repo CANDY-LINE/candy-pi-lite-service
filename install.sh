@@ -82,17 +82,19 @@ function alert {
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
   if [ -z "${BOARD}" ]; then
-    if [ -f "/proc/board_info" ]; then
-      DT_MODEL=`cat /proc/board_info 2>&1`
-      case ${DT_MODEL} in
-        "Tinker Board" | "Tinker Board S")
-          BOARD="ATB"
-          ;;
-        *)
-          BOARD=""
-          ;;
-      esac
-    else
+    DT_MODEL=""
+    if [ -f "/proc/device-tree/model" ]; then
+      DT_MODEL=`cat /proc/device-tree/model 2>&1`
+    fi
+    case ${DT_MODEL} in
+      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
+    if [ -z "${BOARD}" ]; then
       python -c "import RPi.GPIO" > /dev/null 2>&1
       if [ "$?" == "0" ]; then
         BOARD="RPi"

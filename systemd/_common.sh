@@ -104,14 +104,14 @@ function detect_usb_device {
 
 function detect_board {
   if [ -z "${BOARD}" ]; then
-    if [ -f "/proc/board_info" ]; then
-      DT_MODEL=`cat /proc/board_info 2>&1`
+    if [ -f "/proc/device-tree/model" ]; then
+      DT_MODEL=`cat /proc/device-tree/model 2>&1`
       if [ -z "${DT_MODEL}" ]; then
         RESOLVE_MAX=30
         RESOLVE_COUNTER=0
         while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
         do
-          DT_MODEL=`cat /proc/board_info 2>&1`
+          DT_MODEL=`cat /proc/device-tree/model 2>&1`
           if [ -n "${DT_MODEL}" ]; then
             break
           fi
@@ -120,17 +120,18 @@ function detect_board {
         done
       fi
       case ${DT_MODEL} in
-        "Tinker Board" | "Tinker Board S")
+        "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
           BOARD="ATB"
           ;;
         *)
           BOARD=""
           ;;
       esac
-    else
-      python -c "import RPi.GPIO" > /dev/null 2>&1
-      if [ "$?" == "0" ]; then
-        BOARD="RPi"
+      if [ -z "${BOARD}" ]; then
+        python -c "import RPi.GPIO" > /dev/null 2>&1
+        if [ "$?" == "0" ]; then
+          BOARD="RPi"
+        fi
       fi
     fi
   fi
