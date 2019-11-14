@@ -448,6 +448,7 @@ function install_candy_red {
       tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
       cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
       cp -R * /usr/
+      rm -f /usr/CHANGELOG.md /usr/LICENSE /usr/README.md
     fi
     info "Installing dependencies..."
     apt-get install -y python-dev bluez libudev-dev
