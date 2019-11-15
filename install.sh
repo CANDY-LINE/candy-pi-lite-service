@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=6.8.0
+VERSION=7.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -26,8 +26,9 @@ MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 # v8  Active LTS Start on 2017-10-31, Maintenance LTS : January 2019 - December 2019
 # v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
 # v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
-ARM_NODEJS_VERSION="8.16.0"
-NODEJS_VERSIONS="v8"
+# Stay v10.15.3 because of https://github.com/nodejs/help/issues/1941
+ARM_NODEJS_VERSION="10.15.3"
+NODEJS_VERSIONS="v10"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
@@ -82,17 +83,19 @@ function alert {
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
   if [ -z "${BOARD}" ]; then
-    if [ -f "/proc/board_info" ]; then
-      DT_MODEL=`cat /proc/board_info 2>&1`
-      case ${DT_MODEL} in
-        "Tinker Board" | "Tinker Board S")
-          BOARD="ATB"
-          ;;
-        *)
-          BOARD=""
-          ;;
-      esac
-    else
+    DT_MODEL=""
+    if [ -f "/proc/device-tree/model" ]; then
+      DT_MODEL=`cat /proc/device-tree/model 2>&1`
+    fi
+    case ${DT_MODEL} in
+      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
+    if [ -z "${BOARD}" ]; then
       python -c "import RPi.GPIO" > /dev/null 2>&1
       if [ "$?" == "0" ]; then
         BOARD="RPi"
@@ -445,6 +448,7 @@ function install_candy_red {
       tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
       cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
       cp -R * /usr/
+      rm -f /usr/CHANGELOG.md /usr/LICENSE /usr/README.md
     fi
     info "Installing dependencies..."
     apt-get install -y python-dev bluez libudev-dev
