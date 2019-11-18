@@ -406,6 +406,13 @@ function install_candy_red {
   if [ "${CANDY_RED}" == "0" ]; then
     return
   fi
+  BINARY_UPDATE_REQUIRED=`systemctl is-enabled candy-red`
+  if [ "$?" == "0" ]; then
+    BINARY_UPDATE_REQUIRED="yes"
+    systemctl stop candy-red
+  else
+    BINARY_UPDATE_REQUIRED="no"
+  fi
   if [ "${FORCE_INSTALL}" != "1" ]; then
     NODEJS_VER=`node -v`
     if [ "$?" == "0" ]; then
@@ -474,6 +481,16 @@ function install_candy_red {
       err "Consider to use the presinstalled OS image at https://forums.candy-line.io/tags/os, instead."
     fi
     exit ${RET}
+  fi
+  if [ "${BINARY_UPDATE_REQUIRED}" == "yes" ]; then
+    info "Updating Binaries..."
+    pushd $(npm -g root)/candy-red
+    npm --unsafe-perm rebuild --update-binary
+    popd
+    pushd /opt/candy-red/.node-red
+    npm --unsafe-perm rebuild --update-binary
+    popd
+    info "All binaries are updated."
   fi
   REBOOT=1
   CANDY_PI_LITE_APT_GET_UPDATED=1
