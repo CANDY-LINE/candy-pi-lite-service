@@ -1,4 +1,7 @@
 # 履歴
+* 7.0.1
+    - 旧バージョンのCANDY REDで利用しているバイナリーのリビルドが行われていない問題を修正
+
 * 7.0.0
     - OMRON USB型環境センサー2JCIE-BU01用のudevルールを追加（`/dev/2JCIE-BU01`）
     - ASUS Tinker BoardにおけるArmbianへのインストールに対応(USB接続のみ利用可)
