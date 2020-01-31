@@ -506,6 +506,7 @@ function load_apn {
     APN=`cat /opt/candy-line/${PRODUCT_DIR_NAME}/apn`
   fi
   APN=${APN:-${FALLBACK_APN}}
+  APN=$(echo "${APN//[$' \t\r\n']}")
 
   CREDS=`
     /usr/bin/env python -c \

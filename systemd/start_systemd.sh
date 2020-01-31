@@ -352,6 +352,12 @@ do
         if [ "${RET}" != "0" ]; then
           RECONNECT="1"
           break
+        else
+          HOSTAPD_ENABLED=`systemctl is-enabled hostapd 2>&1`
+          if [ "${HOSTAPD_ENABLED}" == "enabled" ]; then
+            log "[INFO] Restarting hostapd as ppp connection is established"
+            systemctl restart hostapd
+          fi
         fi
       else
         PPPD_PID=""
