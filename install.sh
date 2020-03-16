@@ -23,7 +23,6 @@ VERSION=7.0.3
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
-# v8  Active LTS Start on 2017-10-31, Maintenance LTS : January 2019 - December 2019
 # v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
 # v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
 # Stay v10.15.3 because of https://github.com/nodejs/help/issues/1941
