@@ -49,7 +49,7 @@ $ make PI_USER=linaro PI_HOST=tinkerboard.local
 ### 動作確認 (RPi/ATB)
 
 ```bash
-$ VERSION=7.0.3 && rm -fr tmp && mkdir tmp && cd tmp && \
+$ VERSION=7.1.0 && rm -fr tmp && mkdir tmp && cd tmp && \
   tar zxf ~/candy-pi-lite-service-${VERSION}.tgz
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 ./install.sh && exit
 $ time sudo SRC_DIR=$(pwd) DEBUG=1 CANDY_RED=0 BOOT_APN=soracom.io ./install.sh && exit
