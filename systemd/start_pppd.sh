@@ -118,7 +118,6 @@ function exit_pppd {
   log "[INFO] start_pppd.sh terminated: Exit Code => $1"
   # EXIT_CODE: poff=>5, Modem hangup=>16
   echo $1 > ${PPPD_EXIT_CODE_FILE}
-  rm -f ${NW_INFO_FILE}
   rm -f ${MODEM_SERIAL_PORT_FILE}
   rm -f ${PPPD_RUNNING_FILE}
   rm -f ${IP_REACHABLE_FILE}
