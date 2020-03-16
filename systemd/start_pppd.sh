@@ -120,7 +120,6 @@ function exit_pppd {
   echo $1 > ${PPPD_EXIT_CODE_FILE}
   rm -f ${NW_INFO_FILE}
   rm -f ${SIM_INFO_FILE}
-  rm -f ${MODEM_INFO_FILE}
   rm -f ${MODEM_SERIAL_PORT_FILE}
   rm -f ${PPPD_RUNNING_FILE}
   rm -f ${IP_REACHABLE_FILE}

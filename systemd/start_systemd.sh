@@ -330,14 +330,6 @@ do
         log "[WARN] Failed to start GNSS"
       fi
     fi
-    if [ ! -f "${MODEM_INFO_FILE}" ]; then
-      candy_command modem show
-      if [ "${RET}" != 0 ]; then
-        log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly (1)"
-        restart_with_connection
-      fi
-      echo ${RESULT} > ${MODEM_INFO_FILE}
-    fi
     if [ ! -f "${NW_INFO_FILE}" ]; then
       candy_command network show
       if [ "${RET}" != 0 ]; then
