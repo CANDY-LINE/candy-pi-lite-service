@@ -173,7 +173,9 @@ function retry_usb_auto_detection {
 }
 
 function look_for_modem_at_port {
-  MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port())"`
+  log "[INFO] Looking for a Modem Serial port at Barudrate: ${CURRENT_BAUDRATE}..."
+  MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port(${CURRENT_BAUDRATE}))"`
+  log "[INFO] Result: ${MODEM_SERIAL_PORT}"
   AT_SERIAL_PORT="${USB_SERIAL_AT_PORT:-${MODEM_SERIAL_PORT}}"
   if [ "${MODEM_SERIAL_PORT}" == "None" ]; then
     MODEM_SERIAL_PORT=""
@@ -188,11 +190,15 @@ function look_for_modem_at_port {
 }
 
 function init_serialport {
-  CURRENT_BAUDRATE="None"
+  CURRENT_BAUDRATE=115200
   if [ -z "${MODEM_SERIAL_PORT}" ]; then
     look_for_modem_at_port
     if [ -z "${MODEM_SERIAL_PORT}" ]; then
-      return
+      CURRENT_BAUDRATE=460800
+      look_for_modem_at_port
+      if [ -z "${MODEM_SERIAL_PORT}" ]; then
+        return
+      fi
     fi
   fi
   if [ "${MODEM_INIT}" != "0" ]; then
@@ -337,7 +343,7 @@ function wait_for_serial_available {
   while [ ${COUNTER} -lt ${MAX} ];
   do
     init_serialport
-    if [ "${CURRENT_BAUDRATE}" != "None" ]; then
+    if [ -n "${MODEM_SERIAL_PORT}" ]; then
       break
     fi
     sleep 1
