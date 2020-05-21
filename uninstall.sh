@@ -21,6 +21,8 @@ SERVICE_HOME=${VENDOR_HOME}/candy-pi-lite
 
 REBOOT=0
 
+PKGS="candy-board-qws candy-board-cli"
+
 function err {
   echo -e "\033[91m[ERROR] $1\033[0m"
 }
@@ -60,8 +62,17 @@ function uninstall_ppp {
 }
 
 function uninstall_candy_board {
-  pip uninstall -y candy-board-qws
-  pip uninstall -y candy-board-cli
+  for PYTHON_CMD in python python3
+  do
+    RET=`which ${cmd}`
+    RET=$?
+    if [ "${RET}" != "0" ]; then
+      for p in "${PKGS}"
+      do
+        ${PYTHON_CMD} -m pip uninstall -y ${p}
+      done
+    fi
+  done
 }
 
 function uninstall_service {

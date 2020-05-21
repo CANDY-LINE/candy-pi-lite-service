@@ -61,6 +61,8 @@ COFIGURE_SMARTMESH_PORT=${COFIGURE_SMARTMESH_PORT:-1}
 CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
+PYTHON=""
+PKGS="candy-board-qws candy-board-cli croniter"
 
 ALERT_MESSAGE=""
 
@@ -80,6 +82,15 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
+  RET=`which python3`
+  RET=$?
+  if [ "${RET}" == "0" ]; then
+    info "Using 'python3' command for Python scripts."
+    PYTHON="python3"
+  else
+    info "Using 'python' command for Python scripts."
+    PYTHON="python"
+  fi
   if [ -z "${BOARD}" ]; then
     DT_MODEL=""
     if [ -f "/proc/device-tree/model" ]; then
@@ -389,16 +400,21 @@ function install_logrotate {
 }
 
 function install_candy_board {
-  RET=`which pip`
+  PIP="${PYTHON} -m pip"
+  PIP_VERSION=`${PIP} -V`
   RET=$?
-  if [ "${RET}" != "0" ]; then
+  if [ "${RET}" == "0" ]; then
+    info "Using ${PIP_VERSION}"
+  else
     info "Installing pip..."
-    curl -L https://bootstrap.pypa.io/get-pip.py | /usr/bin/env python
+    curl -L https://bootstrap.pypa.io/get-pip.py | /usr/bin/env ${PYTHON}
+    info "Installed `${PIP} -V`"
   fi
 
-  pip install --upgrade candy-board-cli
-  pip install --upgrade candy-board-qws
-  pip install --upgrade croniter
+  for p in "${PKGS}"
+  do
+    ${PIP} install --upgrade ${p}
+  done
 }
 
 function install_candy_red {
@@ -457,8 +473,10 @@ function install_candy_red {
       rm -f /usr/CHANGELOG.md /usr/LICENSE /usr/README.md
     fi
     info "Installing dependencies..."
-    apt-get install -y python-dev bluez libudev-dev
+    apt-get install -y ${PYTHON}-dev bluez libudev-dev
     if [ "${BOARD}" == "RPi" ]; then
+      # Use Python 2.7 for node-red-node-pi-gpio
+      # (.py files' shebang is /usr/bin/python)
       apt-get install -y python-rpi.gpio
     fi
   fi
@@ -498,7 +516,7 @@ function install_candy_red {
 function test_boot_apn {
   FALLBACK_APN=$(cat ${SRC_DIR}/systemd/fallback_apn)
   BOOT_APN=${BOOT_APN:-${FALLBACK_APN}}
-  CREDS=`/usr/bin/env python -c "with open('${SRC_DIR}/systemd/apn-list.json') as f:import json;c=json.load(f);print('${BOOT_APN}' in c)"`
+  CREDS=`/usr/bin/env ${PYTHON} -c "with open('${SRC_DIR}/systemd/apn-list.json') as f:import json;c=json.load(f);print('${BOOT_APN}' in c)"`
   if [ "${CREDS}" != "True" ]; then
     err "Invalid BOOT_APN value => ${BOOT_APN}"
     exit 1
