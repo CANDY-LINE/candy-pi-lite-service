@@ -37,7 +37,7 @@ function boot_apn {
   fi
   if [ -n "${APN_FILE}" ]; then
     log "[INFO] Provisioning APN..."
-    BOOT_APN=`/usr/bin/env python -c "
+    BOOT_APN=`/usr/bin/env ${PYTHON} -c "
 import json
 apn = ''
 apn_list = {}
@@ -119,7 +119,7 @@ function boot_ip_addr {
   log "[INFO] Checking /etc/dhcpcd.conf..."
   for p in ip_address routers domain_name_servers interface
   do
-    VAL=`/usr/bin/env python -c "with open('${LIST}') as f:import json;c=json.load(f);print(('${p}=%s') % (c['${p}'] if '${p}' in c else ''))"`
+    VAL=`/usr/bin/env ${PYTHON} -c "with open('${LIST}') as f:import json;c=json.load(f);print(('${p}=%s') % (c['${p}'] if '${p}' in c else ''))"`
     if [ "$?" != "0" ]; then
       log "[ERROR] Unexpected format => ${LIST}. Configruation aborted."
       unset LIST # not remove boot-ip*.json files
@@ -183,7 +183,7 @@ function resolve_sim_state {
   while [ ${SIM_COUNTER} -lt ${SIM_MAX} ];
   do
     candy_command sim show
-    SIM_STATE=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['state'])" 2>&1`
+    SIM_STATE=`/usr/bin/env ${PYTHON} -c "import json;r=json.loads('${RESULT}');print(r['result']['state'])" 2>&1`
     if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
       break
     fi
@@ -356,7 +356,7 @@ do
 
     # end banner
     log "[INFO] ${PRODUCT} is initialized successfully!"
-    /usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
+    /usr/bin/env ${PYTHON} /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py ${AT_SERIAL_PORT} ${MODEM_BAUDRATE} ${IF_NAME}
     EXIT_CODE="$?"
     rm -f ${PIDFILE}
     log "[INFO] SCRIPT exited with code: ${EXIT_CODE}"
