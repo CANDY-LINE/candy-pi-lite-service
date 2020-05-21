@@ -410,7 +410,8 @@ def server_main(serial_port, bps, nic,
     if os.path.isfile(PIDFILE):
         logger.error("[NOTICE] <candy-pi-lite> ALREADY RUNNING")
         sys.exit(1)
-    file(PIDFILE, 'w').write(PID)
+    with open(PIDFILE, 'w') as f:
+        f.write(PID)
     delete_path(sock_path)
 
     logger.debug("server_main() : Setting up SerialPort...")
