@@ -545,6 +545,7 @@ function install_service {
   cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
   for e in VERSION \
+      PYTHON \
       SERIAL_PORT_TYPE \
       DISABLE_DEFAULT_ROUTE_ADJUSTER \
       PPP_PING_INTERVAL_SEC \
