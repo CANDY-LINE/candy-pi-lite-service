@@ -126,7 +126,8 @@ function detect_board {
           ;;
       esac
       if [ -z "${BOARD}" ]; then
-        python -c "import RPi.GPIO" > /dev/null 2>&1
+        # As of the 4.9 kernel, all Pis report BCM2835, even those with BCM2836, BCM2837 and BCM2711 processors. 
+        grep "BCM2835" /proc/cpuinfo > /dev/null
         if [ "$?" == "0" ]; then
           BOARD="RPi"
         fi
