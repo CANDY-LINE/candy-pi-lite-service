@@ -473,13 +473,6 @@ function install_candy_red {
       cp -R * /usr/
       rm -f /usr/CHANGELOG.md /usr/LICENSE /usr/README.md
     fi
-    info "Installing dependencies..."
-    apt-get install -y ${PYTHON}-dev bluez libudev-dev
-    if [ "${BOARD}" == "RPi" ]; then
-      # Use Python 2.7 for node-red-node-pi-gpio
-      # (.py files' shebang is /usr/bin/python)
-      apt-get install -y python-rpi.gpio
-    fi
   fi
   cd ~
   npm cache clean --force
