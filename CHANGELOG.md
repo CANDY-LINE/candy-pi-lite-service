@@ -1,6 +1,11 @@
 # 履歴
-* ?.?.?
+* 8.0.0
     - SPモードAPNを追加
+    - Linux Kernel 4.9より前のRaspbian OSサポートを削除（Kernel 4.8以前のRaspbianではRaspberry Piボードの認識をしなくなる）
+    - Python 3を標準で使用するように変更（ただし、Python 2.7の環境しかない場合はPython 2.7で動作）
+    - Node.jsのインストールバージョンをv12.16.3へ変更
+    - インストール時にARM_ARCH=armv6lを指定するとARMv7 CPUボードでもARMv6用バイナリーのNode.jsをインストールするように変更
+    - pip、libudev-dev、python-devインストールを廃止
 
 * 7.1.1
     - 通信モジュールのボーレートが115.2Kでない場合にシリアルポートを見つけられない不具合を修正

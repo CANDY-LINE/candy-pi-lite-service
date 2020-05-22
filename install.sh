@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=7.1.1
+VERSION=8.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -62,7 +62,7 @@ CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
 PYTHON=""
-PKGS="candy-board-qws candy-board-cli croniter"
+PKGS="candy-board-qws==3.0.0 candy-board-cli==4.0.0 croniter"
 
 ALERT_MESSAGE=""
 
@@ -407,11 +407,8 @@ function install_candy_board {
     info "Using ${PIP_VERSION}"
   else
     info "Installing pip..."
-    if [ "${PYTHON}" == "python3" ]; then
-      apt_get_update
-      apt-get install -y python3-distutils
-    fi
-    curl -L https://bootstrap.pypa.io/get-pip.py | /usr/bin/env ${PYTHON}
+    apt_get_update
+    apt-get install -y ${PYTHON}-pip
     info "Installed `${PIP} -V`"
   fi
 
@@ -464,24 +461,21 @@ function install_candy_red {
       if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
       elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
-        ARM_ARCH_VERSION=armv7l
+        ARM_ARCH_VERSION=${ARM_ARCH:-armv7l}
       else
         alert "Unsupported architecture. Model name:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp
       wget https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      if [ "$?" != "0" ]; then
+        alert "Failed to download a tarball from 'https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz'"
+        exit 1
+      fi
       tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
       cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
       cp -R * /usr/
       rm -f /usr/CHANGELOG.md /usr/LICENSE /usr/README.md
-    fi
-    info "Installing dependencies..."
-    apt-get install -y ${PYTHON}-dev bluez libudev-dev
-    if [ "${BOARD}" == "RPi" ]; then
-      # Use Python 2.7 for node-red-node-pi-gpio
-      # (.py files' shebang is /usr/bin/python)
-      apt-get install -y python-rpi.gpio
     fi
   fi
   cd ~
