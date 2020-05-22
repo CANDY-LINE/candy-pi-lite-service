@@ -40,6 +40,7 @@ MODEM_SERIAL_PORT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/__modem_serial_port"
 DHCPCD_CNF="/etc/dhcpcd.conf"
 DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
+PYTHON=${PYTHON:-python3}
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -126,7 +127,8 @@ function detect_board {
           ;;
       esac
       if [ -z "${BOARD}" ]; then
-        python -c "import RPi.GPIO" > /dev/null 2>&1
+        # As of the 4.9 kernel, all Pis report BCM2835, even those with BCM2836, BCM2837 and BCM2711 processors. 
+        grep "BCM2835" /proc/cpuinfo > /dev/null
         if [ "$?" == "0" ]; then
           BOARD="RPi"
         fi
@@ -174,7 +176,7 @@ function retry_usb_auto_detection {
 
 function look_for_modem_at_port {
   log "[INFO] Looking for a Modem Serial port at Barudrate: ${CURRENT_BAUDRATE}..."
-  MODEM_SERIAL_PORT=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port(${CURRENT_BAUDRATE}))"`
+  MODEM_SERIAL_PORT=`/usr/bin/env ${PYTHON} -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_port(${CURRENT_BAUDRATE}))"`
   log "[INFO] Result: ${MODEM_SERIAL_PORT}"
   AT_SERIAL_PORT="${USB_SERIAL_AT_PORT:-${MODEM_SERIAL_PORT}}"
   if [ "${MODEM_SERIAL_PORT}" == "None" ]; then
@@ -231,7 +233,7 @@ function init_serialport {
     fi
     return
   fi
-  CURRENT_BAUDRATE=`/usr/bin/env python -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_baudrate('${UART_PORT}'))"`
+  CURRENT_BAUDRATE=`/usr/bin/env ${PYTHON} -c "import candy_board_qws; print(candy_board_qws.SerialPort.resolve_modem_baudrate('${UART_PORT}'))"`
   if [ "${CURRENT_BAUDRATE}" == "None" ]; then
     log "[ERROR] Modem is missing"
     return
@@ -263,7 +265,7 @@ function init_serialport {
 
 function candy_command {
   CURRENT_BAUDRATE=${CURRENT_BAUDRATE:-${MODEM_BAUDRATE:-115200}}
-  RESULT=`/usr/bin/env python /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} ${SOCK_PATH}`
+  RESULT=`/usr/bin/env ${PYTHON} /opt/candy-line/${PRODUCT_DIR_NAME}/server_main.py $1 $2 ${MODEM_SERIAL_PORT} ${CURRENT_BAUDRATE} ${SOCK_PATH}`
   RET=$?
   if [ "${SHOW_CANDY_CMD_ERROR}" == "1" ] && [ "${RET}" != "0" ]; then
     log "[INFO] candy_command[category:$1][action:$2] => [${RESULT}]"
@@ -369,10 +371,10 @@ function wait_for_network_registration {
   do
     candy_command network show
     if [ "${RET}" == "0" ]; then
-      OPERATOR=`/usr/bin/env python -c "import json;r=json.loads('${RESULT}');print(r['result']['operator'])" 2>&1`
+      OPERATOR=`/usr/bin/env ${PYTHON} -c "import json;r=json.loads('${RESULT}');print(r['result']['operator'])" 2>&1`
       log "[INFO] Operator => ${OPERATOR}"
       STAT=`
-/usr/bin/env python -c \
+/usr/bin/env ${PYTHON} -c \
 "import json;r=json.loads('${RESULT}');
 print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'])" 2>&1`
       if [ "$?" != "0" ]; then
@@ -404,7 +406,7 @@ function test_functionality {
     log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
     exit 1
   fi
-  MODEM_SHOW=`/usr/bin/env python -c "
+  MODEM_SHOW=`/usr/bin/env ${PYTHON} -c "
 import json, time, datetime
 r = json.loads('${RESULT}')
 print('MODEL=%s FUNC=%s' % (
@@ -441,7 +443,7 @@ function save_apn {
 function adjust_time {
   # init_modem must be performed prior to this function
   candy_command modem show
-  ADJUSTMENT=`/usr/bin/env python -c "
+  ADJUSTMENT=`/usr/bin/env ${PYTHON} -c "
 import json, time, datetime
 r = json.loads('${RESULT}')
 epochtime = int(datetime.datetime.strptime(r['result']['datetime'],
@@ -510,7 +512,7 @@ function load_apn {
   APN=$(echo "${APN//[$' \t\r\n']}")
 
   CREDS=`
-    /usr/bin/env python -c \
+    /usr/bin/env ${PYTHON} -c \
     "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
     import json;c=json.load(f)['${APN}'];
     print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \

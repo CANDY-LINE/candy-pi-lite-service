@@ -55,3 +55,6 @@ SLEEP_SEC_BEFORE_RETRY=%SLEEP_SEC_BEFORE_RETRY%
 
 # Set 1 for printing candy cli error for trouble-shooting
 SHOW_CANDY_CMD_ERROR=0
+
+# Set a python command to run Python scripts
+PYTHON=%PYTHON%

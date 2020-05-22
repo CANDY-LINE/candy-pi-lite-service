@@ -18,16 +18,15 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=7.1.1
+VERSION=8.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
 # v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
 # v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
-# Stay v10.15.3 because of https://github.com/nodejs/help/issues/1941
-ARM_NODEJS_VERSION="10.15.3"
-NODEJS_VERSIONS="v10"
+ARM_NODEJS_VERSION="12.16.3"
+NODEJS_VERSIONS="v12"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
 SRC_DIR="${SRC_DIR:-/tmp/$(basename ${GITHUB_ID})-${VERSION}}"
@@ -62,6 +61,8 @@ COFIGURE_SMARTMESH_PORT=${COFIGURE_SMARTMESH_PORT:-1}
 CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
+PYTHON=""
+PKGS="candy-board-qws==3.0.0 candy-board-cli==4.0.0 croniter"
 
 ALERT_MESSAGE=""
 
@@ -81,6 +82,15 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
+  RET=`which python3`
+  RET=$?
+  if [ "${RET}" == "0" ]; then
+    info "Using 'python3' command for Python scripts."
+    PYTHON="python3"
+  else
+    info "Using 'python' command for Python scripts."
+    PYTHON="python"
+  fi
   if [ -z "${BOARD}" ]; then
     DT_MODEL=""
     if [ -f "/proc/device-tree/model" ]; then
@@ -95,7 +105,8 @@ function setup {
         ;;
     esac
     if [ -z "${BOARD}" ]; then
-      python -c "import RPi.GPIO" > /dev/null 2>&1
+      # As of the 4.9 kernel, all Pis report BCM2835, even those with BCM2836, BCM2837 and BCM2711 processors. 
+      grep "BCM2835" /proc/cpuinfo > /dev/null
       if [ "$?" == "0" ]; then
         BOARD="RPi"
       fi
@@ -389,16 +400,22 @@ function install_logrotate {
 }
 
 function install_candy_board {
-  RET=`which pip`
+  PIP="${PYTHON} -m pip"
+  PIP_VERSION=`${PIP} -V`
   RET=$?
-  if [ "${RET}" != "0" ]; then
+  if [ "${RET}" == "0" ]; then
+    info "Using ${PIP_VERSION}"
+  else
     info "Installing pip..."
-    curl -L https://bootstrap.pypa.io/get-pip.py | /usr/bin/env python
+    apt_get_update
+    apt-get install -y ${PYTHON}-pip
+    info "Installed `${PIP} -V`"
   fi
 
-  pip install --upgrade candy-board-cli
-  pip install --upgrade candy-board-qws
-  pip install --upgrade croniter
+  for p in "${PKGS}"
+  do
+    ${PIP} install --upgrade ${p}
+  done
 }
 
 function install_candy_red {
@@ -444,22 +461,21 @@ function install_candy_red {
       if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
       elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
-        ARM_ARCH_VERSION=armv7l
+        ARM_ARCH_VERSION=${ARM_ARCH:-armv7l}
       else
         alert "Unsupported architecture. Model name:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp
       wget https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      if [ "$?" != "0" ]; then
+        alert "Failed to download a tarball from 'https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz'"
+        exit 1
+      fi
       tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
       cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
       cp -R * /usr/
       rm -f /usr/CHANGELOG.md /usr/LICENSE /usr/README.md
-    fi
-    info "Installing dependencies..."
-    apt-get install -y python-dev bluez libudev-dev
-    if [ "${BOARD}" == "RPi" ]; then
-      apt-get install -y python-rpi.gpio
     fi
   fi
   cd ~
@@ -498,7 +514,7 @@ function install_candy_red {
 function test_boot_apn {
   FALLBACK_APN=$(cat ${SRC_DIR}/systemd/fallback_apn)
   BOOT_APN=${BOOT_APN:-${FALLBACK_APN}}
-  CREDS=`/usr/bin/env python -c "with open('${SRC_DIR}/systemd/apn-list.json') as f:import json;c=json.load(f);print('${BOOT_APN}' in c)"`
+  CREDS=`/usr/bin/env ${PYTHON} -c "with open('${SRC_DIR}/systemd/apn-list.json') as f:import json;c=json.load(f);print('${BOOT_APN}' in c)"`
   if [ "${CREDS}" != "True" ]; then
     err "Invalid BOOT_APN value => ${BOOT_APN}"
     exit 1
@@ -527,6 +543,7 @@ function install_service {
   cp -f ${SRC_DIR}/systemd/fallback_apn ${SERVICE_HOME}
 
   for e in VERSION \
+      PYTHON \
       SERIAL_PORT_TYPE \
       DISABLE_DEFAULT_ROUTE_ADJUSTER \
       PPP_PING_INTERVAL_SEC \
