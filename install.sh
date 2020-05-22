@@ -407,11 +407,8 @@ function install_candy_board {
     info "Using ${PIP_VERSION}"
   else
     info "Installing pip..."
-    if [ "${PYTHON}" == "python3" ]; then
-      apt_get_update
-      apt-get install -y python3-distutils
-    fi
-    curl -L https://bootstrap.pypa.io/get-pip.py | /usr/bin/env ${PYTHON}
+    apt_get_update
+    apt-get install -y ${PYTHON}-pip
     info "Installed `${PIP} -V`"
   fi
 
