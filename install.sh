@@ -461,13 +461,17 @@ function install_candy_red {
       if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
       elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
-        ARM_ARCH_VERSION=armv7l
+        ARM_ARCH_VERSION=${ARM_ARCH:-armv7l}
       else
         alert "Unsupported architecture. Model name:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp
       wget https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      if [ "$?" != "0" ]; then
+        alert "Failed to download a tarball from 'https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz'"
+        exit 1
+      fi
       tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
       cd node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}/
       cp -R * /usr/
