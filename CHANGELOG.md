@@ -1,4 +1,8 @@
 # 履歴
+* 8.0.1
+    - SPモードの設定ミスを修正
+    - Python 3での動作時に接続エラーとなる問題を修正
+
 * 8.0.0
     - SPモードAPNを追加
     - Linux Kernel 4.9より前のRaspbian OSサポートを削除（Kernel 4.8以前のRaspbianではRaspberry Piボードの認識をしなくなる）
