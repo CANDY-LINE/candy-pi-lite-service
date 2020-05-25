@@ -2,3 +2,4 @@
 *.log
 *.dtbo
 !boot/overlays/*.dtbo
+.python-version

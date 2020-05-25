@@ -115,7 +115,7 @@ class Pinger(threading.Thread):
                 self.tx_bytes = subprocess.Popen(self.cat_tx_stat,
                                                  shell=True,
                                                  stdout=subprocess.PIPE
-                                                 ).stdout.read()
+                                                 ).stdout.read().decode()
                 if int(self.tx_bytes) != self.last_tx_bytes:
                     self.socket.sendto('',
                                        (Pinger.DEST_ADDR, Pinger.DEST_PORT))
@@ -231,7 +231,7 @@ class Monitor(threading.Thread):
         ls_nic = subprocess.Popen(ls_nic_cmd,
                                   shell=True,
                                   stdout=subprocess.PIPE
-                                  ).stdout.read()
+                                  ).stdout.read().decode()
         return ls_nic
 
     def del_default(self, ipv):
@@ -252,7 +252,7 @@ class Monitor(threading.Thread):
                               "| awk '/default/ { print $2,$3 }'") % (ipv, nic)
                     ip_cmd_out = subprocess.Popen(ip_cmd, shell=True,
                                                   stdout=subprocess.PIPE
-                                                  ).stdout.read().split(' ')
+                                                  ).stdout.read().decode().split(' ')
                     prop = ip_cmd_out[0]
                     if prop == 'via':
                         ip = ip_cmd_out[1]
@@ -265,7 +265,7 @@ class Monitor(threading.Thread):
                   ) % (ipv, self.nic)
         ip = subprocess.Popen(ip_cmd, shell=True,
                               stdout=subprocess.PIPE
-                              ).stdout.read()
+                              ).stdout.read().decode()
         subprocess.call(
             "ip -%s route add default via %s" % (ipv, ip),
             shell=True,
