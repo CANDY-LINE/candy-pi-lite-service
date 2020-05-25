@@ -23,5 +23,5 @@
   ,"sakura-kddi":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"51"}
   ,"sakura-docomo":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"10"}
   ,"sakura-softbank":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"20"}
-  ,"spmode.ne.jp":{"user":"","password":"","apn":"sakura","ops":true,"mcc":"440","mnc":"10"}
+  ,"spmode.ne.jp":{"user":"","password":"","apn":"spmode.ne.jp"}
 }
