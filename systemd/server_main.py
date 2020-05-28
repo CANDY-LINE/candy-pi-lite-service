@@ -45,7 +45,7 @@ logger = logging.getLogger('candy-pi-lite')
 logger.setLevel(logging.INFO)
 handler = logging.handlers.SysLogHandler(address='/dev/log')
 logger.addHandler(handler)
-formatter = logging.Formatter('%(module)s.%(funcName)s: %(message)s')
+formatter = logging.Formatter('[candy-pi-lite] %(module)s.%(funcName)s: %(message)s')
 handler.setFormatter(formatter)
 led_sec = float(os.environ['BLINKY_INTERVAL_SEC']) \
     if 'BLINKY_INTERVAL_SEC' in os.environ else 1.0
