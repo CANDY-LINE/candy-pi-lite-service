@@ -42,29 +42,79 @@ esac
 
 # Orange LED (Online Status Indicator)
 LED2_PIN="/sys/class/gpio/gpio${LED2}"
-LED2_DIR="${LED2_PIN}/direction"
 LED2_DEFAULT=0
-
 # SC16IS75X RESET & PERST
 PERST_PIN="/sys/class/gpio/gpio${PERST}"
-PERST_DIR="${PERST_PIN}/direction"
 PERST_DEFAULT=1
-
 # W_DISABLE
 W_DISABLE_PIN="/sys/class/gpio/gpio${W_DISABLE}"
-W_DISABLE_DIR="${W_DISABLE_PIN}/direction"
 W_DISABLE_DEFAULT=1
 
-function setup_ports {
-  for p in LED2 PERST W_DISABLE; do
-    if [ ! -f "/sys/class/gpio/gpio${!p}/direction" ]; then
-      echo "${!p}"  > /sys/class/gpio/export
-      echo "out" > "/sys/class/gpio/gpio${!p}/direction"
-    fi
-    default_value="${p}_DEFAULT"
+function setup_output_ports {
+  for p in $1; do
     pin_value="${p}_PIN"
-    echo "${!default_value}" > "${!pin_value}/value"
+    default_value="${p}_DEFAULT"
+    if [ ! -f "${!pin_value}/direction" ]; then
+      echo "${!p}"  > /sys/class/gpio/export
+      if [ "$?" != "0" ]; then
+        log "[FATAL] Failed to export GPIO${!p}"
+        exit 3
+      fi
+      echo "out" > "${!pin_value}/direction"
+      echo "${!default_value}" > "${!pin_value}/value"
+    fi
   done
 }
 
-setup_ports
+function setup_input_ports {
+  for p in $1; do
+    pin_value="${p}_PIN"
+    if [ ! -f "${!pin_value}/direction" ]; then
+      echo "${!p}"  > /sys/class/gpio/export
+      if [ "$?" != "0" ]; then
+        log "[FATAL] Failed to export GPIO${!p}"
+        exit 3
+      fi
+      echo "in" > "${!pin_value}/direction"
+    fi
+    case ${BOARD} in
+      "RPi")
+        ${PYTHON} -c "import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); GPIO.setup(${!p}, GPIO.IN)"
+        if [ "$?" != "0" ]; then
+          error=1
+          if [ "${PYTHON}" == "python3" ]; then
+            python -c "import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); GPIO.setup(${!p}, GPIO.IN)"
+            error=$?
+          fi
+          if [ "$?" != "0" ]; then
+            log "[FATAL] Failed to set up GPIO${!p}"
+            exit 3
+          fi
+        fi
+        ;;
+      *)
+        log "[FATAL] NOT YET SUPPORTED for ${BOARD}"
+        exit 3
+        ;;
+    esac
+  done
+}
+
+setup_output_ports "LED2 PERST W_DISABLE"
+
+if [ "${BUTTON_EXT}" == "1" ]; then
+  # BUTTON_LED
+  BUTTON_LED_ENV="${BOARD}_BUTTON_LED"
+  BUTTON_LED=${!BUTTON_LED_ENV}
+  BUTTON_LED_PIN="/sys/class/gpio/gpio${BUTTON_LED}"
+  BUTTON_LED_DEFAULT=1
+
+  setup_output_ports "BUTTON_LED"
+
+  # BUTTON_IN
+  BUTTON_IN_ENV="${BOARD}_BUTTON_IN"
+  BUTTON_IN=${!BUTTON_IN_ENV}
+  BUTTON_IN_PIN="/sys/class/gpio/gpio${BUTTON_IN}"
+
+  setup_input_ports "BUTTON_IN"
+fi

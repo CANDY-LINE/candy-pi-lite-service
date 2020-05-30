@@ -45,7 +45,7 @@ logger = logging.getLogger('candy-pi-lite')
 logger.setLevel(logging.INFO)
 handler = logging.handlers.SysLogHandler(address='/dev/log')
 logger.addHandler(handler)
-formatter = logging.Formatter('%(module)s.%(funcName)s: %(message)s')
+formatter = logging.Formatter('[candy-pi-lite] %(module)s.%(funcName)s: %(message)s')
 handler.setFormatter(formatter)
 led_sec = float(os.environ['BLINKY_INTERVAL_SEC']) \
     if 'BLINKY_INTERVAL_SEC' in os.environ else 1.0
@@ -81,7 +81,10 @@ pppd_exit_code_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 ip_reachable_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  '__ip_reachable')
 PID = str(os.getpid())
-
+BUTTON_EXT = int(os.environ['BUTTON_EXT']) \
+    if 'BUTTON_EXT' in os.environ else 0
+BUTTON_LED = '%s/value' % os.environ['BUTTON_LED_PIN']
+BUTTON_IN = '%s/value' % os.environ['BUTTON_IN_PIN']
 
 class Pinger(threading.Thread):
     DEST_ADDR = '<broadcast>'
@@ -339,6 +342,50 @@ class Monitor(threading.Thread):
                     continue
 
 
+class ButtonExtension(threading.Thread):
+    def __init__(self, monitor):
+        super(ButtonExtension, self).__init__()
+        self.sequence = 0
+        self.monitor = monitor
+
+    def button_pushed(self):
+        pushed = 0
+        with open(BUTTON_IN, 'r') as f:
+            pushed = int(f.read()) ^ 1
+        return pushed
+
+    def sequence_match(self, val):
+        return self.sequence & val == val
+    
+    def eval_func(self):
+        if self.sequence_match(0b11111111):
+            logger.info(
+                "Button Pushed for 8+ sec. Shutting down...")
+            # 8+sec push down => halt
+            self.halt()
+    
+    def halt(self):
+        err = subprocess.call("halt",
+                                shell=True,
+                                stdout=Monitor.FNULL,
+                                stderr=subprocess.STDOUT)
+        if err == 0:
+            logger.info("[NOTICE] <candy-pi-lite> Hating the system")
+        else:
+            logger.error("[NOTICE] <candy-pi-lite> Error while halting. Code:%d" % err)
+
+    def run(self):
+        while BUTTON_EXT == 1:
+            try:
+                self.sequence = (self.sequence << 1 & 0b1111111111) | self.button_pushed()
+                self.eval_func()
+                time.sleep(1)
+            except Exception:
+                logging.exception("Error on waiting for button input")
+                if not os.path.isfile(shutdown_state_file):
+                    continue
+        logger.info('[NOTICE] <candy-pi-lite> Button Extension is terminated.')
+
 def delete_path(file_path):
     # remove file_path
     path_list = [file_path]
@@ -436,6 +483,8 @@ def server_main(serial_port, bps, nic,
     pinger = Pinger(PPP_PING_INTERVAL_SEC, PPP_PING_TYPE, nic,
                     PPP_PING_DESTINATION, PPP_PING_IP_VERSION,
                     PPP_PING_OFFLINE_THRESHOLD)
+    logger.debug("server_main() : Setting up ButtonExtension...")
+    button_extension = ButtonExtension(monitor)
 
     logger.debug("server_main() : Starting SockServer...")
     server.start()
@@ -443,11 +492,15 @@ def server_main(serial_port, bps, nic,
     monitor.start()
     logger.debug("server_main() : Starting Pinger...")
     pinger.start()
+    logger.debug("server_main() : Starting ButtonExtension...")
+    button_extension.start()
 
-    logger.debug("server_main() : Joining Monitor thread into main...")
-    monitor.join()
+    logger.debug("server_main() : Joining ButtonExtension thread into main...")
+    button_extension.join()
     logger.debug("server_main() : Joining Pinger thread into main...")
     pinger.join()
+    logger.debug("server_main() : Joining Monitor thread into main...")
+    monitor.join()
     logger.debug("server_main() : Joining SockServer thread into main...")
     server.join()
 

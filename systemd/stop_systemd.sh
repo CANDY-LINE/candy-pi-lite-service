@@ -21,7 +21,6 @@ function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
   if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ] || [ -e "${QWS_BG96_PORT}" ]; then
     . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
-    export LED2
   else
     log "[ERROR] Modem is missing"
     exit 11
@@ -29,7 +28,7 @@ function init {
 }
 
 function stop_server_main {
-  rm -f ${SHUDOWN_STATE_FILE}
+  rm -f ${SHUTDOWN_STATE_FILE}
   if [ ! -f "${PIDFILE}" ]; then
     return
   fi
@@ -56,7 +55,7 @@ function led_off {
   echo 0 > ${LED2_PIN}/value
 }
 
-touch ${SHUDOWN_STATE_FILE}
+touch ${SHUTDOWN_STATE_FILE}
 init
 
 # start banner

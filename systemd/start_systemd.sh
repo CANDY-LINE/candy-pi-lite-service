@@ -21,7 +21,6 @@ function init {
   . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
   if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ] || [ -e "${QWS_BG96_PORT}" ]; then
     . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
-    export LED2
   else
     log "[ERROR] Modem is missing"
     exit 11
@@ -363,7 +362,7 @@ do
     if [ -n "${PPPD_PID}" ]; then
       poff -a > /dev/null 2>&1
     fi
-    if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
+    if [ ! -f "${SHUTDOWN_STATE_FILE}" ]; then
       if [ "${EXIT_CODE}" == "143" ]; then
         # SIGTERM(15) is signaled by a thread in server_main module
         exit 0
