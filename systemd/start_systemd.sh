@@ -362,7 +362,7 @@ do
     if [ -n "${PPPD_PID}" ]; then
       poff -a > /dev/null 2>&1
     fi
-    if [ ! -f "${SHUDOWN_STATE_FILE}" ]; then
+    if [ ! -f "${SHUTDOWN_STATE_FILE}" ]; then
       if [ "${EXIT_CODE}" == "143" ]; then
         # SIGTERM(15) is signaled by a thread in server_main module
         exit 0

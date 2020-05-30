@@ -28,7 +28,7 @@ function init {
 }
 
 function stop_server_main {
-  rm -f ${SHUDOWN_STATE_FILE}
+  rm -f ${SHUTDOWN_STATE_FILE}
   if [ ! -f "${PIDFILE}" ]; then
     return
   fi
@@ -55,7 +55,7 @@ function led_off {
   echo 0 > ${LED2_PIN}/value
 }
 
-touch ${SHUDOWN_STATE_FILE}
+touch ${SHUTDOWN_STATE_FILE}
 init
 
 # start banner
