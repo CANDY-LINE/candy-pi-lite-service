@@ -50,32 +50,65 @@ PERST_DEFAULT=1
 W_DISABLE_PIN="/sys/class/gpio/gpio${W_DISABLE}"
 W_DISABLE_DEFAULT=1
 
-function setup_ports {
+function setup_output_ports {
   for p in $1; do
     pin_value="${p}_PIN"
     default_value="${p}_DEFAULT"
     if [ ! -f "${!pin_value}/direction" ]; then
-      direction_value="out"
-      if [ -z "${!default_value}" ]; then
-       direction_value = "in"
-      fi
       echo "${!p}"  > /sys/class/gpio/export
-      echo "${direction_value}" > "${!pin_value}/direction"
-    fi
-    if [ "${direction_value}" == "out" ]; then
+      if [ "$?" != "0" ]; then
+        log "[FATAL] Failed to export GPIO${!p}"
+        exit 3
+      fi
+      echo "out" > "${!pin_value}/direction"
       echo "${!default_value}" > "${!pin_value}/value"
     fi
   done
 }
 
-setup_ports "LED2 PERST W_DISABLE"
+function setup_input_ports {
+  for p in $1; do
+    pin_value="${p}_PIN"
+    if [ ! -f "${!pin_value}/direction" ]; then
+      echo "${!p}"  > /sys/class/gpio/export
+      if [ "$?" != "0" ]; then
+        log "[FATAL] Failed to export GPIO${!p}"
+        exit 3
+      fi
+      echo "in" > "${!pin_value}/direction"
+    fi
+    case ${BOARD} in
+      "RPi")
+        # Python 2.7
+        python -c "import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); GPIO.setup(${!p}, GPIO.IN)"
+        if [ "$?" != "0" ]; then
+          log "[FATAL] Failed to set up GPIO${!p}"
+          exit 3
+        fi
+        ;;
+      *)
+        log "[FATAL] NOT YET SUPPORTED for ${BOARD}"
+        exit 3
+        ;;
+    esac
+  done
+}
+
+setup_output_ports "LED2 PERST W_DISABLE"
 
 if [ "${BUTTON_EXT}" == "1" ]; then
   # BUTTON_LED
+  BUTTON_LED_ENV="${BOARD}_BUTTON_LED"
+  BUTTON_LED=${!BUTTON_LED_ENV}
   BUTTON_LED_PIN="/sys/class/gpio/gpio${BUTTON_LED}"
   BUTTON_LED_DEFAULT=1
+
+  setup_output_ports "BUTTON_LED"
+
   # BUTTON_IN
+  BUTTON_IN_ENV="${BOARD}_BUTTON_IN"
+  BUTTON_IN=${!BUTTON_IN_ENV}
   BUTTON_IN_PIN="/sys/class/gpio/gpio${BUTTON_IN}"
 
-  setup_ports "${BOARD}_BUTTON_LED ${BOARD}_BUTTON_IN"
+  setup_input_ports "BUTTON_IN"
 fi

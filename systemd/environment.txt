@@ -70,4 +70,5 @@ ATB_BUTTON_IN=%ATB_BUTTON_IN%
 
 # Misc. Exported Variables
 LED2=""
-BOARD=""
+BUTTON_LED_PIN=""
+BUTTON_IN_PIN=""
