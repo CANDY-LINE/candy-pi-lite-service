@@ -63,6 +63,7 @@ GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
 PYTHON=""
 PKGS="candy-board-qws==3.0.0 candy-board-cli==4.0.0 croniter"
+BUTTON_EXT=""
 
 ALERT_MESSAGE=""
 
@@ -544,6 +545,11 @@ function install_service {
 
   for e in VERSION \
       PYTHON \
+      BUTTON_EXT \
+      RPi_BUTTON_LED \
+      RPi_BUTTON_IN \
+      ATB_BUTTON_LED \
+      ATB_BUTTON_IN \
       SERIAL_PORT_TYPE \
       DISABLE_DEFAULT_ROUTE_ADJUSTER \
       PPP_PING_INTERVAL_SEC \

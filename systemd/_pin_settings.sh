@@ -42,29 +42,40 @@ esac
 
 # Orange LED (Online Status Indicator)
 LED2_PIN="/sys/class/gpio/gpio${LED2}"
-LED2_DIR="${LED2_PIN}/direction"
 LED2_DEFAULT=0
-
 # SC16IS75X RESET & PERST
 PERST_PIN="/sys/class/gpio/gpio${PERST}"
-PERST_DIR="${PERST_PIN}/direction"
 PERST_DEFAULT=1
-
 # W_DISABLE
 W_DISABLE_PIN="/sys/class/gpio/gpio${W_DISABLE}"
-W_DISABLE_DIR="${W_DISABLE_PIN}/direction"
 W_DISABLE_DEFAULT=1
 
 function setup_ports {
-  for p in LED2 PERST W_DISABLE; do
-    if [ ! -f "/sys/class/gpio/gpio${!p}/direction" ]; then
-      echo "${!p}"  > /sys/class/gpio/export
-      echo "out" > "/sys/class/gpio/gpio${!p}/direction"
-    fi
-    default_value="${p}_DEFAULT"
+  for p in $1; do
     pin_value="${p}_PIN"
-    echo "${!default_value}" > "${!pin_value}/value"
+    default_value="${p}_DEFAULT"
+    if [ ! -f "${!pin_value}/direction" ]; then
+      direction_value="out"
+      if [ -z "${!default_value}" ]; then
+       direction_value = "in"
+      fi
+      echo "${!p}"  > /sys/class/gpio/export
+      echo "${direction_value}" > "${!pin_value}/direction"
+    fi
+    if [ "${direction_value}" == "out" ]; then
+      echo "${!default_value}" > "${!pin_value}/value"
+    fi
   done
 }
 
-setup_ports
+setup_ports "LED2 PERST W_DISABLE"
+
+if [ "${BUTTON_EXT}" == "1" ]; then
+  # BUTTON_LED
+  BUTTON_LED_PIN="/sys/class/gpio/gpio${BUTTON_LED}"
+  BUTTON_LED_DEFAULT=1
+  # BUTTON_IN
+  BUTTON_IN_PIN="/sys/class/gpio/gpio${BUTTON_IN}"
+
+  setup_ports "${BOARD}_BUTTON_LED ${BOARD}_BUTTON_IN"
+fi

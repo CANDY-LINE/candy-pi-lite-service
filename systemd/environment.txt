@@ -58,3 +58,12 @@ SHOW_CANDY_CMD_ERROR=0
 
 # Set a python command to run Python scripts
 PYTHON=%PYTHON%
+
+# Set 1 for enablign the Button Extention
+BUTTON_EXT=%BUTTON_EXT%
+
+# Pin Assignments when BUTTON_EXT=1
+RPi_BUTTON_LED=%RPi_BUTTON_LED%
+RPi_BUTTON_IN=%RPi_BUTTON_IN%
+ATB_BUTTON_LED=%ATB_BUTTON_LED%
+ATB_BUTTON_IN=%ATB_BUTTON_IN%
