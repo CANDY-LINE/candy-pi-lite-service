@@ -79,11 +79,12 @@ function setup_input_ports {
     fi
     case ${BOARD} in
       "RPi")
-        ${PYTHON} -c "import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); GPIO.setup(${!p}, GPIO.IN)"
+        PY_GPIO="import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); GPIO.setup(${!p}, GPIO.IN, pull_up_down=GPIO.PUD_UP)"
+        ${PYTHON} -c "${PY_GPIO}"
         if [ "$?" != "0" ]; then
           error=1
           if [ "${PYTHON}" == "python3" ]; then
-            python -c "import RPi.GPIO as GPIO; GPIO.setmode(GPIO.BCM); GPIO.setup(${!p}, GPIO.IN)"
+            python -c "${PY_GPIO}"
             error=$?
           fi
           if [ "$?" != "0" ]; then
