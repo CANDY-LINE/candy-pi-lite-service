@@ -52,7 +52,7 @@ function send_signal_user2 {
     let CONN_COUNTER=CONN_COUNTER+1
   done
   if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
-    log "Timeout"
+    log "Connectino Resuming Timeout"
     exit 1
   fi
 }
