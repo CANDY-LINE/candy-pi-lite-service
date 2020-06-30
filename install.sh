@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=8.0.3
+VERSION=8.0.4
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -465,16 +465,18 @@ function install_candy_red {
         /usr/local/bin/npm
       if [[ ${MODEL_NAME} = *"ARMv6 "* || ${MODEL_NAME} = *"ARMv6-"* ]]; then
         ARM_ARCH_VERSION=armv6l
+        NODEJS_BASE_URL=https://unofficial-builds.nodejs.org/download/release/v
       elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
         ARM_ARCH_VERSION=${ARM_ARCH:-armv7l}
-      else
+        NODEJS_BASE_URL=https://nodejs.org/dist/v
+     else
         alert "Unsupported architecture. Model name:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp
-      wget https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
+      wget ${NODEJS_BASE_URL}${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
       if [ "$?" != "0" ]; then
-        alert "Failed to download a tarball from 'https://nodejs.org/dist/v${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz'"
+        alert "Failed to download a tarball from '${NODEJS_BASE_URL}${ARM_NODEJS_VERSION}/node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz'"
         exit 1
       fi
       tar zxf node-v${ARM_NODEJS_VERSION}-linux-${ARM_ARCH_VERSION}.tar.gz
