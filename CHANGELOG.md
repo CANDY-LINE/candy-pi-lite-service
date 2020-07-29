@@ -1,4 +1,6 @@
 # 履歴
+* 8.0.5
+    - 互換性維持のため、Raspberry Piボードの検証方法を変更
 * 8.0.4
     - Raspberry Pi ZeroでインストールをするとNode.jsのダウンロードに失敗する問題を修正
 * 8.0.3
@@ -14,7 +16,7 @@
 
 * 8.0.0
     - SPモードAPNを追加
-    - Linux Kernel 4.9より前のRaspbian OSサポートを削除（Kernel 4.8以前のRaspbianではRaspberry Piボードの認識をしなくなる）
+    - ~~Linux Kernel 4.9より前のRaspbian OSサポートを削除（Kernel 4.8以前のRaspbianではRaspberry Piボードの認識をしなくなる）~~
     - Python 3を標準で使用するように変更（ただし、Python 2.7の環境しかない場合はPython 2.7で動作）
     - Node.jsのインストールバージョンをv12.16.3へ変更
     - インストール時にARM_ARCH=armv6lを指定するとARMv7 CPUボードでもARMv6用バイナリーのNode.jsをインストールするように変更
