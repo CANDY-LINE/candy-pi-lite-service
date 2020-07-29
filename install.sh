@@ -110,10 +110,13 @@ function setup {
         ;;
     esac
     if [ -z "${BOARD}" ]; then
-      # As of the 4.9 kernel, all Pis report BCM2835, even those with BCM2836, BCM2837 and BCM2711 processors. 
-      grep "BCM2835" /proc/cpuinfo > /dev/null
+      # As of the 4.9 kernel, all Pis report BCM2835 in /proc/cpuinfo, even those with BCM2836, BCM2837 and BCM2711 processors. 
+      # But for the backward compatibility, we use /proc/device-tree/model.
+      grep "Raspberry Pi " /proc/device-tree/model > /dev/null
       if [ "$?" == "0" ]; then
         BOARD="RPi"
+      else
+        BOARD="/proc/device-tree/model => $(cat /proc/device-tree/model)"
       fi
     fi
   fi
