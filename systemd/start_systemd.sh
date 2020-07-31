@@ -276,10 +276,12 @@ function restart_with_connection {
 }
 
 # main
-init
 
 # Configuraing Button extension
 boot_button_ext
+
+# Initialization
+init
 
 # Configuring APN
 boot_apn
