@@ -87,6 +87,8 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
+  info "OS Version: $(cat /etc/debian_version)"
+  info "Kernel Version: ${KERNEL}"
   RET=`which python3`
   RET=$?
   if [ "${RET}" == "0" ]; then
