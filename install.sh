@@ -87,6 +87,7 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
+  info "Installing CANDY Pi Lite Board Service software version: ${VERSION}"
   info "OS Version: $(cat /etc/debian_version)"
   info "Kernel Version: ${KERNEL}"
   RET=`which python3`
