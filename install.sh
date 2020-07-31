@@ -225,6 +225,15 @@ function configure_sc16is7xx {
 }
 
 function do_configure_sc16is7xx_rpi {
+  # Kernel 5 is NOT supported yet.
+  KERNEL_MAJOR_VERSION=`uname -r | cut -d . -f1`
+  if [ "${KERNEL_MAJOR_VERSION}" != "4" ]; then
+    ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:${KERNEL} is unsupported. Use USB, instead."
+    err "UART/SPI is NOT Available. Use USB, instead."
+    err "Skip to install Device Tree Blob."
+    return
+  fi
+
   SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
   SC16IS7xx_DTB="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
   if [ ! -f "${SC16IS7xx_DTB}" ]; then
