@@ -34,7 +34,7 @@ case ${BOARD} in
     W_DISABLE=239
     ;;
   *)
-    DT_MODEL=`cat /proc/device-tree/model 2>&1`
+    DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
     log "[FATAL] UNSUPPORTED BOARD => [${DT_MODEL}]"
     exit 3
     ;;

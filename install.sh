@@ -18,14 +18,14 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=8.0.5
+VERSION=9.0.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
 # v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
 # v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
-ARM_NODEJS_VERSION="12.16.3"
+ARM_NODEJS_VERSION="12.18.3"
 NODEJS_VERSIONS="v12"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
@@ -87,6 +87,9 @@ function alert {
 
 function setup {
   [ "${DEBUG}" ] || rm -fr ${SRC_DIR}
+  info "Installing CANDY Pi Lite Board Service software Version: ${VERSION}"
+  info "OS Version: $(cat /etc/debian_version)"
+  info "Kernel Version: ${KERNEL}"
   RET=`which python3`
   RET=$?
   if [ "${RET}" == "0" ]; then
@@ -99,7 +102,7 @@ function setup {
   if [ -z "${BOARD}" ]; then
     DT_MODEL=""
     if [ -f "/proc/device-tree/model" ]; then
-      DT_MODEL=`cat /proc/device-tree/model 2>&1`
+      DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
     fi
     case ${DT_MODEL} in
       "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
@@ -116,12 +119,13 @@ function setup {
       if [ "$?" == "0" ]; then
         BOARD="RPi"
       else
-        BOARD="/proc/device-tree/model => $(cat /proc/device-tree/model)"
+        BOARD="/proc/device-tree/model => $(tr -d '\0' < /proc/device-tree/model)"
       fi
     fi
   fi
   case ${BOARD} in
     RPi|ATB)
+      info "Board Type: ${BOARD}"
       ;;
     *)
       err "Unsupported board: ${BOARD}"
@@ -225,6 +229,15 @@ function configure_sc16is7xx {
 }
 
 function do_configure_sc16is7xx_rpi {
+  # Kernel 5 is NOT supported yet.
+  KERNEL_MAJOR_VERSION=`uname -r | cut -d . -f1`
+  if [ "${KERNEL_MAJOR_VERSION}" != "4" ]; then
+    ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:${KERNEL} is unsupported. Use USB, instead."
+    err "UART/SPI is NOT Available. Use USB, instead."
+    err "Skip to install Device Tree Blob."
+    return
+  fi
+
   SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
   SC16IS7xx_DTB="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
   if [ ! -f "${SC16IS7xx_DTB}" ]; then
