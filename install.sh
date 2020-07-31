@@ -125,6 +125,7 @@ function setup {
   fi
   case ${BOARD} in
     RPi|ATB)
+      info "Board Type: ${BOARD}"
       ;;
     *)
       err "Unsupported board: ${BOARD}"
