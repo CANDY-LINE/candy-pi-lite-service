@@ -41,6 +41,7 @@ DHCPCD_CNF="/etc/dhcpcd.conf"
 DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 PYTHON=${PYTHON:-python3}
+ENVIRONMENT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/environment"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then

@@ -27,6 +27,15 @@ function init {
   fi
 }
 
+function boot_button_ext {
+  BUTTON_EXT_FILE="/boot/button_ext"
+  if [ -f "${BUTTON_EXT_FILE}" ]; then
+    log "[INFO] Enabling Button extension..."
+    sed -i -e "s/BUTTON_EXT=0/BUTTON_EXT=1/g" ${ENVIRONMENT_FILE}
+    rm -f ${BUTTON_EXT_FILE}
+  fi
+}
+
 function boot_apn {
   APN_FILE=""
   if [ -f "/boot/apn" ]; then
@@ -268,6 +277,9 @@ function restart_with_connection {
 
 # main
 init
+
+# Configuraing Button extension
+boot_button_ext
 
 # Configuring APN
 boot_apn
