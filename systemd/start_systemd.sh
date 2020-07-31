@@ -37,6 +37,7 @@ function boot_button_ext {
     log "[INFO] Enabling Button extension..."
     sed -i -e "s/BUTTON_EXT=0/BUTTON_EXT=1/g" ${ENVIRONMENT_FILE}
     rm -f ${BUTTON_EXT_FILE}
+    export BUTTON_EXT=1
   fi
 }
 
