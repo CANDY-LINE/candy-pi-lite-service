@@ -102,7 +102,7 @@ function setup {
   if [ -z "${BOARD}" ]; then
     DT_MODEL=""
     if [ -f "/proc/device-tree/model" ]; then
-      DT_MODEL=`cat /proc/device-tree/model 2>&1`
+      DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
     fi
     case ${DT_MODEL} in
       "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
@@ -119,7 +119,7 @@ function setup {
       if [ "$?" == "0" ]; then
         BOARD="RPi"
       else
-        BOARD="/proc/device-tree/model => $(cat /proc/device-tree/model)"
+        BOARD="/proc/device-tree/model => $(tr -d '\0' < /proc/device-tree/model)"
       fi
     fi
   fi

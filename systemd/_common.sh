@@ -105,13 +105,13 @@ function detect_usb_device {
 function detect_board {
   if [ -z "${BOARD}" ]; then
     if [ -f "/proc/device-tree/model" ]; then
-      DT_MODEL=`cat /proc/device-tree/model 2>&1`
+      DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
       if [ -z "${DT_MODEL}" ]; then
         RESOLVE_MAX=30
         RESOLVE_COUNTER=0
         while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
         do
-          DT_MODEL=`cat /proc/device-tree/model 2>&1`
+          DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
           if [ -n "${DT_MODEL}" ]; then
             break
           fi
