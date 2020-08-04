@@ -1,4 +1,7 @@
 # 履歴
+* 10.0.0
+    - Raspberry Pi OS 最新版（Kernel v5.4）にて接続ができなくなる問題を修正
+      - 従来のRaspbian/Raspberry Pi OS (Kernel v4.19) でも動作可能
 * 9.0.0
     - 電源OFFボタンの機能を正式リリース（標準では本機能は無効となっています）
     - 電源OFFボタンの有効化を`/boot/button_ext`ファイルを置くことによって行う機能を追加
