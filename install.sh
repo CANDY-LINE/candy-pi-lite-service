@@ -229,10 +229,8 @@ function configure_sc16is7xx {
 function do_configure_sc16is7xx_rpi {
   SC16IS7xx_DT_NAME="sc16is752-spi0-ce1"
   SC16IS7xx_DTB="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
-  if [ ! -f "${SC16IS7xx_DTB}" ]; then
-    info "Installing SC16IS7xx Device Tree Blob..."
-    dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTB} ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dts
-  fi
+  info "Installing SC16IS7xx Device Tree Blob..."
+  dtc -@ -I dts -O dtb -o ${SC16IS7xx_DTB} ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dts
 
   RET=`grep "^dtoverlay=${SC16IS7xx_DT_NAME}" /boot/config.txt`
   if [ "$?" != "0" ]; then
@@ -262,10 +260,8 @@ function do_configure_sc16is7xx_atb {
 
   SC16IS7xx_DT_NAME="sc16is752-spi2-ce1-atb"
   SC16IS7xx_DTB="/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo"
-  if [ ! -f "${SC16IS7xx_DTB}" ]; then
-    info "Installing SC16IS7xx Device Tree Blob..."
-    cp -f ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo ${SC16IS7xx_DTB}
-  fi
+  info "Installing SC16IS7xx Device Tree Blob..."
+  cp -f ${SRC_DIR}/boot/overlays/${SC16IS7xx_DT_NAME}.dtbo ${SC16IS7xx_DTB}
 
   RET=`grep "^intf:dtoverlay=${SC16IS7xx_DT_NAME}" /boot/hw_intf.conf`
   if [ "$?" != "0" ]; then
