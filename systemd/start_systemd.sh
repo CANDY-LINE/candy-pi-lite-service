@@ -226,22 +226,23 @@ function connect {
   CONN_COUNTER=0
   PPPD_PID=""
   RET=""
+  PPP_TIMEOUT_SEC=${PPP_TIMEOUT_SEC:-5}
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX})"
+    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX}, Timeout:${PPP_TIMEOUT_SEC}sec)"
     . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
     PPPD_PID="$!"
-    wait_for_ppp_online
+    wait_for_ppp_online ${PPP_TIMEOUT_SEC}
     if [ "${RET}" == "0" ]; then
       break
     fi
     poff -a > /dev/null 2>&1
-    PPPD_RUNNING_TIMEOUT=0
-    while [ ${PPPD_RUNNING_TIMEOUT} -lt 30 ]; do
+    PPPD_GRACEFUL_SHUTDOWN_TIMEOUT=0
+    while [ ${PPPD_GRACEFUL_SHUTDOWN_TIMEOUT} -lt 30 ]; do
       if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
         break;
       fi
-      let PPPD_RUNNING_TIMEOUT=PPPD_RUNNING_TIMEOUT+1
+      let PPPD_GRACEFUL_SHUTDOWN_TIMEOUT=PPPD_GRACEFUL_SHUTDOWN_TIMEOUT+1
       sleep 1
     done
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
@@ -261,6 +262,7 @@ function connect {
       exit 1
     fi
     let CONN_COUNTER=CONN_COUNTER+1
+    let PPP_TIMEOUT_SEC=PPP_TIMEOUT_SEC+30
   done
   if [ "${RET}" != "0" ]; then
     set_normal_ppp_exit_code
@@ -280,27 +282,7 @@ function restart_with_connection {
   exit 3
 }
 
-# main
-
-# Initialization
-init
-
-# Configuring APN
-boot_apn
-load_apn
-
-# Configuring boot-ip
-boot_ip_reset
-boot_ip_addr
-boot_ip_addr_fin
-
-# start banner
-log "[INFO] Initializing ${PRODUCT}..."
-while true;
-do
-  RECONNECT="0"
-  init_modem
-  resolve_sim_state
+function control_ntp {
   if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
     if [ "${NTP_DISABLED}" == "1" ]; then
       stop_ntp
@@ -308,32 +290,29 @@ do
   else
     start_ntp
   fi
-  retry_usb_auto_detection
-  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-    log "[INFO] New USB serial ports are detected"
-    wait_for_serial_available
-  fi
-  if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-    while true;
-    do
-      register_network
-      if [ "${NTP_DISABLED}" == "1" ]; then
-        adjust_time
-        if [ "$(date +%Y)" == "1980" ]; then
-          log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
-        fi
-      fi
-      retry_usb_auto_detection
-      if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-        log "[INFO] Re-registering network as new USB serial ports are detected"
-        wait_for_serial_available
-        continue
-      fi
-      break
-    done
-  fi
+}
 
-  resolve_connect_on_startup
+function init_network {
+  while true;
+  do
+    register_network
+    if [ "${NTP_DISABLED}" == "1" ]; then
+      adjust_time
+      if [ "$(date +%Y)" == "1980" ]; then
+        log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+      fi
+    fi
+    retry_usb_auto_detection
+    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+      log "[INFO] Re-registering network as new USB serial ports are detected"
+      wait_for_serial_available
+      continue
+    fi
+    break
+  done
+}
+
+function handle_connection_state {
   while true;
   do
     if [ "${GNSS_ON_STARTUP}" == "1" ]; then
@@ -349,8 +328,15 @@ do
         log "[INFO] Trying to establish a connection..."
         connect
         if [ "${RET}" != "0" ]; then
-          RECONNECT="1"
-          break
+          if [ "${APN}" == "${ORIGINAL_APN}" ]; then
+            RECONNECT="1"
+            break
+          else
+            log "[WARN] The fallback APN(${APN}) did not work. Give up to re-connect"
+            CONNECT="1"
+            PPPD_PID=""
+            set_normal_ppp_exit_code
+          fi
         else
           HOSTAPD_ENABLED=`systemctl is-enabled hostapd 2>&1`
           if [ "${HOSTAPD_ENABLED}" == "enabled" ]; then
@@ -409,10 +395,49 @@ do
       exit ${EXIT_CODE}
     fi
   done
-  if [ "${RECONNECT}" == "0" ]; then
-    break
-  else
-    log "[WARN] Failed to establishing a connection. Retry after ${SLEEP_SEC_BEFORE_RETRY} seconds..."
-    sleep ${SLEEP_SEC_BEFORE_RETRY}
-  fi
-done
+}
+
+function handle_modem_state {
+  log "[INFO] Initializing ${PRODUCT}..."
+  while true;
+  do
+    RECONNECT="0"
+    init_modem
+    resolve_sim_state
+    control_ntp
+    retry_usb_auto_detection
+    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+      log "[INFO] New USB serial ports are detected"
+      wait_for_serial_available
+    fi
+    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+      init_network
+    fi
+
+    resolve_connect_on_startup
+    handle_connection_state
+    if [ "${RECONNECT}" == "0" ]; then
+      break
+    else
+      log "[WARN] Failed to establishing a connection. Retry after ${SLEEP_SEC_BEFORE_RETRY} seconds..."
+      sleep ${SLEEP_SEC_BEFORE_RETRY}
+    fi
+  done
+}
+
+# main
+
+# Initialization
+init
+
+# Configuring APN
+boot_apn
+load_apn
+
+# Configuring boot-ip
+boot_ip_reset
+boot_ip_addr
+boot_ip_addr_fin
+
+# Start Modem
+handle_modem_state

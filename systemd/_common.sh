@@ -313,7 +313,7 @@ function wait_for_ppp_offline {
 }
 
 function wait_for_ppp_online {
-  MAX=70
+  MAX=$1
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do
@@ -510,31 +510,41 @@ function load_apn {
   fi
   APN=${APN:-${FALLBACK_APN}}
   APN=$(echo "${APN//[$' \t\r\n']}")
+  ORIGINAL_APN=${APN}
 
-  CREDS=`
-    /usr/bin/env ${PYTHON} -c \
-    "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
-    import json;c=json.load(f)['${APN}'];
-    print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
-    'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s CLCK_PU=%s' %
-    (
-      c['apn'] if 'apn' in c else '${APN}',
-      c['user'],
-      c['password'],
-      c['nw'] if 'nw' in c else 'auto',
-      c['pdp'] if 'pdp' in c else 'ipv4',
-      c['cs'] if 'cs' in c else False,
-      c['ops'] if 'ops' in c else False,
-      c['mcc'] if 'mcc' in c else '',
-      c['mnc'] if 'mnc' in c else '',
-      c['ipv6dns1'] if 'ipv6dns1' in c else '',
-      c['ipv6dns2'] if 'ipv6dns2' in c else '',
-      'true' if 'pu' in c and c['pu'] is True else 'false',
-    ))" \
-    2>&1`
-  if [ "$?" != "0" ]; then
-    log "[ERROR] Failed to load APN. Error=>${CREDS}"
-    exit 1
-  fi
+  while true;
+  do
+    CREDS=`
+      /usr/bin/env ${PYTHON} -c \
+      "with open('/opt/candy-line/${PRODUCT_DIR_NAME}/apn-list.json') as f:
+      import json;c=json.load(f)['${APN}'];
+      print('APN=%s APN_USER=%s APN_PASSWORD=%s APN_NW=%s ' \
+      'APN_PDP=%s APN_CS=%s APN_OPS=%s APN_MCC=%s APN_MNC=%s APN_IPV6DNS1=%s APN_IPV6DNS2=%s CLCK_PU=%s' %
+      (
+        c['apn'] if 'apn' in c else '${APN}',
+        c['user'],
+        c['password'],
+        c['nw'] if 'nw' in c else 'auto',
+        c['pdp'] if 'pdp' in c else 'ipv4',
+        c['cs'] if 'cs' in c else False,
+        c['ops'] if 'ops' in c else False,
+        c['mcc'] if 'mcc' in c else '',
+        c['mnc'] if 'mnc' in c else '',
+        c['ipv6dns1'] if 'ipv6dns1' in c else '',
+        c['ipv6dns2'] if 'ipv6dns2' in c else '',
+        'true' if 'pu' in c and c['pu'] is True else 'false',
+      ))" \
+      2>&1`
+    if [ "$?" == "0" ]; then
+      break
+    else
+      if [ "${APN}" == "${FALLBACK_APN}" ]; then
+        log "[ERROR] Failed to load the fallback APN. Error=>${CREDS}"
+        exit 1
+      fi
+      log "[ERROR] Failed to load APN. Will use the fallback APN. Error=>${CREDS}"
+      APN=${FALLBACK_APN}
+    fi
+  done
   eval ${CREDS}
 }

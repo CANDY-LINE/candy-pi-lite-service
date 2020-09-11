@@ -55,8 +55,8 @@ function led_off {
   echo 0 > ${LED2_PIN}/value
 }
 
-touch ${SHUTDOWN_STATE_FILE}
 init
+touch ${SHUTDOWN_STATE_FILE}
 
 # start banner
 log "[INFO] Inactivating ${PRODUCT}..."

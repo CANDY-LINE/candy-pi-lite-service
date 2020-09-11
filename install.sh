@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=10.0.1
+VERSION=10.1.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -251,8 +251,8 @@ function do_configure_sc16is7xx_atb {
       cp -f ${KO_FILE_PATH} /lib/modules/${KERNEL}/kernel/drivers/tty/serial/
       depmod -a
     else
-      ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:${KERNEL} is unsupported. Use USB, instead."
-      err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
+      ALERT_MESSAGE="GPIO(SPI) connection is NOT AVAILABLE because the kernel version:${KERNEL} is unsupported. Use USB/UART connection, instead."
+      err "Cannot install SC16IS7xx Kernel Module. GPIO(SPI) is NOT Available. Use USB/UART, instead."
       err "Skip to install Device Tree Blob."
       return
     fi

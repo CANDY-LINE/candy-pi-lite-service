@@ -10,6 +10,9 @@ BLINKY=1
 # Blinking interval in seconds, > 0 and <= 60
 BLINKY_INTERVAL_SEC=0.8
 
+# PPP timeout criteria in seconds
+PPP_TIMEOUT_SEC=5
+
 # Network testing request interval in PPP Modem-mode (<5: disabled)
 PPP_PING_INTERVAL_SEC=%PPP_PING_INTERVAL_SEC%
 
