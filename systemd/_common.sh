@@ -313,7 +313,7 @@ function wait_for_ppp_offline {
 }
 
 function wait_for_ppp_online {
-  MAX=70
+  MAX=$1
   COUNTER=0
   while [ ${COUNTER} -lt ${MAX} ];
   do

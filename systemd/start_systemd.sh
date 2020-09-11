@@ -226,22 +226,23 @@ function connect {
   CONN_COUNTER=0
   PPPD_PID=""
   RET=""
+  PPP_TIMEOUT_SEC=${PPP_TIMEOUT_SEC:-10}
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
-    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX})"
+    log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX}, Timeout:${PPP_TIMEOUT_SEC}sec)"
     . /opt/candy-line/${PRODUCT_DIR_NAME}/start_pppd.sh &
     PPPD_PID="$!"
-    wait_for_ppp_online
+    wait_for_ppp_online ${PPP_TIMEOUT_SEC}
     if [ "${RET}" == "0" ]; then
       break
     fi
     poff -a > /dev/null 2>&1
-    PPPD_RUNNING_TIMEOUT=0
-    while [ ${PPPD_RUNNING_TIMEOUT} -lt 30 ]; do
+    PPPD_GRACEFUL_SHUTDOWN_TIMEOUT=0
+    while [ ${PPPD_GRACEFUL_SHUTDOWN_TIMEOUT} -lt 30 ]; do
       if [ ! -f "${PPPD_RUNNING_FILE}" ]; then
         break;
       fi
-      let PPPD_RUNNING_TIMEOUT=PPPD_RUNNING_TIMEOUT+1
+      let PPPD_GRACEFUL_SHUTDOWN_TIMEOUT=PPPD_GRACEFUL_SHUTDOWN_TIMEOUT+1
       sleep 1
     done
     if [ -f ${PPPD_EXIT_CODE_FILE} ]; then
@@ -261,6 +262,7 @@ function connect {
       exit 1
     fi
     let CONN_COUNTER=CONN_COUNTER+1
+    let PPP_TIMEOUT_SEC=PPP_TIMEOUT_SEC+30
   done
   if [ "${RET}" != "0" ]; then
     set_normal_ppp_exit_code
