@@ -252,7 +252,7 @@ function do_configure_sc16is7xx_atb {
       depmod -a
     else
       ALERT_MESSAGE="GPIO(SPI) connection is NOT AVAILABLE because the kernel version:${KERNEL} is unsupported. Use USB/UART connection, instead."
-      err "Cannot install SC16IS7xx Kernel Module. SPI/UART is NOT Available. Use USB/UART, instead."
+      err "Cannot install SC16IS7xx Kernel Module. GPIO(SPI) is NOT Available. Use USB/UART, instead."
       err "Skip to install Device Tree Blob."
       return
     fi
