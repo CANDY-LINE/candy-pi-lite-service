@@ -251,8 +251,8 @@ function do_configure_sc16is7xx_atb {
       cp -f ${KO_FILE_PATH} /lib/modules/${KERNEL}/kernel/drivers/tty/serial/
       depmod -a
     else
-      ALERT_MESSAGE="UART/SPI is NOT Available because the kernel version:${KERNEL} is unsupported. Use USB, instead."
-      err "Cannot install SC16IS7xx Kernel Module. UART/SPI is NOT Available. Use USB, instead."
+      ALERT_MESSAGE="GPIO(SPI) connection is NOT AVAILABLE because the kernel version:${KERNEL} is unsupported. Use USB/UART connection, instead."
+      err "Cannot install SC16IS7xx Kernel Module. SPI/UART is NOT Available. Use USB/UART, instead."
       err "Skip to install Device Tree Blob."
       return
     fi
