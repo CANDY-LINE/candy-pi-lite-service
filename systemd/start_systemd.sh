@@ -328,8 +328,15 @@ function handle_connection_state {
         log "[INFO] Trying to establish a connection..."
         connect
         if [ "${RET}" != "0" ]; then
-          RECONNECT="1"
-          break
+          if [ "${APN}" == "${ORIGINAL_APN}" ]; then
+            RECONNECT="1"
+            break
+          else
+            log "[WARN] The fallback APN(${APN}) did not work. Give up to re-connect"
+            CONNECT="1"
+            PPPD_PID=""
+            set_normal_ppp_exit_code
+          fi
         else
           HOSTAPD_ENABLED=`systemctl is-enabled hostapd 2>&1`
           if [ "${HOSTAPD_ENABLED}" == "enabled" ]; then

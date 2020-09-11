@@ -510,6 +510,7 @@ function load_apn {
   fi
   APN=${APN:-${FALLBACK_APN}}
   APN=$(echo "${APN//[$' \t\r\n']}")
+  ORIGINAL_APN=${APN}
 
   while true;
   do
