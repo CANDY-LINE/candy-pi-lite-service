@@ -280,27 +280,7 @@ function restart_with_connection {
   exit 3
 }
 
-# main
-
-# Initialization
-init
-
-# Configuring APN
-boot_apn
-load_apn
-
-# Configuring boot-ip
-boot_ip_reset
-boot_ip_addr
-boot_ip_addr_fin
-
-# start banner
-log "[INFO] Initializing ${PRODUCT}..."
-while true;
-do
-  RECONNECT="0"
-  init_modem
-  resolve_sim_state
+function control_ntp {
   if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
     if [ "${NTP_DISABLED}" == "1" ]; then
       stop_ntp
@@ -308,32 +288,29 @@ do
   else
     start_ntp
   fi
-  retry_usb_auto_detection
-  if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-    log "[INFO] New USB serial ports are detected"
-    wait_for_serial_available
-  fi
-  if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
-    while true;
-    do
-      register_network
-      if [ "${NTP_DISABLED}" == "1" ]; then
-        adjust_time
-        if [ "$(date +%Y)" == "1980" ]; then
-          log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
-        fi
-      fi
-      retry_usb_auto_detection
-      if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-        log "[INFO] Re-registering network as new USB serial ports are detected"
-        wait_for_serial_available
-        continue
-      fi
-      break
-    done
-  fi
+}
 
-  resolve_connect_on_startup
+function init_network {
+  while true;
+  do
+    register_network
+    if [ "${NTP_DISABLED}" == "1" ]; then
+      adjust_time
+      if [ "$(date +%Y)" == "1980" ]; then
+        log "[WARN] Failed to adjust time. Set NTP_DISABLED=0 to adjust the current time"
+      fi
+    fi
+    retry_usb_auto_detection
+    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+      log "[INFO] Re-registering network as new USB serial ports are detected"
+      wait_for_serial_available
+      continue
+    fi
+    break
+  done
+}
+
+function handle_connection_state {
   while true;
   do
     if [ "${GNSS_ON_STARTUP}" == "1" ]; then
@@ -409,10 +386,49 @@ do
       exit ${EXIT_CODE}
     fi
   done
-  if [ "${RECONNECT}" == "0" ]; then
-    break
-  else
-    log "[WARN] Failed to establishing a connection. Retry after ${SLEEP_SEC_BEFORE_RETRY} seconds..."
-    sleep ${SLEEP_SEC_BEFORE_RETRY}
-  fi
-done
+}
+
+function handle_modem_state {
+  log "[INFO] Initializing ${PRODUCT}..."
+  while true;
+  do
+    RECONNECT="0"
+    init_modem
+    resolve_sim_state
+    control_ntp
+    retry_usb_auto_detection
+    if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
+      log "[INFO] New USB serial ports are detected"
+      wait_for_serial_available
+    fi
+    if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
+      init_network
+    fi
+
+    resolve_connect_on_startup
+    handle_connection_state
+    if [ "${RECONNECT}" == "0" ]; then
+      break
+    else
+      log "[WARN] Failed to establishing a connection. Retry after ${SLEEP_SEC_BEFORE_RETRY} seconds..."
+      sleep ${SLEEP_SEC_BEFORE_RETRY}
+    fi
+  done
+}
+
+# main
+
+# Initialization
+init
+
+# Configuring APN
+boot_apn
+load_apn
+
+# Configuring boot-ip
+boot_ip_reset
+boot_ip_addr
+boot_ip_addr_fin
+
+# Start Modem
+handle_modem_state
