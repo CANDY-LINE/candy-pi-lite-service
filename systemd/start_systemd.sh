@@ -226,7 +226,7 @@ function connect {
   CONN_COUNTER=0
   PPPD_PID=""
   RET=""
-  PPP_TIMEOUT_SEC=${PPP_TIMEOUT_SEC:-10}
+  PPP_TIMEOUT_SEC=${PPP_TIMEOUT_SEC:-5}
   while [ ${CONN_COUNTER} -lt ${CONN_MAX} ];
   do
     log "[INFO] Trying to connect...(Trial:$((CONN_COUNTER+1))/${CONN_MAX}, Timeout:${PPP_TIMEOUT_SEC}sec)"
