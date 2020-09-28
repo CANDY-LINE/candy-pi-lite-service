@@ -395,8 +395,9 @@ print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" != "0" ]; then
-    log "[ERROR] Network Registration Failed"
-    exit 1
+    log "[ERROR] Network Registration Failed, will restart after 10 seconds"
+    sleep 10
+    exit 6
   fi
 }
 
