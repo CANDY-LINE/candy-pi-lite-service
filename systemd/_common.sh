@@ -152,7 +152,7 @@ function look_for_usb_device {
     let COUNTER=COUNTER+1
   done
   if [ "${SERIAL_PORT_TYPE}" == "usb" ] && [ -z "${USB_SERIAL_PORT}" ]; then
-    log "[ERROR] USB Serial Ports are missing."
+    log "[ERROR] USB Serial Port is missing."
     exit 2
   fi
 }
