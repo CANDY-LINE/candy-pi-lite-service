@@ -478,9 +478,6 @@ function init_modem {
   perst
   look_for_usb_device
   wait_for_serial_available
-  if [ "${MODEM_INIT}" == "0" ]; then
-    exit 1
-  fi
 }
 
 function stop_ntp {
