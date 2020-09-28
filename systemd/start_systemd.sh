@@ -16,15 +16,7 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-
-function init {
-  . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
-
-  # Configuraing Button extension
-  boot_button_ext
-
-  . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
-}
+ENVIRONMENT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/environment"
 
 function boot_button_ext {
   BUTTON_EXT_FILE="/boot/button_ext"
@@ -34,6 +26,11 @@ function boot_button_ext {
     rm -f ${BUTTON_EXT_FILE}
     export BUTTON_EXT=1
   fi
+}
+
+function init {
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
 }
 
 function boot_apn {
@@ -421,6 +418,9 @@ function handle_modem_state {
 }
 
 # main
+
+# Configuraing Button extension (prior to init)
+boot_button_ext
 
 # Initialization
 init
