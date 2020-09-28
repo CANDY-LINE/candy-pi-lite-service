@@ -352,8 +352,9 @@ function wait_for_serial_available {
     let COUNTER=COUNTER+1
   done
   if [ "${MODEM_INIT}" == "0" ]; then
-    log "[ERROR] No serialport is available"
-    exit 1
+    log "[ERROR] No serialport is available, will restart after 10 seconds"
+    sleep 10
+    exit 5
   fi
 }
 
