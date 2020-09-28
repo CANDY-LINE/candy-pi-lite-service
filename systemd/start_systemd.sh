@@ -304,7 +304,7 @@ function init_network {
     fi
     retry_usb_auto_detection
     if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-      log "[INFO] Re-registering network as new USB serial ports are detected"
+      log "[INFO] Re-registering network as a new USB serial port is detected"
       wait_for_serial_available
       continue
     fi
