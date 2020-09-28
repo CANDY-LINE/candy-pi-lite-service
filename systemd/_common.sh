@@ -306,8 +306,8 @@ function wait_for_ppp_offline {
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" == "0" ]; then
-    log "[ERROR] PPP cannot be offline"
-    exit 1
+    log "[ERROR] PPP cannot be offline, will restart immediately"
+    exit 4
   fi
   clean_up_ppp_state
 }
@@ -405,8 +405,8 @@ function test_functionality {
   # init_modem must be performed prior to this function
   candy_command modem show
   if [ "${RET}" != 0 ]; then
-    log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
-    exit 1
+    log "[INFO] Restarting ${PRODUCT} Service immediately as the module isn't connected properly"
+    exit 7
   fi
   MODEM_SHOW=`/usr/bin/env ${PYTHON} -c "
 import json, time, datetime

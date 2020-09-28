@@ -250,7 +250,7 @@ function connect {
     if [[ "${OPERATOR}" == *"KDDI"* ]]; then
       log "[ERROR] The module isn't ready for KDDI network. Setup in progress..."
       candy_command modem reset
-      log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
+      log "[INFO] Restarting ${PRODUCT} Service as the module has been reset immediately"
       exit 1
     fi
     let CONN_COUNTER=CONN_COUNTER+1
