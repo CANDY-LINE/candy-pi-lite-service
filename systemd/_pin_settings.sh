@@ -18,7 +18,7 @@ echo -e "\033[93m[WARN] *** INTERNAL USE, DO NOT RUN DIRECTLY *** \033[0m"
 
 if [ ! -e "/proc/device-tree/model" ]; then
   log "[FATAL] *** UNSUPPORTED OS ***"
-  exit 3
+  exit 10
 fi
 
 detect_board
@@ -36,7 +36,7 @@ case ${BOARD} in
   *)
     DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
     log "[FATAL] UNSUPPORTED BOARD => [${DT_MODEL}]"
-    exit 3
+    exit 10
     ;;
 esac
 
@@ -58,7 +58,7 @@ function setup_output_ports {
       echo "${!p}"  > /sys/class/gpio/export
       if [ "$?" != "0" ]; then
         log "[FATAL] Failed to export GPIO${!p}"
-        exit 3
+        exit 10
       fi
       echo "out" > "${!pin_value}/direction"
       echo "${!default_value}" > "${!pin_value}/value"
@@ -73,7 +73,7 @@ function setup_input_ports {
       echo "${!p}"  > /sys/class/gpio/export
       if [ "$?" != "0" ]; then
         log "[FATAL] Failed to export GPIO${!p}"
-        exit 3
+        exit 10
       fi
       echo "in" > "${!pin_value}/direction"
     fi
@@ -89,13 +89,13 @@ function setup_input_ports {
           fi
           if [ "$?" != "0" ]; then
             log "[FATAL] Failed to set up GPIO${!p}"
-            exit 3
+            exit 10
           fi
         fi
         ;;
       *)
         log "[FATAL] NOT YET SUPPORTED for ${BOARD}"
-        exit 3
+        exit 10
         ;;
     esac
   done

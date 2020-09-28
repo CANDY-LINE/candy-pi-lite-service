@@ -539,8 +539,8 @@ function load_apn {
       break
     else
       if [ "${APN}" == "${FALLBACK_APN}" ]; then
-        log "[ERROR] Failed to load the fallback APN. Error=>${CREDS}"
-        exit 1
+        log "[FATAL] Failed to load the fallback APN. Error=>${CREDS}, Service will stop."
+        exit 10
       fi
       log "[ERROR] Failed to load APN. Will use the fallback APN. Error=>${CREDS}"
       APN=${FALLBACK_APN}
