@@ -421,8 +421,9 @@ print('MODEL=%s FUNC=%s' % (
   if [ "${FUNC}" == "Anomaly" ]; then
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
     candy_command modem "{\"action\":\"reset\",\"pu\":${CLCK_PU}}"
-    log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
-    exit 1
+    log "[INFO] Restarting ${PRODUCT} Service as the module has been reset, will restart after 10 seconds"
+    sleep 10
+    exit 8
   fi
 }
 
