@@ -206,11 +206,11 @@ class Monitor(threading.Thread):
         os.kill(os.getpid(), signal.SIGHUP)
         return True
 
-    def terminate_with_script_restart(self):
+    def terminate_with_reconnect(self):
         if os.path.isfile(shutdown_state_file):
             return False
         # exit from non-main thread
-        logger.error("[NOTICE] <candy-pi-lite> RESTARTING SCRIPT")
+        logger.error("[NOTICE] <candy-pi-lite> RECONNECTING")
         os.kill(os.getpid(), signal.SIGUSR1)
         return True
 
@@ -327,7 +327,7 @@ class Monitor(threading.Thread):
                           and self.terminate_with_service_restart():
                             return
                         elif self.pppd_exited_by_modem_hangup():
-                            if self.terminate_with_script_restart():
+                            if self.terminate_with_reconnect():
                                 return
                     time.sleep(5)
                     continue

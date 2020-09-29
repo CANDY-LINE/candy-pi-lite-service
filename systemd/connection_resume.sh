@@ -37,9 +37,9 @@ function assert_connected {
   fi
 }
 
-function send_signal_user2 {
-  # SIGUSR2(12)
-  kill -12 $(cat ${PIDFILE})
+function send_signal_user1 {
+  # SIGUSR1(10)
+  kill -10 $(cat ${PIDFILE})
   CONN_MAX=60
   CONN_COUNTER=0
   RET=""
@@ -61,4 +61,4 @@ init
 assert_root
 assert_service_is_running
 assert_connected
-send_signal_user2
+send_signal_user1
