@@ -16,20 +16,7 @@
 
 PRODUCT="CANDY Pi Lite Board"
 PRODUCT_DIR_NAME="candy-pi-lite"
-
-function init {
-  . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
-
-  # Configuraing Button extension
-  boot_button_ext
-
-  if [ -e "${UART_PORT}" ] || [ -e "${QWS_UC20_PORT}" ] || [ -e "${QWS_EC21_PORT}" ] || [ -e "${QWS_EC25_PORT}" ] || [ -e "${QWS_BG96_PORT}" ]; then
-    . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
-  else
-    log "[ERROR] Modem is missing"
-    exit 11
-  fi
-}
+ENVIRONMENT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/environment"
 
 function boot_button_ext {
   BUTTON_EXT_FILE="/boot/button_ext"
@@ -39,6 +26,11 @@ function boot_button_ext {
     rm -f ${BUTTON_EXT_FILE}
     export BUTTON_EXT=1
   fi
+}
+
+function init {
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_common.sh > /dev/null 2>&1
+  . /opt/candy-line/${PRODUCT_DIR_NAME}/_pin_settings.sh > /dev/null 2>&1
 }
 
 function boot_apn {
@@ -258,7 +250,7 @@ function connect {
     if [[ "${OPERATOR}" == *"KDDI"* ]]; then
       log "[ERROR] The module isn't ready for KDDI network. Setup in progress..."
       candy_command modem reset
-      log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
+      log "[INFO] Restarting ${PRODUCT} Service as the module has been reset immediately"
       exit 1
     fi
     let CONN_COUNTER=CONN_COUNTER+1
@@ -304,7 +296,7 @@ function init_network {
     fi
     retry_usb_auto_detection
     if [ "${USB_SERIAL_DETECTED}" == "1" ]; then
-      log "[INFO] Re-registering network as new USB serial ports are detected"
+      log "[INFO] Re-registering network as a new USB serial port is detected"
       wait_for_serial_available
       continue
     fi
@@ -369,11 +361,7 @@ function handle_connection_state {
         # SIGTERM(15) is signaled by a thread in server_main module
         exit 0
       elif [ "${EXIT_CODE}" == "138" ]; then
-        # SIGUSR1(10) is signaled by an external program to re-initiate the connection
-        register_network
-        continue
-      elif [ "${EXIT_CODE}" == "140" ]; then
-        # SIGUSR2(12) is signaled by an external program to re-establish the connection
+        # SIGUSR1(10) is signaled by an external program to re-establish the connection
         if [ ${SIM_STATE} == "SIM_STATE_READY" ]; then
           resolve_sim_state  # Ensure if the sim card is present
         fi
@@ -426,6 +414,9 @@ function handle_modem_state {
 }
 
 # main
+
+# Configuraing Button extension (prior to init)
+boot_button_ext
 
 # Initialization
 init

@@ -41,7 +41,6 @@ DHCPCD_CNF="/etc/dhcpcd.conf"
 DHCPCD_ORG="/etc/dhcpcd.conf.org_candy"
 DHCPCD_TMP="/etc/dhcpcd.conf.org_tmp"
 PYTHON=${PYTHON:-python3}
-ENVIRONMENT_FILE="/opt/candy-line/${PRODUCT_DIR_NAME}/environment"
 
 function assert_root {
   if [[ $EUID -ne 0 ]]; then
@@ -153,8 +152,9 @@ function look_for_usb_device {
     let COUNTER=COUNTER+1
   done
   if [ "${SERIAL_PORT_TYPE}" == "usb" ] && [ -z "${USB_SERIAL_PORT}" ]; then
-    log "[ERROR] USB Serial Ports are missing."
-    exit 2
+    log "[ERROR] USB Serial Port is missing, will restart after 10 seconds"
+    sleep 10
+    exit 3
   fi
 }
 
@@ -306,8 +306,8 @@ function wait_for_ppp_offline {
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" == "0" ]; then
-    log "[ERROR] PPP cannot be offline"
-    exit 1
+    log "[ERROR] PPP cannot be offline, will restart immediately"
+    exit 4
   fi
   clean_up_ppp_state
 }
@@ -352,8 +352,9 @@ function wait_for_serial_available {
     let COUNTER=COUNTER+1
   done
   if [ "${MODEM_INIT}" == "0" ]; then
-    log "[ERROR] No serialport is available"
-    exit 1
+    log "[ERROR] No serialport is available, will restart after 10 seconds"
+    sleep 10
+    exit 5
   fi
 }
 
@@ -394,8 +395,9 @@ print('N/A' if r['status'] != 'OK' else r['result']['registration']['${REG_KEY}'
     let COUNTER=COUNTER+1
   done
   if [ "${RET}" != "0" ]; then
-    log "[ERROR] Network Registration Failed"
-    exit 1
+    log "[ERROR] Network Registration Failed, will restart after 10 seconds"
+    sleep 10
+    exit 6
   fi
 }
 
@@ -403,8 +405,8 @@ function test_functionality {
   # init_modem must be performed prior to this function
   candy_command modem show
   if [ "${RET}" != 0 ]; then
-    log "[INFO] Restarting ${PRODUCT} Service as the module isn't connected properly"
-    exit 1
+    log "[INFO] Restarting ${PRODUCT} Service immediately as the module isn't connected properly"
+    exit 7
   fi
   MODEM_SHOW=`/usr/bin/env ${PYTHON} -c "
 import json, time, datetime
@@ -419,8 +421,9 @@ print('MODEL=%s FUNC=%s' % (
   if [ "${FUNC}" == "Anomaly" ]; then
     log "[ERROR] The module doesn't work properly. Functionality Recovery in progress..."
     candy_command modem "{\"action\":\"reset\",\"pu\":${CLCK_PU}}"
-    log "[INFO] Restarting ${PRODUCT} Service as the module has been reset"
-    exit 1
+    log "[INFO] Restarting ${PRODUCT} Service as the module has been reset, will restart after 10 seconds"
+    sleep 10
+    exit 8
   fi
 }
 
@@ -478,9 +481,6 @@ function init_modem {
   perst
   look_for_usb_device
   wait_for_serial_available
-  if [ "${MODEM_INIT}" == "0" ]; then
-    exit 1
-  fi
 }
 
 function stop_ntp {
@@ -539,8 +539,8 @@ function load_apn {
       break
     else
       if [ "${APN}" == "${FALLBACK_APN}" ]; then
-        log "[ERROR] Failed to load the fallback APN. Error=>${CREDS}"
-        exit 1
+        log "[FATAL] Failed to load the fallback APN. Error=>${CREDS}, Service will stop."
+        exit 10
       fi
       log "[ERROR] Failed to load APN. Will use the fallback APN. Error=>${CREDS}"
       APN=${FALLBACK_APN}
