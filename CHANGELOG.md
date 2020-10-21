@@ -1,6 +1,7 @@
 # 履歴
 * 10.2.1
    - ASUS Tinker Board SをTinker OS (debian v2.0.8)で利用した場合にインストール時にUnsupported baordとなる問題を修正
+   - インストール時に足りない可能性のあるパッケージを追加
 * 10.2.0
    - `Modem is missing`のエラーメッセージ発生箇所の改善
    - エラーコード番号を一部振り直し
