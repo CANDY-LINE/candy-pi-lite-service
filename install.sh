@@ -77,6 +77,10 @@ function err {
   echo -e "\033[91m[ERROR] $1\033[0m"
 }
 
+function warn {
+  echo -e "\033[95m[WARN] $1\033[0m"
+}
+
 function info {
   echo -e "\033[92m[INFO] $1\033[0m"
 }
@@ -254,8 +258,9 @@ function do_configure_sc16is7xx_atb {
       depmod -a
     else
       ALERT_MESSAGE="GPIO(SPI) connection is NOT AVAILABLE because the kernel version:${KERNEL} is unsupported. Use USB/UART connection, instead."
-      err "Cannot install SC16IS7xx Kernel Module. GPIO(SPI) is NOT Available. Use USB/UART, instead."
-      err "Skip to install Device Tree Blob."
+      warn "Cannot install SC16IS7xx Kernel Module. GPIO(SPI) is NOT Available."
+      warn "Don't warry. You can use USB/UART, instead."
+      info "Skip to install Device Tree Blob."
       return
     fi
   fi
