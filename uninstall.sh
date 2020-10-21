@@ -67,7 +67,7 @@ function uninstall_candy_board {
     RET=`which ${cmd}`
     RET=$?
     if [ "${RET}" != "0" ]; then
-      for p in "${PKGS}"
+      for p in ${PKGS}
       do
         ${PYTHON_CMD} -m pip uninstall -y ${p}
       done

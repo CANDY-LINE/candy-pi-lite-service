@@ -103,34 +103,36 @@ function detect_usb_device {
 
 function detect_board {
   if [ -z "${BOARD}" ]; then
-    if [ -f "/proc/device-tree/model" ]; then
+    if [ -f "/proc/board_info" ]; then
+      DT_MODEL=`tr -d '\0' < /proc/board_info`
+    elif [ -f "/proc/device-tree/model" ]; then
       DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
-      if [ -z "${DT_MODEL}" ]; then
-        RESOLVE_MAX=30
-        RESOLVE_COUNTER=0
-        while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
-        do
-          DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
-          if [ -n "${DT_MODEL}" ]; then
-            break
-          fi
-          sleep 2
-          let RESOLVE_COUNTER=RESOLVE_COUNTER+1
-        done
-      fi
-      case ${DT_MODEL} in
-        "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
-          BOARD="ATB"
-          ;;
-        *)
-          BOARD=""
-          ;;
-      esac
-      if [ -z "${BOARD}" ]; then
-        grep "Raspberry Pi " /proc/device-tree/model > /dev/null
-        if [ "$?" == "0" ]; then
-          BOARD="RPi"
+    fi
+    if [ -z "${DT_MODEL}" ]; then
+      RESOLVE_MAX=30
+      RESOLVE_COUNTER=0
+      while [ ${RESOLVE_COUNTER} -lt ${RESOLVE_MAX} ];
+      do
+        DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
+        if [ -n "${DT_MODEL}" ]; then
+          break
         fi
+        sleep 2
+        let RESOLVE_COUNTER=RESOLVE_COUNTER+1
+      done
+    fi
+    case ${DT_MODEL} in
+      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
+        BOARD="ATB"
+        ;;
+      *)
+        BOARD=""
+        ;;
+    esac
+    if [ -z "${BOARD}" ]; then
+      grep "Raspberry Pi " /proc/device-tree/model > /dev/null
+      if [ "$?" == "0" ]; then
+        BOARD="RPi"
       fi
     fi
   fi

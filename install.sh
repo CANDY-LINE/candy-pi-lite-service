@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=10.2.0
+VERSION=10.2.1
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -75,6 +75,10 @@ REBOOT=0
 
 function err {
   echo -e "\033[91m[ERROR] $1\033[0m"
+}
+
+function warn {
+  echo -e "\033[95m[WARN] $1\033[0m"
 }
 
 function info {
@@ -254,8 +258,9 @@ function do_configure_sc16is7xx_atb {
       depmod -a
     else
       ALERT_MESSAGE="GPIO(SPI) connection is NOT AVAILABLE because the kernel version:${KERNEL} is unsupported. Use USB/UART connection, instead."
-      err "Cannot install SC16IS7xx Kernel Module. GPIO(SPI) is NOT Available. Use USB/UART, instead."
-      err "Skip to install Device Tree Blob."
+      warn "Cannot install SC16IS7xx Kernel Module. GPIO(SPI) is NOT Available."
+      warn "Don't warry. You can use USB/UART, instead."
+      info "Skip to install Device Tree Blob."
       return
     fi
   fi
@@ -416,11 +421,11 @@ function install_candy_board {
   else
     info "Installing pip..."
     apt_get_update
-    apt-get install -y ${PYTHON}-pip
+    apt-get install -y ${PYTHON}-pip ${PYTHON}-setuptools ${PYTHON}-wheel
     info "Installed `${PIP} -V`"
   fi
 
-  for p in "${PKGS}"
+  for p in ${PKGS}
   do
     ${PIP} install --upgrade ${p}
   done
