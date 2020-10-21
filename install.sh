@@ -101,7 +101,9 @@ function setup {
   fi
   if [ -z "${BOARD}" ]; then
     DT_MODEL=""
-    if [ -f "/proc/device-tree/model" ]; then
+    if [ -f "/proc/board_info" ]; then
+      DT_MODEL=`tr -d '\0' < /proc/board_info`
+    elif [ -f "/proc/device-tree/model" ]; then
       DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
     fi
     case ${DT_MODEL} in
