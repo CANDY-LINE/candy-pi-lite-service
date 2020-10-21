@@ -16,7 +16,7 @@
 
 echo -e "\033[93m[WARN] *** INTERNAL USE, DO NOT RUN DIRECTLY *** \033[0m"
 
-if [ ! -e "/proc/device-tree/model" ]; then
+if [ ! -e "/proc/board_info" ] && [ ! -e "/proc/device-tree/model" ]; then
   log "[FATAL] *** UNSUPPORTED OS ***"
   exit 10
 fi
