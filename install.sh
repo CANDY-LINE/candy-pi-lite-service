@@ -421,7 +421,7 @@ function install_candy_board {
   else
     info "Installing pip..."
     apt_get_update
-    apt-get install -y ${PYTHON}-pip
+    apt-get install -y ${PYTHON}-pip ${PYTHON}-setuptools
     info "Installed `${PIP} -V`"
   fi
 
