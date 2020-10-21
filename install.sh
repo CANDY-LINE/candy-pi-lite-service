@@ -425,7 +425,7 @@ function install_candy_board {
     info "Installed `${PIP} -V`"
   fi
 
-  for p in "${PKGS}"
+  for p in ${PKGS}
   do
     ${PIP} install --upgrade ${p}
   done
