@@ -1,0 +1,2 @@
+ACTION=="add", ATTRS{idVendor}=="0ccf", ATTRS{idProduct}=="0576", RUN+="/sbin/modprobe cp210x" RUN+="/bin/sh -c 'echo 0ccf 0576 > /sys/bus/usb-serial/drivers/cp210x/new_id'"
+KERNEL=="ttyUSB[0-9]*", ATTRS{idVendor}=="0ccf", ATTRS{idProduct}=="0576", MODE="0660", SYMLINK+="TR-76Ui"
