@@ -111,7 +111,7 @@ function setup {
       DT_MODEL=`tr -d '\0' < /proc/device-tree/model`
     fi
     case ${DT_MODEL} in
-      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
+      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board" | "ASUS Tinker Board 2 (Linux Opensource)")
         BOARD="ATB"
         ;;
       *)
