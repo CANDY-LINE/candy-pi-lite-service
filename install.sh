@@ -470,8 +470,11 @@ function install_candy_red {
       info "Installing Node.js..."
       MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
       if [ "$?" != "0" ]; then
-        alert "Unsupported environment"
-        exit 1
+        MODEL_NAME=`uname -m`
+        if [ "$?" != "0" ]; then
+          alert "Cannot Resolve CPU Architecture."
+          exit 1
+        fi
       fi
       apt-get remove -y nodered nodejs nodejs-legacy npm
       rm -f \
