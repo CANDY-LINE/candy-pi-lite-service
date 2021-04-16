@@ -421,8 +421,17 @@ function install_candy_board {
   else
     info "Installing pip..."
     apt_get_update
-    apt-get install -y ${PYTHON}-pip ${PYTHON}-setuptools ${PYTHON}-wheel
+    apt-get install -y ${PYTHON}-pip
     info "Installed `${PIP} -V`"
+  fi
+
+  SETUPTOOLS=`${PYTHON} -c "import setuptools"`
+  RET=$?
+  if [ "${RET}" != "0" ]; then
+    info "Installing setuptools..."
+    apt_get_update
+    apt-get install -y ${PYTHON}-setuptools ${PYTHON}-wheel
+    info "Installed setuptools"
   fi
 
   for p in ${PKGS}
