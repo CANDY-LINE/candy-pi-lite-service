@@ -426,7 +426,7 @@ function install_candy_board {
     info "Installed `${PIP} -V`"
   fi
 
-  SETUPTOOLS=`${PYTHON} -c "import setuptools"`
+  SETUPTOOLS=`${PYTHON} -c "import setuptools" > /dev/null 2>&1`
   RET=$?
   if [ "${RET}" != "0" ]; then
     info "Installing setuptools..."
