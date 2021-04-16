@@ -490,8 +490,11 @@ function install_candy_red {
       elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
         ARM_ARCH_VERSION=${ARM_ARCH:-armv7l}
         NODEJS_BASE_URL=https://nodejs.org/dist/v
+      elif [[ ${MODEL_NAME} = *"aarch64"* ]]; then
+        ARM_ARCH_VERSION=${ARM_ARCH:-arm64}
+        NODEJS_BASE_URL=https://nodejs.org/dist/v
      else
-        alert "Unsupported architecture. Model name:${MODEL_NAME}"
+        alert "Unsupported architecture. Detected text:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp
