@@ -94,6 +94,7 @@ function setup {
   info "Installing CANDY Pi Lite Board Service software Version: ${VERSION}"
   info "OS Version: $(cat /etc/debian_version)"
   info "Kernel Version: ${KERNEL}"
+  info "Architecture: $(uname -m)"
   RET=`which python3`
   RET=$?
   if [ "${RET}" == "0" ]; then
