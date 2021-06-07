@@ -18,7 +18,7 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=10.2.1
+VERSION=10.3.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
@@ -62,7 +62,7 @@ CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
 PYTHON=""
-PKGS="candy-board-qws==3.0.0 candy-board-cli==4.0.0 croniter"
+PKGS="candy-board-qws==3.1.0 candy-board-cli==4.0.0 croniter"
 BUTTON_EXT=${BUTTON_EXT:-0}
 RPi_BUTTON_LED=${RPi_BUTTON_LED:-17}
 RPi_BUTTON_IN=${RPi_BUTTON_IN:-27}
