@@ -18,14 +18,14 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=10.2.1
+VERSION=10.3.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
-# v10 Active LTS Start on 2018-10-30, Maintenance LTS : April 2020   - April 2021
-# v12 Active LTS Start on 2019-10-22, Maintenance LTS : April 2021   - April 2022
-ARM_NODEJS_VERSION="12.18.3"
+# v12 Active LTS Start on 2019-10-22, Maintenance LTS : November 2020   - April 2022
+# v14 Active LTS Start on 2020-10-27, Maintenance LTS : October 2021   - April 2023
+ARM_NODEJS_VERSION="12.22.1"
 NODEJS_VERSIONS="v12"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
@@ -62,7 +62,7 @@ CONNECT_ON_STARTUP=${CONNECT_ON_STARTUP:-1}
 GNSS_ON_STARTUP=${GNSS_ON_STARTUP:-0}
 SLEEP_SEC_BEFORE_RETRY=${SLEEP_SEC_BEFORE_RETRY:-30}
 PYTHON=""
-PKGS="candy-board-qws==3.0.0 candy-board-cli==4.0.0 croniter"
+PKGS="candy-board-qws==3.1.0 candy-board-cli==4.0.0 croniter"
 BUTTON_EXT=${BUTTON_EXT:-0}
 RPi_BUTTON_LED=${RPi_BUTTON_LED:-17}
 RPi_BUTTON_IN=${RPi_BUTTON_IN:-27}
@@ -94,6 +94,7 @@ function setup {
   info "Installing CANDY Pi Lite Board Service software Version: ${VERSION}"
   info "OS Version: $(cat /etc/debian_version)"
   info "Kernel Version: ${KERNEL}"
+  info "Architecture: $(uname -m)"
   RET=`which python3`
   RET=$?
   if [ "${RET}" == "0" ]; then
@@ -421,8 +422,17 @@ function install_candy_board {
   else
     info "Installing pip..."
     apt_get_update
-    apt-get install -y ${PYTHON}-pip ${PYTHON}-setuptools ${PYTHON}-wheel
+    apt-get install -y ${PYTHON}-pip
     info "Installed `${PIP} -V`"
+  fi
+
+  SETUPTOOLS=`${PYTHON} -c "import setuptools" > /dev/null 2>&1`
+  RET=$?
+  if [ "${RET}" != "0" ]; then
+    info "Installing setuptools..."
+    apt_get_update
+    apt-get install -y ${PYTHON}-setuptools ${PYTHON}-wheel
+    info "Installed setuptools"
   fi
 
   for p in ${PKGS}
@@ -460,8 +470,11 @@ function install_candy_red {
       info "Installing Node.js..."
       MODEL_NAME=`cat /proc/cpuinfo | grep "model name"`
       if [ "$?" != "0" ]; then
-        alert "Unsupported environment"
-        exit 1
+        MODEL_NAME=`uname -m`
+        if [ "$?" != "0" ]; then
+          alert "Cannot Resolve CPU Architecture."
+          exit 1
+        fi
       fi
       apt-get remove -y nodered nodejs nodejs-legacy npm
       rm -f \
@@ -477,8 +490,11 @@ function install_candy_red {
       elif [[ ${MODEL_NAME} = *"ARMv7 "* || ${MODEL_NAME} = *"ARMv7-"* || ${MODEL_NAME} = *"ARMv8 "* || ${MODEL_NAME} = *"ARMv8-"* ]]; then
         ARM_ARCH_VERSION=${ARM_ARCH:-armv7l}
         NODEJS_BASE_URL=https://nodejs.org/dist/v
+      elif [[ ${MODEL_NAME} = *"aarch64"* ]]; then
+        ARM_ARCH_VERSION=${ARM_ARCH:-arm64}
+        NODEJS_BASE_URL=https://nodejs.org/dist/v
      else
-        alert "Unsupported architecture. Model name:${MODEL_NAME}"
+        alert "Unsupported architecture. Detected text:${MODEL_NAME}"
         exit 1
       fi
       cd /tmp
