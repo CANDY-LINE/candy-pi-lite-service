@@ -122,7 +122,7 @@ function detect_board {
       done
     fi
     case ${DT_MODEL} in
-      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board" | "ASUS Tinker Board 2 (Linux Opensource)")
+      "Tinker Board" | "Tinker Board S" | "Rockchip RK3288 Tinker Board")
         BOARD="ATB"
         ;;
       *)
