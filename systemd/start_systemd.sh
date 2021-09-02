@@ -314,6 +314,20 @@ function handle_connection_state {
       else
         log "[WARN] Failed to start GNSS"
       fi
+    elif [ "${GNSS_ON_STARTUP}" == "2" ]; then
+      candy_command gnss "{\"action\":\"start\",\"qzss\":true}" 
+      if [ "${RET}" == "0" ]; then
+        log "[INFO] GNSS started with QZSS option"
+      else
+        log "[WARN] Failed to start GNSS with QZSS option"
+      fi
+    elif [ "${GNSS_ON_STARTUP}" == "3" ]; then
+      candy_command gnss "{\"action\":\"start\",\"all\":true}" 
+      if [ "${RET}" == "0" ]; then
+        log "[INFO] GNSS started with ALL option"
+      else
+        log "[WARN] Failed to start GNSS with ALL option"
+      fi
     fi
     if [ "${CONNECT}" == "1" ]; then
       if [ "${SIM_STATE}" == "SIM_STATE_READY" ]; then
