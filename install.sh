@@ -18,14 +18,14 @@ VENDOR_HOME=/opt/candy-line
 
 SERVICE_NAME=candy-pi-lite
 GITHUB_ID=CANDY-LINE/candy-pi-lite-service
-VERSION=10.3.0
+VERSION=10.4.0
 # Channel B
 UART_PORT="/dev/ttySC1"
 MODEM_BAUDRATE=${MODEM_BAUDRATE:-460800}
 
 # v12 Active LTS Start on 2019-10-22, Maintenance LTS : November 2020   - April 2022
 # v14 Active LTS Start on 2020-10-27, Maintenance LTS : October 2021   - April 2023
-ARM_NODEJS_VERSION="12.22.1"
+ARM_NODEJS_VERSION="12.22.6"
 NODEJS_VERSIONS="v12"
 
 SERVICE_HOME=${VENDOR_HOME}/${SERVICE_NAME}
